@@ -12,6 +12,7 @@ import type * as admin from "../admin.js";
 import type * as meta from "../meta.js";
 import type * as orders from "../orders.js";
 import type * as products from "../products.js";
+import type * as promoCodes from "../promoCodes.js";
 import type * as promotions from "../promotions.js";
 import type * as users from "../users.js";
 
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   meta: typeof meta;
   orders: typeof orders;
   products: typeof products;
+  promoCodes: typeof promoCodes;
   promotions: typeof promotions;
   users: typeof users;
 }>;

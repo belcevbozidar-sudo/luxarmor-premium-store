@@ -132,6 +132,7 @@ let currentUser = null;
 let googleRegisterTemp = null;
 let activeRegType = "B2C";
 let activeCheckoutType = "B2C";
+let appliedPromo = null;
 let activeProductPageQty = 1;
 
 // --- PASS HASH UTILITY ---
@@ -792,7 +793,27 @@ function renderCheckoutSummary() {
     container.appendChild(div);
   });
   
-  const total = subtotal + shippingCost;
+  let discountAmount = 0;
+  if (appliedPromo) {
+    if (appliedPromo.discountType === "percent") {
+      discountAmount = subtotal * (appliedPromo.discountValue / 100);
+    } else {
+      discountAmount = Math.min(subtotal, appliedPromo.discountValue);
+    }
+  }
+
+  const discountRow = document.getElementById("checkout-sum-discount-row");
+  const discountEl = document.getElementById("checkout-sum-discount");
+  if (discountRow && discountEl) {
+    if (discountAmount > 0) {
+      discountEl.textContent = `-${discountAmount.toFixed(2)} лв.`;
+      discountRow.style.display = "flex";
+    } else {
+      discountRow.style.display = "none";
+    }
+  }
+  
+  const total = subtotal + shippingCost - discountAmount;
   
   subtotalEl.textContent = `${subtotal.toFixed(2)} лв.`;
   shippingEl.textContent = shippingCost === 0 ? "Безплатна" : `${shippingCost.toFixed(2)} лв.`;
@@ -834,7 +855,16 @@ window.submitCheckout = async function(event) {
     shippingCost = 0.00;
   }
   
-  const total = subtotal + shippingCost;
+  let discountAmount = 0;
+  if (appliedPromo) {
+    if (appliedPromo.discountType === "percent") {
+      discountAmount = subtotal * (appliedPromo.discountValue / 100);
+    } else {
+      discountAmount = Math.min(subtotal, appliedPromo.discountValue);
+    }
+  }
+  
+  const total = subtotal + shippingCost - discountAmount;
   const orderNum = "CK-" + Math.floor(100000 + Math.random() * 900000);
   
   const orderPayload = {
@@ -846,6 +876,11 @@ window.submitCheckout = async function(event) {
     total,
     clientType,
   };
+  
+  if (appliedPromo) {
+    orderPayload.promoCode = appliedPromo.code;
+    orderPayload.discountAmount = discountAmount;
+  }
   
   if (clientType === "B2B") {
     orderPayload.companyName = document.getElementById("checkout-comp-name").value.trim();
@@ -859,9 +894,17 @@ window.submitCheckout = async function(event) {
     document.getElementById("order-tracking-id").textContent = orderNum;
     document.getElementById("success-screen").classList.add("active");
     
-    // Reset cart
+    // Reset cart & applied promo code
     cart = [];
     saveCart();
+    appliedPromo = null;
+    const promoInput = document.getElementById("checkout-promo-input");
+    const promoMsg = document.getElementById("checkout-promo-msg");
+    if (promoInput) promoInput.value = "";
+    if (promoMsg) {
+      promoMsg.textContent = "";
+      promoMsg.style.display = "none";
+    }
     
     // Redirect to home
     window.location.hash = "#";
@@ -1263,7 +1306,44 @@ async function initApp() {
   });
   
   // Google sign in init
+  // Google sign in init
   initGoogleLoginButton();
+}
+
+async function applyPromoCode() {
+  const inputEl = document.getElementById("checkout-promo-input");
+  const msgEl = document.getElementById("checkout-promo-msg");
+  if (!inputEl || !msgEl) return;
+  
+  const code = inputEl.value.trim();
+  if (!code) {
+    msgEl.textContent = "Моля, въведете промо код!";
+    msgEl.style.color = "var(--danger)";
+    msgEl.style.display = "block";
+    return;
+  }
+  
+  try {
+    const res = await convex.query("promoCodes:verifyCode", { code });
+    if (res.success) {
+      appliedPromo = res;
+      msgEl.textContent = `Успешно приложен код ${res.code}!`;
+      msgEl.style.color = "#2ecc71";
+      msgEl.style.display = "block";
+      renderCheckoutSummary();
+    } else {
+      appliedPromo = null;
+      msgEl.textContent = res.error || "Невалиден код!";
+      msgEl.style.color = "var(--danger)";
+      msgEl.style.display = "block";
+      renderCheckoutSummary();
+    }
+  } catch (err) {
+    console.error("Promo verification failed", err);
+    msgEl.textContent = "Възникна грешка при проверка на кода.";
+    msgEl.style.color = "var(--danger)";
+    msgEl.style.display = "block";
+  }
 }
 
 // Global Exports
@@ -1279,6 +1359,7 @@ window.closeSuccessScreen = closeSuccessScreen;
 window.openCartSidebar = openCartSidebar;
 window.closeCartSidebar = closeCartSidebar;
 window.renderCartItems = renderCartItems;
+window.applyPromoCode = applyPromoCode;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);

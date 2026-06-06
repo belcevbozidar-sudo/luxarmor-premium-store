@@ -25,6 +25,9 @@ const STATIC_CATEGORIES = [
 let allCategories = [...STATIC_CATEGORIES];
 let uploadedImages = [];
 let selectedBrandFilter = null;
+let allUsers = [];
+let allPromoCodes = [];
+let parsedCSVProducts = [];
 
 // --- CANVAS BROWSER FINGERPRINT ---
 function getBrowserFingerprint() {
@@ -178,10 +181,25 @@ async function loadDashboardData() {
     allPromotions = await convex.query("promotions:getAll");
     allOrders = await convex.query("orders:get");
     
+    try {
+      allUsers = await convex.query("users:get");
+    } catch (userErr) {
+      console.warn("Could not load users from db:", userErr);
+    }
+    
+    try {
+      allPromoCodes = await convex.query("promoCodes:get");
+    } catch (promoErr) {
+      console.warn("Could not load promo codes from db:", promoErr);
+    }
+    
     renderProducts();
     renderBrandsAndModels();
     renderPromotions();
     renderOrders();
+    renderDashboardStats();
+    renderPromoCodes();
+    renderB2BUsers();
     populateFormSelects();
   } catch (err) {
     console.error("Error loading dashboard data:", err);
@@ -495,8 +513,25 @@ window.deleteProduct = async function(productId) {
   }
 };
 
-// --- TAB 2: BRANDS & MODELS ---
 function renderBrandsAndModels() {
+  // Render Categories
+  const categoriesContainer = document.getElementById("categories-list");
+  if (categoriesContainer) {
+    categoriesContainer.innerHTML = "";
+    allCategories.forEach(cat => {
+      const div = document.createElement("div");
+      div.className = "meta-item";
+      div.innerHTML = `
+        <div class="meta-item-info" style="flex:1; display:flex; align-items:center; gap:0.75rem;">
+          <img src="${cat.image.startsWith('assets/') ? cat.image : cat.image}" class="meta-logo-preview" onerror="this.style.display='none'">
+          <strong>${cat.name}</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${cat.id})</span>
+        </div>
+        <button class="btn-icon delete" onclick="deleteCategory('${cat._id}')" title="Изтрий категория"><i class="fas fa-trash"></i></button>
+      `;
+      categoriesContainer.appendChild(div);
+    });
+  }
+
   // Render Brands
   const brandsContainer = document.getElementById("brands-list");
   brandsContainer.innerHTML = "";
@@ -865,6 +900,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   
+  // CSV Importer bindings
+  const csvInput = document.getElementById("csv-file-input");
+  if (csvInput) {
+    csvInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        handleCSVFile(e.target.files[0]);
+      }
+    });
+    
+    const csvZone = document.getElementById("csv-dropzone");
+    if (csvZone) {
+      csvZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        csvZone.style.borderColor = "#fff";
+      });
+      csvZone.addEventListener("dragleave", () => {
+        csvZone.style.borderColor = "var(--gold)";
+      });
+      csvZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        csvZone.style.borderColor = "var(--gold)";
+        if (e.dataTransfer.files.length > 0) {
+          handleCSVFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+  }
+  
   // Document level click listener for closing mobile admin menu when clicking outside
   document.addEventListener("click", (e) => {
     const sidebar = document.getElementById("admin-sidebar");
@@ -893,4 +956,331 @@ function handleFiles(files) {
     uploadedImages = [...uploadedImages, ...results];
     renderImagePreviews();
   });
+}
+
+// --- CSV PARSING & PRODUCTS IMPORT ---
+function handleCSVFile(file) {
+  if (!file.name.endsWith(".csv")) {
+    alert("Моля, изберете валиден CSV файл!");
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result;
+    const rows = parseCSVText(text);
+    processCSVData(rows);
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+function parseCSVText(text) {
+  const lines = [];
+  let row = [""];
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    const next = text[i+1];
+
+    if (c === '"') {
+      if (inQuotes && next === '"') {
+        row[row.length - 1] += '"';
+        i++; // skip next quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (c === ',' && !inQuotes) {
+      row.push('');
+    } else if ((c === '\r' || c === '\n') && !inQuotes) {
+      if (c === '\r' && next === '\n') {
+        i++; // skip next \n
+      }
+      lines.push(row);
+      row = [''];
+    } else {
+      row[row.length - 1] += c;
+    }
+  }
+  if (row.length > 1 || row[0] !== '') {
+    lines.push(row);
+  }
+  return lines;
+}
+
+function processCSVData(rows) {
+  if (rows.length < 2) {
+    alert("CSV файлът трябва да съдържа поне един ред с хедъри и един ред с данни!");
+    return;
+  }
+  
+  const headers = rows[0].map(h => h.trim().toLowerCase());
+  const nameIdx = headers.indexOf("name");
+  const brandIdx = headers.indexOf("brand");
+  const modelIdx = headers.indexOf("model");
+  const categoryIdx = headers.indexOf("category");
+  const priceB2CIdx = headers.indexOf("priceb2c");
+  const priceB2BIdx = headers.indexOf("priceb2b");
+  const descIdx = headers.indexOf("description");
+  const matIdx = headers.indexOf("material");
+  const weightIdx = headers.indexOf("weight");
+  const originIdx = headers.indexOf("origin");
+  const delIdx = headers.indexOf("delivery");
+  const imgIdx = headers.indexOf("image");
+  
+  if (nameIdx === -1 || brandIdx === -1 || categoryIdx === -1 || priceB2CIdx === -1) {
+    alert("Липсват задължителни колони в CSV файла! Задължителни са: Name, Brand, Category, PriceB2C.");
+    return;
+  }
+  
+  parsedCSVProducts = [];
+  
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.length < headers.length) continue;
+    if (!row[nameIdx]) continue;
+    
+    const priceB2C = parseFloat(row[priceB2CIdx]) || 0;
+    const priceB2B = priceB2BIdx !== -1 ? (parseFloat(row[priceB2BIdx]) || Math.round(priceB2C * 0.8 * 100) / 100) : (Math.round(priceB2C * 0.8 * 100) / 100);
+    
+    const product = {
+      name: row[nameIdx].trim(),
+      brand: row[brandIdx].trim(),
+      model: modelIdx !== -1 ? row[modelIdx].trim() : "Всички модели",
+      category: row[categoryIdx].trim(),
+      priceB2C,
+      priceB2B,
+      rating: 5,
+      tag: null,
+      description: descIdx !== -1 ? row[descIdx].trim() : "Премиум аксесоар за телефон",
+      specs: {
+        material: matIdx !== -1 ? row[matIdx].trim() : "Силикон",
+        weight: weightIdx !== -1 ? row[weightIdx].trim() : "30г",
+        origin: originIdx !== -1 ? row[originIdx].trim() : "Германия",
+        delivery: delIdx !== -1 ? row[delIdx].trim() : "Бърза доставка"
+      },
+      image: imgIdx !== -1 ? row[imgIdx].trim() : "assets/logo.png"
+    };
+    
+    parsedCSVProducts.push(product);
+  }
+  
+  renderCSVPreview();
+}
+
+function renderCSVPreview() {
+  const section = document.getElementById("csv-preview-section");
+  const countSpan = document.getElementById("csv-import-count");
+  const tbody = document.getElementById("csv-preview-table-body");
+  
+  if (!section || !tbody || !countSpan) return;
+  tbody.innerHTML = "";
+  
+  countSpan.textContent = parsedCSVProducts.length;
+  
+  parsedCSVProducts.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${p.name}</strong></td>
+      <td>${p.brand}</td>
+      <td>${p.model}</td>
+      <td>${p.category}</td>
+      <td>${p.priceB2C.toFixed(2)} лв.</td>
+      <td>${p.priceB2B.toFixed(2)} лв.</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  section.style.display = "block";
+}
+
+window.confirmCSVImport = async function() {
+  if (parsedCSVProducts.length === 0) return;
+  
+  if (!confirm(`Сигурни ли сте, че искате да импортирате ${parsedCSVProducts.length} продукта?`)) return;
+  
+  try {
+    let importedCount = 0;
+    for (const p of parsedCSVProducts) {
+      await convex.mutation("products:create", p);
+      importedCount++;
+    }
+    alert(`Успешно импортирани ${importedCount} продукта!`);
+    parsedCSVProducts = [];
+    document.getElementById("csv-preview-section").style.display = "none";
+    document.getElementById("csv-file-input").value = "";
+    loadDashboardData();
+  } catch (err) {
+    alert("Грешка при импортиране: " + err.message);
+  }
+};
+
+// --- CATEGORIES MANAGEMENT ---
+window.openCategoryModal = function() {
+  document.getElementById("category-modal").classList.add("active");
+};
+
+window.closeCategoryModal = function() {
+  document.getElementById("category-modal").classList.remove("active");
+};
+
+window.saveCategory = async function(event) {
+  event.preventDefault();
+  const id = document.getElementById("category-id-input").value.trim();
+  const name = document.getElementById("category-name-input").value.trim();
+  const image = document.getElementById("category-image-input").value.trim();
+  
+  try {
+    await convex.mutation("meta:addCategory", { id, name, image });
+    closeCategoryModal();
+    loadDashboardData();
+  } catch (err) {
+    alert("Грешка при добавяне на категория: " + err.message);
+  }
+};
+
+window.deleteCategory = async function(catId) {
+  if (confirm("Внимание: Изтриването на категорията ще премахне филтъра за нея. Продължаване?")) {
+    try {
+      await convex.mutation("meta:removeCategory", { id: catId });
+      loadDashboardData();
+    } catch (err) {
+      alert("Грешка при изтриване: " + err.message);
+    }
+  }
+};
+
+// --- PROMO CODES MANAGEMENT ---
+window.openPromoCodeModal = function() {
+  document.getElementById("promo-code-modal").classList.add("active");
+};
+
+window.closePromoCodeModal = function() {
+  document.getElementById("promo-code-modal").classList.remove("active");
+};
+
+window.savePromoCode = async function(event) {
+  event.preventDefault();
+  const code = document.getElementById("promo-code-input").value.trim();
+  const discountType = document.getElementById("promo-code-type").value;
+  const discountValue = parseFloat(document.getElementById("promo-code-value").value);
+  
+  try {
+    await convex.mutation("promoCodes:create", { code, discountType, discountValue });
+    closePromoCodeModal();
+    loadDashboardData();
+  } catch (err) {
+    alert("Грешка при добавяне на промо код: " + err.message);
+  }
+};
+
+window.deletePromoCode = async function(promoId) {
+  if (confirm("Наистина ли искате да изтриете този промо код?")) {
+    try {
+      await convex.mutation("promoCodes:remove", { id: promoId });
+      loadDashboardData();
+    } catch (err) {
+      alert("Грешка при изтриване: " + err.message);
+    }
+  }
+};
+
+function renderPromoCodes() {
+  const tbody = document.getElementById("promocodes-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  
+  allPromoCodes.forEach(code => {
+    const linkedOrders = allOrders.filter(o => o.promoCode === code.code && o.status !== "cancelled");
+    const revenue = linkedOrders.reduce((sum, o) => sum + o.total, 0);
+    
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${code.code}</strong></td>
+      <td>${code.discountType === "percent" ? "Процентна (%)" : "Фиксирана (лв.)"}</td>
+      <td>${code.discountValue}${code.discountType === "percent" ? "%" : " лв."}</td>
+      <td>
+        <span class="badge-status ${code.active ? 'completed' : 'cancelled'}">
+          ${code.active ? 'Да' : 'Не'}
+        </span>
+      </td>
+      <td><strong>${revenue.toFixed(2)} лв.</strong></td>
+      <td>
+        <button class="btn-icon delete" onclick="deletePromoCode('${code._id}')" title="Изтрий промо код"><i class="fas fa-trash"></i></button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- B2B CLIENTS RENDERING ---
+function renderB2BUsers() {
+  const tbody = document.getElementById("b2b-clients-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  
+  const b2bUsers = allUsers.filter(u => u.clientType === "B2B");
+  
+  b2bUsers.forEach(u => {
+    const comp = u.companyDetails || {};
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${u.name}</strong></td>
+      <td>${u.email}</td>
+      <td>${u.phone}</td>
+      <td>${comp.name || "Няма"}</td>
+      <td>${comp.bulstat || "Няма"}</td>
+      <td>${comp.mol || "Няма"}</td>
+      <td>${comp.vatRegistered ? "Да" : "Не"}</td>
+      <td>${comp.address || u.address}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- DASHBOARD STATISTICS ---
+function renderDashboardStats() {
+  const monthRevenueEl = document.getElementById("stat-month-revenue");
+  const lifetimeRevenueEl = document.getElementById("stat-lifetime-revenue");
+  const ordersCountEl = document.getElementById("stat-orders-count");
+  const b2bCountEl = document.getElementById("stat-b2b-count");
+  
+  if (!monthRevenueEl) return;
+  
+  const nonCancelledOrders = allOrders.filter(o => o.status !== "cancelled");
+  const lifetimeRevenue = nonCancelledOrders.reduce((sum, o) => sum + o.total, 0);
+  
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  
+  const thisMonthOrders = nonCancelledOrders.filter(o => {
+    const oDate = new Date(o.createdAt);
+    return oDate.getFullYear() === currentYear && oDate.getMonth() === currentMonth;
+  });
+  const monthRevenue = thisMonthOrders.reduce((sum, o) => sum + o.total, 0);
+  
+  const b2bUsers = allUsers.filter(u => u.clientType === "B2B");
+  
+  monthRevenueEl.textContent = `${monthRevenue.toFixed(2)} лв.`;
+  lifetimeRevenueEl.textContent = `${lifetimeRevenue.toFixed(2)} лв.`;
+  ordersCountEl.textContent = allOrders.length;
+  b2bCountEl.textContent = b2bUsers.length;
+  
+  const recentTbody = document.getElementById("dashboard-recent-orders");
+  if (recentTbody) {
+    recentTbody.innerHTML = "";
+    const recent = allOrders.slice(0, 5);
+    recent.forEach(o => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${o.orderNumber}</strong></td>
+        <td>${o.name}</td>
+        <td>${o.total.toFixed(2)} лв.</td>
+        <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(204,164,59,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
+        <td><span class="badge-status ${o.status}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
+      `;
+      recentTbody.appendChild(tr);
+    });
+  }
 }

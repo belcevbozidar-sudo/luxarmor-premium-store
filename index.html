@@ -236,6 +236,18 @@
           <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Продукти:</span><span id="checkout-sum-subtotal" style="color: #fff; font-weight:500;">0.00 лв.</span></div>
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Доставка:</span><span id="checkout-sum-shipping" style="color: #fff; font-weight:500;">5.00 лв.</span></div>
+            <div id="checkout-sum-discount-row" style="display: none; justify-content: space-between; color: #2ecc71;"><span style="font-weight: 500;">Отстъпка:</span><span id="checkout-sum-discount" style="font-weight: 500;">-0.00 лв.</span></div>
+            
+            <!-- Promo Code Input Section -->
+            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.25rem;">
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Имате ли промо код?</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="checkout-promo-input" placeholder="Код (напр. IVAN10)" style="flex: 1; padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: #fff; font-size: 0.85rem; outline: none;">
+                <button type="button" class="btn-secondary" id="btn-apply-promo" onclick="applyPromoCode()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--gold); color: var(--gold); background: transparent;">Приложи</button>
+              </div>
+              <div id="checkout-promo-msg" style="font-size: 0.8rem; margin-top: 0.35rem; display: none;"></div>
+            </div>
+
             <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.25rem; margin-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.75rem;"><span style="color: var(--gold);">Общо:</span><span id="checkout-sum-total" style="color: var(--gold);">0.00 лв.</span></div>
           </div>
         </div>

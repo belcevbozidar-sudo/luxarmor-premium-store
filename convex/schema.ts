@@ -49,6 +49,8 @@ export default defineSchema({
     clientType: v.string(), // "B2C" | "B2B"
     companyName: v.optional(v.string()),
     companyBulstat: v.optional(v.string()),
+    promoCode: v.optional(v.string()),
+    discountAmount: v.optional(v.number()),
   }),
 
   adminLocks: defineTable({
@@ -103,4 +105,11 @@ export default defineSchema({
     name: v.string(),
     image: v.string(),
   }),
+
+  promoCodes: defineTable({
+    code: v.string(),
+    discountType: v.string(), // "percent" | "fixed"
+    discountValue: v.number(),
+    active: v.boolean(),
+  }).index("by_code", ["code"]),
 });

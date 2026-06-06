@@ -20,6 +20,8 @@ export const create = mutation({
     clientType: v.string(), // "B2C" | "B2B"
     companyName: v.optional(v.string()),
     companyBulstat: v.optional(v.string()),
+    promoCode: v.optional(v.string()),
+    discountAmount: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("orders", {
@@ -34,6 +36,8 @@ export const create = mutation({
       clientType: args.clientType,
       companyName: args.companyName,
       companyBulstat: args.companyBulstat,
+      promoCode: args.promoCode,
+      discountAmount: args.discountAmount,
     });
   },
 });

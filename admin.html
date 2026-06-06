@@ -684,6 +684,14 @@
       .table-container {
         overflow-x: auto;
       }
+      .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem !important;
+      }
+      .meta-layout {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+      }
     }
 
     @media (max-width: 480px) {
@@ -693,6 +701,9 @@
 
       .header-actions span {
         display: none !important;
+      }
+      .dashboard-grid {
+        grid-template-columns: 1fr !important;
       }
     }
 
@@ -758,17 +769,73 @@
     
     <!-- Sidebar navigation -->
     <div class="sidebar" id="admin-sidebar">
-      <button class="nav-tab-btn active" onclick="switchTab('products-tab', this)"><i class="fas fa-box"></i> Продукти</button>
-      <button class="nav-tab-btn" onclick="switchTab('metadata-tab', this)"><i class="fas fa-tags"></i> Марки & Модели</button>
+      <button class="nav-tab-btn active" onclick="switchTab('dashboard-tab', this)"><i class="fas fa-chart-line"></i> Табло</button>
+      <button class="nav-tab-btn" onclick="switchTab('products-tab', this)"><i class="fas fa-box"></i> Продукти</button>
+      <button class="nav-tab-btn" onclick="switchTab('metadata-tab', this)"><i class="fas fa-tags"></i> Категории & Марки</button>
       <button class="nav-tab-btn" onclick="switchTab('promotions-tab', this)"><i class="fas fa-gift"></i> Промоции & Подаръци</button>
       <button class="nav-tab-btn" onclick="switchTab('orders-tab', this)"><i class="fas fa-shopping-bag"></i> Поръчки</button>
+      <button class="nav-tab-btn" onclick="switchTab('promocodes-tab', this)"><i class="fas fa-percent"></i> Промо Кодове</button>
+      <button class="nav-tab-btn" onclick="switchTab('b2b-clients-tab', this)"><i class="fas fa-user-friends"></i> B2B Клиенти</button>
+      <button class="nav-tab-btn" onclick="switchTab('import-tab', this)"><i class="fas fa-file-import"></i> Импорт Excel</button>
     </div>
     
     <!-- Main workspace content -->
     <div class="main-content">
       
+      <!-- === TAB: DASHBOARD === -->
+      <div class="tab-panel active" id="dashboard-tab">
+        <div class="section-header">
+          <h2 class="section-title">Месечна Статистика & Оборот</h2>
+        </div>
+        
+        <!-- Stats Widgets Grid -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;" class="dashboard-grid">
+          <div class="meta-panel" style="text-align: center; padding: 2rem;">
+            <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
+            <h4 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Оборот за този месец</h4>
+            <p id="stat-month-revenue" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0.00 лв.</p>
+          </div>
+          <div class="meta-panel" style="text-align: center; padding: 2rem;">
+            <i class="fas fa-wallet" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
+            <h4 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Общ Оборот (Lifetime)</h4>
+            <p id="stat-lifetime-revenue" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0.00 лв.</p>
+          </div>
+          <div class="meta-panel" style="text-align: center; padding: 2rem;">
+            <i class="fas fa-shopping-cart" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
+            <h4 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Брой Поръчки</h4>
+            <p id="stat-orders-count" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0</p>
+          </div>
+          <div class="meta-panel" style="text-align: center; padding: 2rem;">
+            <i class="fas fa-building" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
+            <h4 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">B2B Партньори</h4>
+            <p id="stat-b2b-count" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0</p>
+          </div>
+        </div>
+        
+        <!-- Recent Orders Card -->
+        <div class="meta-panel" style="margin-bottom: 2rem;">
+          <div class="meta-panel-title">Последни Поръчки</div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Номер</th>
+                  <th>Клиент</th>
+                  <th>Сума</th>
+                  <th>Тип</th>
+                  <th>Статус</th>
+                </tr>
+              </thead>
+              <tbody id="dashboard-recent-orders">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
       <!-- === TAB 1: PRODUCTS === -->
-      <div class="tab-panel active" id="products-tab">
+      <div class="tab-panel" id="products-tab">
         <div class="section-header">
           <h2 class="section-title">Управление на Продукти</h2>
           <button class="btn-action" onclick="openProductModal()"><i class="fas fa-plus"></i> Добави Продукт</button>
@@ -805,7 +872,18 @@
           <i class="fas fa-info-circle"></i> Кликнете върху някоя от марките за избор на марка, за да филтрирате и покажете само моделите телефони, асоциирани с нея.
         </p>
         
-        <div class="meta-layout">
+        <div class="meta-layout" style="grid-template-columns: repeat(3, 1fr);">
+          <!-- Categories Control -->
+          <div class="meta-panel">
+            <div class="meta-panel-title">
+              <span>Категории аксесоари</span>
+              <button class="btn-icon" onclick="openCategoryModal()" title="Добави Категория"><i class="fas fa-plus"></i></button>
+            </div>
+            <div class="meta-list" id="categories-list">
+              <!-- Dynamically loaded -->
+            </div>
+          </div>
+
           <!-- Brands Control -->
           <div class="meta-panel">
             <div class="meta-panel-title">
@@ -880,6 +958,110 @@
               <!-- Dynamically populated -->
             </tbody>
           </table>
+        </div>
+      </div>
+      
+      <!-- === TAB: PROMO CODES === -->
+      <div class="tab-panel" id="promocodes-tab">
+        <div class="section-header">
+          <h2 class="section-title">Управление на Промо Кодове</h2>
+          <button class="btn-action" onclick="openPromoCodeModal()"><i class="fas fa-plus"></i> Нов Промо Код</button>
+        </div>
+        
+        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 1.5rem;">
+          <i class="fas fa-info-circle"></i> Промо кодовете се използват при финално плащане. Системата автоматично проследява общия оборот, генериран от поръчките, използващи всеки код.
+        </p>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Промо Код</th>
+                <th>Тип Отстъпка</th>
+                <th>Стойност</th>
+                <th>Активен</th>
+                <th>Генериран Оборот</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="promocodes-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- === TAB: B2B CLIENTS === -->
+      <div class="tab-panel" id="b2b-clients-tab">
+        <div class="section-header">
+          <h2 class="section-title">Регистрирани B2B Партньори</h2>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Име</th>
+                <th>Имейл</th>
+                <th>Телефон</th>
+                <th>Фирма</th>
+                <th>ЕИК/БУЛСТАТ</th>
+                <th>МОЛ</th>
+                <th>ДДС</th>
+                <th>Адрес</th>
+              </tr>
+            </thead>
+            <tbody id="b2b-clients-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- === TAB: IMPORT PRODUCTS === -->
+      <div class="tab-panel" id="import-tab">
+        <div class="section-header">
+          <h2 class="section-title">Групово Качване на Продукти (CSV формат)</h2>
+        </div>
+        
+        <div class="meta-panel" style="margin-bottom: 2rem; padding: 2rem;">
+          <h3 style="margin-bottom: 1rem; color: #fff;">Инструкции за Импорт</h3>
+          <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.6;">
+            За да качите продукти от Excel, експортирайте ексел файла си като <strong>CSV (Comma Separated Values)</strong>. Уверете се, че първият ред съдържа следните колони с точни заглавия:<br>
+            <code style="background: rgba(0,0,0,0.5); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--gold); display: block; margin-top: 0.5rem; font-family: monospace;">Name, Brand, Model, Category, PriceB2C, PriceB2B, Description, Material, Weight, Origin, Delivery, Image</code>
+          </p>
+          
+          <div id="csv-dropzone" style="border: 2px dashed var(--gold); border-radius: 12px; padding: 3rem; text-align: center; background: rgba(0,0,0,0.2); cursor: pointer; position: relative; margin-top: 1.5rem;">
+            <i class="fas fa-file-csv" style="font-size: 3.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
+            <h4 style="color: #fff; margin-bottom: 0.5rem;">Изберете CSV файл от Вашето устройство</h4>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Или издърпайте и пуснете файла тук</span>
+            <input type="file" id="csv-file-input" accept=".csv" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+          </div>
+        </div>
+        
+        <!-- Preview Table of parsed items -->
+        <div id="csv-preview-section" class="meta-panel" style="display: none; margin-bottom: 2rem;">
+          <div class="meta-panel-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span>Преглед на Продуктите за Импортиране (<span id="csv-import-count">0</span>)</span>
+            <button class="btn-action" onclick="confirmCSVImport()"><i class="fas fa-cloud-upload-alt"></i> Импортирай Всички</button>
+          </div>
+          <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Име</th>
+                  <th>Марка</th>
+                  <th>Модел</th>
+                  <th>Категория</th>
+                  <th>Цена B2C</th>
+                  <th>Цена B2B</th>
+                </tr>
+              </thead>
+              <tbody id="csv-preview-table-body">
+                <!-- Rendered preview -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       
@@ -991,6 +1173,69 @@
           <div class="modal-footer">
             <button type="button" class="btn-secondary" onclick="closeProductModal()">Отказ</button>
             <button type="submit" class="btn-action">Запази Продукт</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- === MODAL: ADD CATEGORY === -->
+  <div class="modal" id="category-modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Добавяне на Категория</h3>
+        <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="saveCategory(event)">
+          <div class="form-group">
+            <label>Идентификатор (id на английски):</label>
+            <input type="text" id="category-id-input" required placeholder="напр. power_banks">
+          </div>
+          <div class="form-group">
+            <label>Име на български език:</label>
+            <input type="text" id="category-name-input" required placeholder="напр. Външни батерии">
+          </div>
+          <div class="form-group">
+            <label>Снимка (път към файл в assets):</label>
+            <input type="text" id="category-image-input" required placeholder="напр. assets/cat_power_bank.png">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeCategoryModal()">Отказ</button>
+            <button type="submit" class="btn-action">Добави</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- === MODAL: ADD PROMO CODE === -->
+  <div class="modal" id="promo-code-modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Добавяне на Промо Код</h3>
+        <button class="modal-close" onclick="closePromoCodeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="savePromoCode(event)">
+          <div class="form-group">
+            <label>Промо Код (напр. INFLU10):</label>
+            <input type="text" id="promo-code-input" required placeholder="напр. INFLU10" style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label>Тип отстъпка:</label>
+            <select id="promo-code-type" required>
+              <option value="percent">Процентна (%)</option>
+              <option value="fixed">Фиксирана сума (лв.)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Стойност на отстъпката:</label>
+            <input type="number" step="0.01" id="promo-code-value" required placeholder="напр. 10 или 5.00">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closePromoCodeModal()">Отказ</button>
+            <button type="submit" class="btn-action">Добави</button>
           </div>
         </form>
       </div>
