@@ -1,4 +1,4 @@
-import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/+esm";
+import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/browser/+esm";
 
 const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
 
@@ -825,7 +825,7 @@ window.selectBrand = selectBrand;
 window.selectModel = selectModel;
 
 // --- INITIALIZATION ---
-document.addEventListener("DOMContentLoaded", async () => {
+async function initApp() {
   // Load dynamic data from database
   await loadProducts();
   
@@ -877,4 +877,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (formElement) {
     formElement.addEventListener("submit", handleCheckout);
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
