@@ -1,177 +1,395 @@
-// --- PREMIUM PHONE ACCESSORIES DATASET ---
+// --- CaseKing PHONE ACCESSORIES DATASET ---
 const PRODUCTS = [
+  // cases
   {
     id: 1,
-    name: "Кожен Кейс с MagSafe (Premium)",
+    name: "Премиум кожен кейс MagSafe Case",
+    brand: "Apple",
+    model: "iPhone 15 Pro Max",
     category: "cases",
-    categoryBg: "Кейсове",
     price: 69.00,
     oldPrice: 99.00,
     image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&q=80&w=800",
     rating: 5,
     tag: "БЕСТСЕЛЪР",
-    description: "Луксозен калъф, ръчно изработен от естествена селектирана телешка кожа с вградена MagSafe технология. Осигурява перфектно магнитно прилепване с всички MagSafe аксесоари, надеждна защита от удари и изключително меко усещане в ръката. Развива красива индивидуална патина с течение на времето.",
-    specs: {
-      metal: "Естествена телешка кожа & Микрофибър",
-      weight: "iPhone 13, 14, 15, 16 Pro / Pro Max серии",
-      stone: "Вграден подсилен MagSafe магнитен пръстен",
-      packaging: "Луксозна маркова кутия и безплатна експресна доставка"
-    }
+    description: "Луксозен калъф от естествена селектирана телешка кожа с вградена MagSafe технология. Изключително фино усещане и защита.",
+    specs: { material: "Естествена кожа", weight: "30г", origin: "Германия", delivery: "Бърза доставка с преглед" }
   },
   {
     id: 2,
-    name: "Карбонов Кейс UltraSlim Kevlar",
+    name: "Карбонов кейс UltraSlim Kevlar",
+    brand: "Apple",
+    model: "iPhone 15 Pro",
     category: "cases",
-    categoryBg: "Кейсове",
     price: 79.00,
     oldPrice: null,
     image: "https://images.unsplash.com/photo-1586953983027-d7508a64f4bb?auto=format&fit=crop&q=80&w=800",
     rating: 5,
     tag: "ХИТ",
-    description: "Изключително лек и невероятно здрав защитен калъф, направен от 100% истински арамидни влакна (Kevlar). С дебелина от едва 0.6 мм, той придава усещане за работа с телефон без калъф, като същевременно осигурява военен клас защита от надрасквания и изпускания. Матово нехлъзгащо покритие.",
-    specs: {
-      metal: "100% Арамидни влакна (Aerospace Carbon/Kevlar)",
-      weight: "iPhone 14, 15, 16 Pro / Pro Max серии",
-      stone: "Ултратънък профил 0.6 мм, тегло само 12г",
-      packaging: "Премиум твърда LuxArmor кутия със сертификат"
-    }
+    description: "Ултратънък и изключително здрав кейс от 100% арамидни влакна (Kevlar). Военен клас на защита, дебелина само 0.6 мм.",
+    specs: { material: "Карбонов кевлар", weight: "12г", origin: "САЩ", delivery: "Бърза доставка с преглед" }
   },
   {
     id: 3,
-    name: "3-в-1 Безжична Станция VoltDock",
-    category: "chargers",
-    categoryBg: "Зарядни",
-    price: 119.00,
-    oldPrice: 159.00,
-    image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800",
+    name: "Удароустойчив силиконов кейс Liquid Armor",
+    brand: "Samsung",
+    model: "Galaxy S24 Ultra",
+    category: "cases",
+    price: 39.00,
+    oldPrice: 49.00,
+    image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&q=80&w=800",
     rating: 5,
-    tag: "ПРЕМИУМ",
-    description: "Елегантна мултифункционална станция за безжично зареждане от авиационен алуминий и закалено стъкло. Зарежда едновременно Вашия iPhone (MagSafe), Apple Watch и безжични слушалки (AirPods). Снабдена с интелигентен чип за автоматично регулиране на напрежението и контрол на температурата.",
-    specs: {
-      metal: "Авиационен алуминий & Закалено стъкло с LED индиактор",
-      weight: "Смартфони с MagSafe, Apple Watch 3-9/Ultra, AirPods Pro",
-      stone: "Обща мощност 25W (15W MagSafe + 5W Watch + 5W AirPods)",
-      packaging: "Луксозна кутия, 1м бърз USB-C кабел, инструкции"
-    }
+    tag: "НОВО",
+    description: "Мек и удобен силиконов кейс с микрофибърна подплата отвътре за максимална защита от надраскване и падане.",
+    specs: { material: "Премиум течен силикон", weight: "25г", origin: "Корея", delivery: "Бърза доставка с преглед" }
   },
   {
     id: 4,
-    name: "Бързо Зарядно GaN 65W Turbo",
-    category: "chargers",
-    categoryBg: "Зарядни",
-    price: 55.00,
+    name: "Хибриден кейс с подсилени ръбове Crystal Clear",
+    brand: "Samsung",
+    model: "Galaxy S23 Ultra",
+    category: "cases",
+    price: 29.00,
     oldPrice: null,
-    image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "НОВО",
-    description: "Супер компактно мрежово зарядно устройство, захранвано от иновативната GaN (галиев нитрид) технология от 3-то поколение. Снабдено с 2x USB Type-C порта и 1x USB-A порт, то е достатъчно мощно да зареди бързо Вашия смартфон, таблет и лаптоп (MacBook Air/Pro) едновременно.",
-    specs: {
-      metal: "Висококачествен огнеупорен поликарбонат (V0 клас)",
-      weight: "Всички съвременни смартфони, таблети и лаптопи с USB-C",
-      stone: "Max 65W Power Delivery 3.0 / Quick Charge 4+",
-      packaging: "Предпазна кутия и 2 години гаранция"
-    }
+    image: "https://images.unsplash.com/photo-1586953983027-d7508a64f4bb?auto=format&fit=crop&q=80&w=800",
+    rating: 4,
+    tag: null,
+    description: "Напълно прозрачен кейс, който не пожълтява. Разкрива оригиналния дизайн на вашия телефон, защитавайки го перфектно.",
+    specs: { material: "Поликарбонат и TPU", weight: "22г", origin: "Корея", delivery: "Бърза доставка с преглед" }
   },
   {
     id: 5,
-    name: "Протектори Sapphire Shield",
-    category: "protectors",
-    categoryBg: "Протектори",
-    price: 29.00,
-    oldPrice: 39.00,
-    image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800",
+    name: "Ултра здрав удароустойчив кейс Tough Guard",
+    brand: "Xiaomi",
+    model: "Redmi Note 13 Pro+",
+    category: "cases",
+    price: 34.00,
+    oldPrice: 45.00,
+    image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&q=80&w=800",
     rating: 5,
-    tag: "ХИТ",
-    description: "Индивидуални предпазители за камерите на Вашия смартфон, изработени от истински синтетичен сапфирен кристал и алуминиеви рамки, съвпадащи точно с цвета на корпуса. Предлагат максимална твърдост 9H за защита от силни удари и надраскване, без да влияят на качеството на снимките и светкавицата.",
-    specs: {
-      metal: "Синтетичен сапфир с олеофобно покритие & Алуминиев обков",
-      weight: "iPhone 13, 14, 15, 16 Pro / Pro Max серии",
-      stone: "Максимална твърдост 9H, AR антирефлексна технология",
-      packaging: "Комплект от 3 броя, професионален шаблон за лесно поставяне"
-    }
+    tag: "ЗАЩИТА",
+    description: "Двуслоен кейс с подсилени ъгли и вградена стойка за гледане на видео. Идеален за екстремни условия.",
+    specs: { material: "Усилена пластмаса & TPU", weight: "45г", origin: "Китай", delivery: "Бърза доставка с преглед" }
   },
+  // protectors
   {
     id: 6,
-    name: "9D Темпериран Стъклен Протектор",
+    name: "9D Темпериран стъклен протектор Full Glue",
+    brand: "Apple",
+    model: "iPhone 15 Pro Max",
     category: "protectors",
-    categoryBg: "Протектори",
-    price: 35.00,
-    oldPrice: null,
+    price: 25.00,
+    oldPrice: 35.00,
     image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=800",
-    rating: 4,
-    tag: null,
-    description: "Висококачествен стъклен протектор за екран с извити 9D омекотени ръбове за цялостно покритие. С Full Glue технологията лепилото е разпределено по цялата повърхност, предотвратявайки появата на балончета. Специален филтър против отблясъци и олеофобен слой против пръстови отпечатъци.",
-    specs: {
-      metal: "Японско закалено стъкло Asahi Glass (9H)",
-      weight: "iPhone, Samsung Galaxy, Xiaomi най-нови модели",
-      stone: "0.33 мм дебелина, 99.9% оптична прозрачност, Full Glue",
-      packaging: "Защитен твърд плик, мокри и сухи кърпички, стикери за прах"
-    }
+    rating: 5,
+    tag: "ЗАДЪЛЖИТЕЛНО",
+    description: "Закалено стъкло с лепило по цялата повърхност. Перфектна чувствителност на допир и максимална защита от счупване.",
+    specs: { material: "Закалено стъкло Asahi 9H", weight: "5г", origin: "Япония", delivery: "Бърза доставка" }
   },
   {
     id: 7,
-    name: "Магнитна Стойка за Кола MagHold",
-    category: "accessories",
-    categoryBg: "Аксесоари",
+    name: "Сапфирени протектори за задна камера Sapphire Shield",
+    brand: "Apple",
+    model: "iPhone 15 Pro",
+    category: "protectors",
+    price: 29.00,
+    oldPrice: null,
+    image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800",
+    rating: 5,
+    tag: "ПРЕМИУМ",
+    description: "Индивидуални метални пръстени със сапфирени стъкла, предпазващи лещите на камерата без промяна в качеството на снимките.",
+    specs: { material: "Синтетичен сапфир & Алуминий", weight: "2г", origin: "Германия", delivery: "Бърза доставка" }
+  },
+  {
+    id: 8,
+    name: "UV стъклен протектор Liquid Glass",
+    brand: "Samsung",
+    model: "Galaxy S24 Ultra",
+    category: "protectors",
+    price: 35.00,
+    oldPrice: 45.00,
+    image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=800",
+    rating: 5,
+    tag: "ХИТ",
+    description: "Иновативен протектор с течно UV лепило, специално за извити екрани. Предотвратява белене и въздушни мехурчета.",
+    specs: { material: "Оптично закалено стъкло", weight: "6г", origin: "Корея", delivery: "Бърза доставка" }
+  },
+  // accessories & chargers
+  {
+    id: 9,
+    name: "Магнитна стойка за кола MagHold N52",
+    brand: "Apple",
+    model: "Всички модели",
+    category: "car_acc",
     price: 49.00,
     oldPrice: null,
     image: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?auto=format&fit=crop&q=80&w=800",
     rating: 5,
     tag: "БЕСТСЕЛЪР",
-    description: "Стилна и супер компактна магнитна стойка за кола за вентилационна решетка, изцяло съвместима с MagSafe стандарта. Оборудвана с 16 свръхсилни N52 неодимови магнита, които ще държат телефона Ви непоклатим дори при преминаване през големи дупки или неравности. 360-градусов ъгъл на въртене.",
-    specs: {
-      metal: "Анодиран алуминий & Противоплъзгащ софт силиконов фронт",
-      weight: "Смартфони с вграден MagSafe или всякакви телефони с пластина",
-      stone: "16x N52 неодимови магнита, усилена щипка за решетка",
-      packaging: "Стойка MagHold, метална пластина за калъф, кутия"
-    }
+    description: "Стойка за кола за въздуховод с 16 супер силни N52 магнита. Съвместима с MagSafe технология.",
+    specs: { material: "Алуминий & Силикон", weight: "60г", origin: "Китай", delivery: "Бърза доставка" }
   },
   {
-    id: 8,
-    name: "MagSafe Power Bank 10000mAh",
-    category: "chargers",
-    categoryBg: "Зарядни",
-    price: 89.00,
-    oldPrice: 119.00,
-    image: "https://images.unsplash.com/photo-1574920162043-b872873f19c8?auto=format&fit=crop&q=80&w=800",
+    id: 10,
+    name: "Мултифункционална безжична станция VoltDock 3-в-1",
+    brand: "Apple",
+    model: "Всички модели",
+    category: "wireless_chargers",
+    price: 119.00,
+    oldPrice: 159.00,
+    image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800",
     rating: 5,
-    tag: "НАМАЛЕНИЕ",
-    description: "Преносима батерия (Power Bank) от ново поколение с капацитет 10 000 mAh и бързо MagSafe безжично зареждане. С ултра компактен плосък дизайн и вградена метална сгъваема стойка, която Ви позволява да гледате видео, докато телефонът се зарежда. LED дисплей за оставащия капацитет.",
-    specs: {
-      metal: "Огнеупорен ABS & Софт-тъч покритие & Метална стойка",
-      weight: "Съвместими устройства с безжично зареждане Qi / MagSafe",
-      stone: "15W безжично MagSafe + 22.5W Power Delivery USB-C изход/вход",
-      packaging: "MagSafe батерия, 0.5м USB-C бърз кабел, подаръчна опаковка"
-    }
+    tag: "ТОП ИЗБОР",
+    description: "Бързо безжично зареждане едновременно за вашия телефон, смарт часовник и безжични слушалки.",
+    specs: { material: "Авиационен алуминий", weight: "220г", origin: "Германия", delivery: "Бърза доставка" }
+  },
+  {
+    id: 11,
+    name: "Бързо мрежово зарядно GaN 65W Pro",
+    brand: "Всички",
+    model: "Всички модели",
+    category: "all_chargers",
+    price: 55.00,
+    oldPrice: 69.00,
+    image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800",
+    rating: 5,
+    tag: "НОВО",
+    description: "Иновативно GaN зарядно с три порта (2x USB-C + 1x USB-A) за супер бързо зареждане на телефон, таблет и лаптоп.",
+    specs: { material: "Огнеупорен поликарбонат", weight: "95г", origin: "Китай", delivery: "Бърза доставка" }
+  },
+  {
+    id: 12,
+    name: "Оригинален кабел Type-C към Lightning Fast Charge",
+    brand: "Apple",
+    model: "Всички модели",
+    category: "original_cables",
+    price: 29.00,
+    oldPrice: null,
+    image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800",
+    rating: 5,
+    tag: "ОРИГИНАЛЕН",
+    description: "Оригинален подсилен плетен кабел с дължина 1.2 метра, поддържащ бързо Power Delivery зареждане.",
+    specs: { material: "Плетен найлон & Медни нишки", weight: "35г", origin: "САЩ", delivery: "Бърза доставка" }
   }
 ];
 
+// --- PHONE MODELS MAPPING PER BRAND ---
+const BRAND_MODELS = {
+  "Apple": ["iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 14 Pro Max", "iPhone 14 Pro", "iPhone 13 Pro Max", "iPhone 13", "Всички модели"],
+  "Samsung": ["Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23", "Galaxy A55", "Всички модели"],
+  "Xiaomi": ["Xiaomi 14 Ultra", "Xiaomi 13T Pro", "Redmi Note 13 Pro+", "Redmi Note 12 Pro", "Всички модели"],
+  "Huawei": ["Pura 70 Ultra", "Mate 60 Pro", "P60 Pro", "Всички модели"],
+  "Honor": ["Magic 6 Pro", "Honor 90", "Всички модели"],
+  "MOTO": ["Edge 50 Ultra", "Edge 40", "Всички модели"],
+  "Nokia": ["Nokia G42", "Nokia XR21", "Всички модели"],
+  "OnePlus": ["OnePlus 12", "OnePlus Nord 4", "Всички модели"],
+  "Oppo": ["Reno 12 Pro", "Всички модели"],
+  "Vivo": ["X100 Pro", "Всички модели"],
+  "Google": ["Pixel 8 Pro", "Pixel 8", "Pixel 7a", "Всички модели"],
+  "TCL": ["TCL 505", "Всички модели"],
+  "Realme": ["Realme GT 6", "Всички модели"],
+  "LG": ["Velvet", "Всички модели"],
+  "Lenovo": ["Legion Y90", "Всички модели"],
+  "Infinix": ["Note 40 Pro", "Всички модели"]
+};
+
+// --- BRANDS LIST ---
+const BRANDS = Object.keys(BRAND_MODELS);
+
+// --- CATEGORIES LIST ---
+const CATEGORIES = [
+  { id: "car_acc", name: "Аксесоари за автомобил", image: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?auto=format&fit=crop&q=80&w=800" },
+  { id: "bike_acc", name: "Аксесоари за велосипед", image: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?auto=format&fit=crop&q=80&w=800" },
+  { id: "desk_holder", name: "Поставка за бюро", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
+  { id: "selfie_stick", name: "Селфи Стик", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "car_chargers", name: "Зарядни за кола", image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800" },
+  { id: "pop_socket", name: "ПОП СОКЕТ / ВРЪЗКИ ЗА ТЕЛЕФОН", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "kids_headphones", name: "Детски слушалки", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
+  { id: "wireless_chargers", name: "Безжични зарядни", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
+  { id: "lightning_cables", name: "Кабели за iPhone/Lightning", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "original_cables", name: "Оригинални кабели", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "micro_usb_cables", name: "Кабели Micro USB", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "type_c_cables", name: "Кабели Type C", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "power_banks", name: "Външни батерии / Power banks", image: "https://images.unsplash.com/photo-1574920162043-b872873f19c8?auto=format&fit=crop&q=80&w=800" },
+  { id: "hubs", name: "Хъбове", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
+  { id: "audio_cables", name: "Аудио / Видео Кабели", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "flash_cards", name: "Карти с памет / Флашки", image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=800" },
+  { id: "headphones", name: "Слушалки", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
+  { id: "bt_headphones", name: "Bluetooth слушалки", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
+  { id: "handsfree", name: "Безжични слушалки / Handsfree", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
+  { id: "speakers", name: "Колонки", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
+  { id: "adapters", name: "Преходници", image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800" },
+  { id: "gadgets", name: "Джаджи", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "original_cables_alt", name: "Оригинални кабели", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
+  { id: "all_chargers", name: "Всички зарядни", image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800" }
+];
+
 // --- SHOPPING CART STATE ---
-let cart = JSON.parse(localStorage.getItem('luxarmor_cart')) || [];
+let cart = JSON.parse(localStorage.getItem('caseking_cart')) || [];
 let activeQuickViewProduct = null;
+let selectedBrand = null;
+let selectedModel = null;
+let selectedCategory = null;
 
 // --- DYNAMIC RENDER FUNCTIONS ---
-function renderCatalog(filter = "all") {
+function renderBrands() {
+  const container = document.getElementById("brands-list");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  BRANDS.forEach(brand => {
+    const btn = document.createElement("button");
+    btn.className = "brand-pill-btn";
+    btn.textContent = brand;
+    btn.onclick = () => selectBrand(brand);
+    container.appendChild(btn);
+  });
+}
+
+function selectBrand(brand) {
+  selectedBrand = brand;
+  selectedModel = null;
+  
+  // Highlight selected brand pill
+  const pills = document.querySelectorAll(".brand-pill-btn");
+  pills.forEach(pill => {
+    if (pill.textContent === brand) {
+      pill.classList.add("active");
+    } else {
+      pill.classList.remove("active");
+    }
+  });
+
+  // Display Step 2 (Choose Model)
+  const step2Title = document.getElementById("step2-title");
+  const modelList = document.getElementById("models-list");
+  if (step2Title && modelList) {
+    step2Title.style.display = "block";
+    step2Title.textContent = `СТЪПКА 2 - ИЗБЕРИ МОДЕЛ ЗА ${brand.toUpperCase()}:`;
+    modelList.style.display = "flex";
+    modelList.innerHTML = "";
+    
+    BRAND_MODELS[brand].forEach(model => {
+      const btn = document.createElement("button");
+      btn.className = "model-pill-btn";
+      btn.textContent = model;
+      btn.onclick = () => selectModel(model);
+      modelList.appendChild(btn);
+    });
+    
+    // Smooth scroll to models section
+    step2Title.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+function selectModel(model) {
+  selectedModel = model;
+  
+  // Highlight selected model pill
+  const pills = document.querySelectorAll(".model-pill-btn");
+  pills.forEach(pill => {
+    if (pill.textContent === model) {
+      pill.classList.add("active");
+    } else {
+      pill.classList.remove("active");
+    }
+  });
+  
+  // Render filtered catalog
+  renderCatalog();
+  
+  const catalogSection = document.getElementById("catalog");
+  if (catalogSection) {
+    catalogSection.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+function selectCategoryFilter(catId, element) {
+  selectedCategory = catId;
+  selectedBrand = null;
+  selectedModel = null;
+
+  // Clear active steps states visual cues
+  document.querySelectorAll(".brand-pill-btn, .model-pill-btn").forEach(p => p.classList.remove("active"));
+  const step2Title = document.getElementById("step2-title");
+  const modelList = document.getElementById("models-list");
+  if (step2Title && modelList) {
+    step2Title.style.display = "none";
+    modelList.style.display = "none";
+  }
+
+  // Highlight active category card
+  document.querySelectorAll(".category-card").forEach(card => card.classList.remove("active"));
+  if (element) element.classList.add("active");
+
+  renderCatalog();
+  
+  const catalogSection = document.getElementById("catalog");
+  if (catalogSection) {
+    catalogSection.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+function renderCategories() {
+  const container = document.getElementById("categories-grid");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  CATEGORIES.forEach(cat => {
+    const card = document.createElement("div");
+    card.className = "category-card";
+    card.onclick = () => selectCategoryFilter(cat.id, card);
+    card.innerHTML = `
+      <img src="${cat.image}" alt="${cat.name}" class="category-card-img" loading="lazy">
+      <div class="category-card-overlay">
+        <span class="category-card-title">${cat.name}</span>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderCatalog() {
   const grid = document.getElementById("product-grid");
+  const catalogTitle = document.getElementById("catalog-main-title");
   if (!grid) return;
   
   grid.innerHTML = "";
-  const filteredProducts = filter === "all" ? PRODUCTS : PRODUCTS.filter(p => p.category === filter);
+  
+  let filteredProducts = PRODUCTS;
+
+  // Apply Brand/Model filter or Category filter
+  if (selectedModel) {
+    if (selectedModel === "Всички модели") {
+      filteredProducts = PRODUCTS.filter(p => p.brand === selectedBrand || p.brand === "Всички");
+    } else {
+      filteredProducts = PRODUCTS.filter(p => p.model === selectedModel || p.model === "Всички модели" || p.brand === "Всички");
+    }
+    if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedModel}`;
+  } else if (selectedCategory) {
+    filteredProducts = PRODUCTS.filter(p => p.category === selectedCategory);
+    const catObj = CATEGORIES.find(c => c.id === selectedCategory);
+    if (catalogTitle && catObj) catalogTitle.textContent = catObj.name;
+  } else {
+    if (catalogTitle) catalogTitle.textContent = "Всички Продукти";
+  }
+  
+  if (filteredProducts.length === 0) {
+    grid.innerHTML = `<div class="no-products-message">Няма намерени продукти за избрания филтър.</div>`;
+    return;
+  }
   
   filteredProducts.forEach(product => {
     const card = document.createElement("div");
     card.className = "product-card";
     
-    // Star Rating HTML
     let ratingStars = "";
     for (let i = 1; i <= 5; i++) {
       ratingStars += `<i class="${i <= product.rating ? 'fas' : 'far'} fa-star"></i>`;
     }
     
-    // Tag Badge HTML
-    const tagHtml = product.tag ? `<span class="badge-tag ${product.tag === 'НАМАЛЕНИЕ' ? 'sale' : product.tag === 'БЕСТСЕЛЪР' ? 'sale' : ''}">${product.tag}</span>` : "";
+    const tagHtml = product.tag ? `<span class="badge-tag sale">${product.tag}</span>` : "";
     
-    // Old price HTML
     const priceHtml = product.oldPrice 
       ? `<span class="product-price old-price">${product.oldPrice.toFixed(2)} лв.</span>
          <span class="product-price" style="color: var(--accent);">${product.price.toFixed(2)} лв.</span>`
@@ -188,7 +406,7 @@ function renderCatalog(filter = "all") {
         </div>
       </div>
       <div class="product-details">
-        <span class="product-category">${product.categoryBg}</span>
+        <span class="product-category">${product.brand}</span>
         <h3 class="product-name">${product.name}</h3>
         <div class="product-rating">${ratingStars}</div>
         <div class="product-price-box">
@@ -211,9 +429,8 @@ function updateCartCount() {
   });
 }
 
-// --- SAVE CART ---
 function saveCart() {
-  localStorage.setItem('luxarmor_cart', JSON.stringify(cart));
+  localStorage.setItem('caseking_cart', JSON.stringify(cart));
   updateCartCount();
   renderCartItems();
 }
@@ -294,7 +511,6 @@ function renderCartItems() {
   if (checkoutFormEl) checkoutFormEl.classList.add("active");
 }
 
-// --- CART SIDEBAR VISIBILITY ---
 function openCartSidebar() {
   document.getElementById("cart-overlay").classList.add("active");
 }
@@ -303,26 +519,23 @@ function closeCartSidebar() {
   document.getElementById("cart-overlay").classList.remove("active");
 }
 
-// --- QUICK VIEW MODAL CONTROLS ---
 function openQuickView(productId) {
   const product = PRODUCTS.find(p => p.id === productId);
   if (!product) return;
   
   activeQuickViewProduct = product;
   
-  document.getElementById("modal-cat").textContent = product.categoryBg;
+  document.getElementById("modal-cat").textContent = product.brand;
   document.getElementById("modal-title").textContent = product.name;
   document.getElementById("modal-desc").textContent = product.description;
   document.getElementById("modal-image").src = product.image;
   document.getElementById("modal-image").alt = product.name;
   
-  // Specs
-  document.getElementById("spec-metal").textContent = product.specs.metal;
+  document.getElementById("spec-metal").textContent = product.specs.material;
   document.getElementById("spec-weight").textContent = product.specs.weight;
-  document.getElementById("spec-stone").textContent = product.specs.stone;
-  document.getElementById("spec-packaging").textContent = product.specs.packaging;
+  document.getElementById("spec-stone").textContent = product.specs.origin;
+  document.getElementById("spec-packaging").textContent = product.specs.delivery;
   
-  // Rating & Price
   let ratingStars = "";
   for (let i = 1; i <= 5; i++) {
     ratingStars += `<i class="${i <= product.rating ? 'fas' : 'far'} fa-star"></i>`;
@@ -339,9 +552,7 @@ function openQuickView(productId) {
     priceBox.innerHTML = `<span>${product.price.toFixed(2)} лв.</span>`;
   }
   
-  // Reset Qty stepper in modal
   document.getElementById("modal-qty-val").textContent = "1";
-  
   document.getElementById("quickview-overlay").classList.add("active");
 }
 
@@ -350,7 +561,6 @@ function closeQuickView() {
   activeQuickViewProduct = null;
 }
 
-// --- INTERACTIVE CHECKOUT SIMULATION ---
 function handleCheckout(event) {
   event.preventDefault();
   
@@ -363,14 +573,10 @@ function handleCheckout(event) {
     return;
   }
   
-  // Generate random order tracking number
-  const orderNum = "LA-ACC-" + Math.floor(100000 + Math.random() * 900000);
-  
-  // Display the Success Screen Overlay
+  const orderNum = "CK-" + Math.floor(100000 + Math.random() * 900000);
   document.getElementById("order-tracking-id").textContent = orderNum;
   document.getElementById("success-screen").classList.add("active");
   
-  // Clear Shopping Cart state
   cart = [];
   saveCart();
   closeCartSidebar();
@@ -378,18 +584,17 @@ function handleCheckout(event) {
 
 function closeSuccessScreen() {
   document.getElementById("success-screen").classList.remove("active");
-  // Clean up input fields in form
   document.getElementById("checkout-form-id").reset();
 }
 
 // --- INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Initial product rendering
-  renderCatalog("all");
+  renderBrands();
+  renderCategories();
+  renderCatalog();
   updateCartCount();
   renderCartItems();
   
-  // 2. Sticky header scroll transition
   window.addEventListener("scroll", () => {
     const header = document.querySelector("header");
     if (window.scrollY > 30) {
@@ -399,18 +604,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
   
-  // 3. Category Filter Tabs Event handlers
-  const filterBtns = document.querySelectorAll(".filter-btn");
-  filterBtns.forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      filterBtns.forEach(b => b.classList.remove("active"));
-      e.target.classList.add("active");
-      const category = e.target.getAttribute("data-filter");
-      renderCatalog(category);
-    });
-  });
-  
-  // 4. Modal Quantity Steppers
   const qtyDecBtn = document.getElementById("modal-qty-dec");
   const qtyIncBtn = document.getElementById("modal-qty-inc");
   const qtyValEl = document.getElementById("modal-qty-val");
@@ -440,7 +633,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   
-  // 5. Checkout submit event registration
   const formElement = document.getElementById("checkout-form-id");
   if (formElement) {
     formElement.addEventListener("submit", handleCheckout);

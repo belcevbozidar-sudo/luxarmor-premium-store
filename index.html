@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LuxArmor - Премиум Аксесоари и Кейсове за Смартфони | От Световно Ниво</title>
-  <meta name="description" content="Добре дошли в LuxArmor - Вашият премиум избор за луксозни MagSafe кожени калъфи, карбонови Kevlar кейсове, GaN зарядни и сапфирени протектори. Поръчайте онлайн или на телефон 0889650060. Бърза доставка с преглед и тест!">
+  <title>CaseKing - Избери Марка и Модел за Телефон | Кейсове и Аксесоари</title>
+  <meta name="description" content="Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с бърза доставка, преглед и тест!">
   
   <!-- Premium FontAwesome CDN for Luxury Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,26 +16,24 @@
 
   <!-- --- ANNOUNCEMENT BAR --- -->
   <div class="announcement-bar">
-    <span>✨ Безплатна маркова кутия и бърза доставка с преглед и тест!</span>
-    <span>📞 Поръчайте бързо на: <a href="tel:0889650060">0889650060</a></span>
+    <span>🔥 ПРОЛЕТНА РАЗПРОДАЖБА ДО -50% 🔥</span>
+    <span>📞 Поръчайте бързо на: <a href="tel:0889650060">0889 65 00 60</a></span>
   </div>
 
   <!-- --- PREMIUM NAVIGATION HEADER --- -->
   <header>
     <div class="container header-container">
       <a href="#" class="logo">
-        <!-- Sleek High-Tech Protective Shield SVG Icon -->
+        <!-- Crown + Shield SVG Icon representing CaseKing -->
         <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 8v8M9 11h6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 2l3 5h6l-4 4 2 6-7-4-7 4 2-6-4-4h6l3-5z" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="logo-text">LuxArmor<span>PREMIUM</span></span>
+        <span class="logo-text">Case<span>King</span></span>
       </a>
       
       <nav class="nav-menu">
         <a href="#" class="nav-link">Начало</a>
         <a href="#catalog" class="nav-link">Каталог</a>
-        <a href="#about" class="nav-link">За бранда</a>
         <a href="#footer" class="nav-link">Контакти</a>
       </nav>
       
@@ -58,58 +56,32 @@
     </div>
   </header>
 
-  <!-- --- HERO SECTION --- -->
-  <section class="hero">
-    <div class="container hero-grid">
-      <div class="hero-content">
-        <span class="hero-tagline">Премиум смартфон аксесоари</span>
-        <h1 class="hero-title">Луксозна Защита и Безупречен Стил</h1>
-        <p class="hero-description">Открийте нашата нова селекция от MagSafe кожени калъфи, кевларени кейсове, GaN бързи зарядни станции и сапфирени лещи. Изработени от най-висок клас материали за Вашето премиум устройство.</p>
-        <div class="hero-cta-group">
-          <a href="#catalog" class="btn-premium">Разгледай Колекцията</a>
-          <a href="tel:0889650060" class="btn-outline">Бърза Поръчка</a>
-        </div>
-      </div>
-      <div class="hero-image-wrapper">
-        <div class="hero-image-circle"></div>
-        <img class="hero-img" src="https://images.unsplash.com/photo-1616348436168-de43ad0db179?auto=format&fit=crop&q=80&w=1000" alt="Премиум телефон аксесоари LuxArmor">
+  <!-- --- STEP 1: CHOOSE PHONE BRAND --- -->
+  <section class="step-section">
+    <div class="container">
+      <h2 class="step-title">СТЪПКА 1 - ИЗБЕРИ МАРКА ТЕЛЕФОН:</h2>
+      <div class="brands-list-container" id="brands-list">
+        <!-- Dynamically loaded -->
       </div>
     </div>
   </section>
 
-  <!-- --- VALUE PROPOSITION / TRUST BADGES --- -->
-  <section class="pillars">
-    <div class="container pillars-grid">
-      <div class="pillar-card">
-        <div class="pillar-icon-box">
-          <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <h3 class="pillar-title">Премиум Материали</h3>
-        <p class="pillar-desc">Кевлар, естествена телешка кожа, сапфирен кристал и самолетен алуминий за безупречна здравина.</p>
+  <!-- --- STEP 2: CHOOSE PHONE MODEL --- -->
+  <section class="step-section">
+    <div class="container">
+      <h2 class="step-title" id="step2-title" style="display: none;">СТЪПКА 2 - ИЗБЕРИ МОДЕЛ:</h2>
+      <div class="models-list-container" id="models-list" style="display: none;">
+        <!-- Dynamically loaded when brand is selected -->
       </div>
-      <div class="pillar-card">
-        <div class="pillar-icon-box">
-          <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <h3 class="pillar-title">Луксозна Кутия</h3>
-        <p class="pillar-desc">Всички продукти LuxArmor пристигат при Вас готови за подарък в изящна защитна опаковка.</p>
-      </div>
-      <div class="pillar-card">
-        <div class="pillar-icon-box">
-          <svg class="pillar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="1" y="3" width="15" height="13" stroke-linecap="round" stroke-linejoin="round"/>
-            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="5.5" cy="18.5" r="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="18.5" cy="18.5" r="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <h3 class="pillar-title">Преглед & Тест</h3>
-        <p class="pillar-desc">Плащане с наложен платеж при Еконт или Спиди с право да отворите и тествате преди плащане.</p>
+    </div>
+  </section>
+
+  <!-- --- CATEGORIES GRID --- -->
+  <section class="categories-section">
+    <div class="container">
+      <h2 class="step-title text-center">КАТЕГОРИИ</h2>
+      <div class="categories-grid" id="categories-grid">
+        <!-- Dynamically loaded -->
       </div>
     </div>
   </section>
@@ -117,17 +89,8 @@
   <!-- --- PRODUCT CATALOG --- -->
   <section class="catalog" id="catalog">
     <div class="container">
-      <h2 class="section-title">Каталог</h2>
-      <p class="section-subtitle">Открийте съвършените технологични допълнения</p>
-      
-      <!-- Category Filter Tabs -->
-      <div class="filter-tabs">
-        <button class="filter-btn active" data-filter="all">Всички</button>
-        <button class="filter-btn" data-filter="cases">Кейсове</button>
-        <button class="filter-btn" data-filter="chargers">Зарядни</button>
-        <button class="filter-btn" data-filter="protectors">Протектори</button>
-        <button class="filter-btn" data-filter="accessories">Аксесоари</button>
-      </div>
+      <h2 class="section-title" id="catalog-main-title">Всички Продукти</h2>
+      <p class="section-subtitle">CaseKing Premium Selection</p>
       
       <!-- Interactive Grid for Products -->
       <div class="product-grid" id="product-grid">
@@ -136,68 +99,34 @@
     </div>
   </section>
 
-  <!-- --- ABOUT STORY SECTION --- -->
-  <section class="about" id="about">
-    <div class="container about-grid">
-      <div class="about-img-box">
-        <img class="about-img" src="https://images.unsplash.com/photo-1516245834210-c4c142787335?auto=format&fit=crop&q=80&w=800" alt="Стилни аксесоари LuxArmor">
-      </div>
-      <div class="about-text">
-        <span class="about-badge">Нашата Философия</span>
-        <h2 class="about-title">Авангардна Сигурност и Дизайн</h2>
-        <p class="about-paragraph">В LuxArmor вярваме, че Вашият смартфон е огледало на Вашата личност и изисква същата безупречна защита и грижа, с каквато избирате личния си стил. Нашата мисия е да предоставим на българския пазар смартфон аксесоари от световно ниво — съчетаващи висока устойчивост с изключителна елегантност и лекота.</p>
-        <p class="about-paragraph">Ние се отнасяме с изключително внимание към качеството и прецизния подбор на материалите. От истинските арамидни влакна на Kevlar кейсовете до фината изработка на естествената кожа и надеждните бързи чипове на GaN зарядните, ние не правим компромиси, за да гарантираме перфектната работа на Вашите технологии.</p>
-      </div>
-    </div>
-  </section>
-
   <!-- --- BRAND FOOTER --- -->
   <footer id="footer">
     <div class="container footer-grid">
       <div class="footer-column-logo">
-        <span class="footer-logo-text">LuxArmor<span>PREMIUM</span></span>
-        <p class="footer-desc">Премиум онлайн магазин за подбрани луксозни смартфон аксесоари с безкомпромисна здравина, съвременна ергономия и безупречен дизайн.</p>
-      </div>
-      <div>
-        <h4 class="footer-title">Колекции</h4>
-        <ul class="footer-links">
-          <li><a href="#catalog" class="footer-link">Кейсове с MagSafe</a></li>
-          <li><a href="#catalog" class="footer-link">GaN Зарядни</a></li>
-          <li><a href="#catalog" class="footer-link">Сапфирени Лещи</a></li>
-          <li><a href="#catalog" class="footer-link">Магнитни Стойки</a></li>
-        </ul>
+        <span class="footer-logo-text">Case<span>King</span></span>
+        <p class="footer-desc">Най-добрите аксесоари за мобилни телефони на едно място. Професионално обслужване, качество и бърза доставка с опция за преглед и тест.</p>
       </div>
       <div>
         <h4 class="footer-title">Информация</h4>
         <ul class="footer-links">
-          <li><a href="#about" class="footer-link">За нас</a></li>
+          <li><a href="#" class="footer-link">За нас</a></li>
           <li><a href="#" class="footer-link">Доставка и плащане</a></li>
-          <li><a href="#" class="footer-link">Условия за връщане</a></li>
-          <li><a href="#" class="footer-link">Често задавани въпроси</a></li>
+          <li><a href="#" class="footer-link">Условия за ползване</a></li>
+          <li><a href="#" class="footer-link">Политика за поверителност</a></li>
         </ul>
       </div>
       <div>
-        <h4 class="footer-title">Контакти</h4>
+        <h4 class="footer-title">За контакти</h4>
         <div class="footer-contact-row">
-          <svg class="footer-contact-icon" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-          <a href="tel:0889650060">0889650060</a>
-        </div>
-        <div class="footer-contact-row">
-          <svg class="footer-contact-icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-          <span>office@luxarmor.bg</span>
-        </div>
-        <div class="footer-contact-row">
-          <svg class="footer-contact-icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-          <span>София, България</span>
+          <span>support@caseking.bg</span>
         </div>
       </div>
     </div>
     <div class="container footer-bottom">
-      <p class="footer-copy">© 2026 LuxArmor. Всички права запазени. Луксозна защита от световно ниво.</p>
+      <p class="footer-copy">© 2026 CaseKing. Всички права запазени.</p>
       <div class="footer-trust-logos">
-        <span><i class="fab fa-cc-visa"></i> Visa</span>
-        <span><i class="fab fa-cc-mastercard"></i> Mastercard</span>
         <span>📦 Преглед и Тест</span>
+        <span>🚚 Бърза доставка</span>
       </div>
     </div>
   </footer>
@@ -271,7 +200,7 @@
         
         <div class="modal-product-rating">
           <div class="modal-stars" id="modal-stars"></div>
-          <span class="modal-rating-count">(14 ревюта от клиенти)</span>
+          <span class="modal-rating-count">(Гарантиран произход)</span>
         </div>
         
         <div class="modal-product-price" id="modal-price">0.00 лв.</div>
@@ -287,7 +216,7 @@
             <span class="modal-spec-val" id="spec-weight">~3.20г</span>
           </div>
           <div class="modal-spec-row">
-            <span class="modal-spec-label">Технологии:</span>
+            <span class="modal-spec-label">Производител:</span>
             <span class="modal-spec-val" id="spec-stone">Цирконий</span>
           </div>
           <div class="modal-spec-row">
@@ -317,10 +246,10 @@
         </svg>
       </div>
       <h2 class="success-title">Поръчката Ви е приета!</h2>
-      <p class="success-text">Благодарим Ви, че избрахте LuxArmor. Наш консултант ще се свърже с Вас по телефон за потвърждение и детайли за доставка.</p>
+      <p class="success-text">Благодарим Ви, че избрахте CaseKing. Наш консултант ще се свърже с Вас по телефон за потвърждение и детайли за доставка.</p>
       
       <span class="success-text" style="font-weight: 600; display: block; margin-bottom: 0.5rem;">Вашият номер на поръчка:</span>
-      <div class="order-number" id="order-tracking-id">LA-ACC-XXXXXX</div>
+      <div class="order-number" id="order-tracking-id">CK-XXXXXX</div>
       
       <button class="btn-premium" onclick="closeSuccessScreen()" style="width: 100%;">Обратно към Магазина</button>
     </div>
