@@ -1,3 +1,7 @@
+import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/+esm";
+
+const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
+
 // --- CaseKing PHONE ACCESSORIES DATASET ---
 const PRODUCTS = [
   // cases
@@ -653,7 +657,44 @@ function closeQuickView() {
   activeQuickViewProduct = null;
 }
 
-function handleCheckout(event) {
+// --- CONVEX DATA ACTIONS ---
+async function loadProducts() {
+  try {
+    let dbProducts = await convex.query("products:get");
+    
+    // If the database is empty, seed it with initial products dataset
+    if (!dbProducts || dbProducts.length === 0) {
+      console.log("Database is empty. Seeding initial products dataset to Convex...");
+      await convex.mutation("products:seed", { products: PRODUCTS });
+      dbProducts = await convex.query("products:get");
+    }
+    
+    if (dbProducts && dbProducts.length > 0) {
+      PRODUCTS.length = 0; // Clear static array
+      dbProducts.forEach((p, idx) => {
+        PRODUCTS.push({
+          id: p.id || (idx + 1),
+          name: p.name,
+          brand: p.brand,
+          model: p.model,
+          category: p.category,
+          price: p.price,
+          oldPrice: p.oldPrice,
+          image: p.image,
+          rating: p.rating,
+          tag: p.tag,
+          description: p.description,
+          specs: p.specs
+        });
+      });
+      console.log("Successfully loaded products dynamically from Convex database.");
+    }
+  } catch (err) {
+    console.warn("Could not connect to Convex database. Falling back to local static products dataset.", err);
+  }
+}
+
+async function handleCheckout(event) {
   event.preventDefault();
   
   const name = document.getElementById("checkout-name").value.trim();
@@ -666,6 +707,31 @@ function handleCheckout(event) {
   }
   
   const orderNum = "CK-" + Math.floor(100000 + Math.random() * 900000);
+  
+  const orderItems = cart.map(item => ({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity
+  }));
+  
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  try {
+    // Save order mutation in Convex
+    await convex.mutation("orders:create", {
+      orderNumber: orderNum,
+      name,
+      phone,
+      address,
+      items: orderItems,
+      total
+    });
+    console.log("Successfully stored order CK-" + orderNum + " in Convex.");
+  } catch (err) {
+    console.warn("Could not save order to Convex database. Processing locally.", err);
+  }
+  
   document.getElementById("order-tracking-id").textContent = orderNum;
   document.getElementById("success-screen").classList.add("active");
   
@@ -679,8 +745,90 @@ function closeSuccessScreen() {
   document.getElementById("checkout-form-id").reset();
 }
 
+// --- MOBILE SLIDING MENU ACTIONS ---
+function openMobileMenu() {
+  document.getElementById("mobile-menu-overlay").classList.add("active");
+  renderMenuBrands();
+}
+
+function closeMobileMenu() {
+  document.getElementById("mobile-menu-overlay").classList.remove("active");
+}
+
+function renderMenuBrands() {
+  const container = document.getElementById("menu-brands-list");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  BRANDS.forEach(brand => {
+    const btn = document.createElement("button");
+    btn.className = "menu-brand-item";
+    if (selectedBrand === brand) {
+      btn.classList.add("active");
+    }
+    
+    const imgHtml = BRANDS_WITH_LOGOS[brand] 
+      ? `<img src="assets/${BRANDS_WITH_LOGOS[brand]}" alt="${brand}" class="menu-brand-img">`
+      : `<div class="menu-brand-placeholder">${brand.charAt(0)}</div>`;
+      
+    btn.innerHTML = `
+      ${imgHtml}
+      <span>${brand}</span>
+    `;
+    
+    btn.onclick = () => selectBrandFromMenu(brand);
+    container.appendChild(btn);
+  });
+}
+
+function selectBrandFromMenu(brand) {
+  selectBrand(brand);
+  
+  const modelsSection = document.getElementById("menu-models-section");
+  const modelsTitle = document.getElementById("menu-models-title");
+  const modelsList = document.getElementById("menu-models-list");
+  
+  if (modelsSection && modelsTitle && modelsList) {
+    modelsSection.style.display = "block";
+    modelsTitle.textContent = `Модели за ${brand}:`;
+    modelsList.innerHTML = "";
+    
+    BRAND_MODELS[brand].forEach(model => {
+      const btn = document.createElement("button");
+      btn.className = "menu-model-item";
+      btn.innerHTML = `
+        <i class="fas fa-mobile-alt"></i>
+        <span>${model}</span>
+      `;
+      btn.onclick = () => {
+        selectModel(model);
+        closeMobileMenu();
+      };
+      modelsList.appendChild(btn);
+    });
+  }
+}
+
+// --- EXPOSE GLOBALS FOR INLINE HTML ATTRIBUTES ---
+window.openCartSidebar = openCartSidebar;
+window.closeCartSidebar = closeCartSidebar;
+window.openMobileMenu = openMobileMenu;
+window.closeMobileMenu = closeMobileMenu;
+window.openQuickView = openQuickView;
+window.closeQuickView = closeQuickView;
+window.addToCart = addToCart;
+window.updateCartItemQty = updateCartItemQty;
+window.removeFromCart = removeFromCart;
+window.closeSuccessScreen = closeSuccessScreen;
+window.selectCategoryFilter = selectCategoryFilter;
+window.selectBrand = selectBrand;
+window.selectModel = selectModel;
+
 // --- INITIALIZATION ---
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // Load dynamic data from database
+  await loadProducts();
+  
   renderBrands();
   renderCategories();
   renderCatalog();

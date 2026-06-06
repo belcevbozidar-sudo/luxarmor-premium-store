@@ -35,9 +35,7 @@
       
       <div class="header-actions">
         <a href="tel:0889650060" class="header-btn" title="Обадете се сега">
-          <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-          </svg>
+          <i class="fas fa-phone" style="font-size: 1rem;"></i>
         </a>
         <button class="header-btn" onclick="openCartSidebar()" title="Преглед на количката">
           <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +43,7 @@
           </svg>
           <span class="cart-count">0</span>
         </button>
-        <button class="header-btn mobile-menu-toggle" onclick="openCartSidebar()" title="Меню">
+        <button class="header-btn mobile-menu-toggle" onclick="openMobileMenu()" title="Меню">
           <i class="fas fa-bars"></i>
         </button>
       </div>
@@ -179,6 +177,34 @@
     </div>
   </div>
 
+  <!-- --- SLIDING MOBILE MENU SIDEBAR --- -->
+  <div class="cart-sidebar-overlay" id="mobile-menu-overlay">
+    <div class="cart-sidebar mobile-menu-sidebar">
+      <div class="cart-header">
+        <h3 class="cart-header-title">Изберете Марка и Модел</h3>
+        <button class="cart-close-btn" onclick="closeMobileMenu()" title="Затвори">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="mobile-menu-content">
+        <div class="menu-section">
+          <h4 class="menu-section-title">Марки</h4>
+          <div class="menu-brands-grid" id="menu-brands-list">
+            <!-- Dynamically loaded -->
+          </div>
+        </div>
+        
+        <div class="menu-section" id="menu-models-section" style="display: none;">
+          <h4 class="menu-section-title" id="menu-models-title">Модели</h4>
+          <div class="menu-models-grid" id="menu-models-list">
+            <!-- Dynamically loaded when brand is selected -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- --- PRODUCT QUICK VIEW MODAL --- -->
   <div class="modal-overlay" id="quickview-overlay">
     <div class="modal-wrapper">
@@ -252,6 +278,6 @@
   </div>
 
   <!-- Javascript -->
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

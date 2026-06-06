@@ -1,0 +1,12 @@
+{
+  "name": "case-king-aksesoari",
+  "version": "1.0.0",
+  "description": "CaseKing Premium Store",
+  "main": "app.js",
+  "scripts": {
+    "dev": "npx convex dev"
+  },
+  "dependencies": {
+    "convex": "^1.11.0"
+  }
+}
