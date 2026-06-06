@@ -2,17 +2,18 @@ import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/bro
 
 const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
 
-// --- CaseKing PHONE ACCESSORIES DATASET ---
-const PRODUCTS = [
-  // cases
+// --- STATIC FALLBACK DATASETS ---
+const STATIC_PRODUCTS = [
   {
-    id: 1,
+    _id: "prod_1",
     name: "Премиум кожен кейс MagSafe Case",
     brand: "Apple",
     model: "iPhone 15 Pro Max",
     category: "cases",
-    price: 69.00,
-    oldPrice: 99.00,
+    priceB2C: 69.00,
+    oldPriceB2C: 99.00,
+    priceB2B: 55.00,
+    oldPriceB2B: 79.00,
     image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&q=80&w=800",
     rating: 5,
     tag: "БЕСТСЕЛЪР",
@@ -20,13 +21,15 @@ const PRODUCTS = [
     specs: { material: "Естествена кожа", weight: "30г", origin: "Германия", delivery: "Бърза доставка с преглед" }
   },
   {
-    id: 2,
+    _id: "prod_2",
     name: "Карбонов кейс UltraSlim Kevlar",
     brand: "Apple",
     model: "iPhone 15 Pro",
     category: "cases",
-    price: 79.00,
-    oldPrice: null,
+    priceB2C: 79.00,
+    oldPriceB2C: null,
+    priceB2B: 63.00,
+    oldPriceB2B: null,
     image: "https://images.unsplash.com/photo-1586953983027-d7508a64f4bb?auto=format&fit=crop&q=80&w=800",
     rating: 5,
     tag: "ХИТ",
@@ -34,13 +37,15 @@ const PRODUCTS = [
     specs: { material: "Карбонов кевлар", weight: "12г", origin: "САЩ", delivery: "Бърза доставка с преглед" }
   },
   {
-    id: 3,
+    _id: "prod_3",
     name: "Удароустойчив силиконов кейс Liquid Armor",
     brand: "Samsung",
     model: "Galaxy S24 Ultra",
     category: "cases",
-    price: 39.00,
-    oldPrice: 49.00,
+    priceB2C: 39.00,
+    oldPriceB2C: 49.00,
+    priceB2B: 31.20,
+    oldPriceB2B: 39.00,
     image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&q=80&w=800",
     rating: 5,
     tag: "НОВО",
@@ -48,13 +53,15 @@ const PRODUCTS = [
     specs: { material: "Премиум течен силикон", weight: "25г", origin: "Корея", delivery: "Бърза доставка с преглед" }
   },
   {
-    id: 4,
+    _id: "prod_4",
     name: "Хибриден кейс с подсилени ръбове Crystal Clear",
     brand: "Samsung",
     model: "Galaxy S23 Ultra",
     category: "cases",
-    price: 29.00,
-    oldPrice: null,
+    priceB2C: 29.00,
+    oldPriceB2C: null,
+    priceB2B: 23.20,
+    oldPriceB2B: null,
     image: "https://images.unsplash.com/photo-1586953983027-d7508a64f4bb?auto=format&fit=crop&q=80&w=800",
     rating: 4,
     tag: null,
@@ -62,202 +69,24 @@ const PRODUCTS = [
     specs: { material: "Поликарбонат и TPU", weight: "22г", origin: "Корея", delivery: "Бърза доставка с преглед" }
   },
   {
-    id: 5,
-    name: "Ултра здрав удароустойчив кейс Tough Guard",
-    brand: "Xiaomi",
-    model: "Redmi Note 13 Pro+",
-    category: "cases",
-    price: 34.00,
-    oldPrice: 45.00,
-    image: "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "ЗАЩИТА",
-    description: "Двуслоен кейс с подсилени ъгли и вградена стойка за гледане на видео. Идеален за екстремни условия.",
-    specs: { material: "Усилена пластмаса & TPU", weight: "45г", origin: "Китай", delivery: "Бърза доставка с преглед" }
-  },
-  // protectors
-  {
-    id: 6,
-    name: "9D Темпериран стъклен протектор Full Glue",
-    brand: "Apple",
-    model: "iPhone 15 Pro Max",
-    category: "protectors",
-    price: 25.00,
-    oldPrice: 35.00,
-    image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "ЗАДЪЛЖИТЕЛНО",
-    description: "Закалено стъкло с лепило по цялата повърхност. Перфектна чувствителност на допир и максимална защита от счупване.",
-    specs: { material: "Закалено стъкло Asahi 9H", weight: "5г", origin: "Япония", delivery: "Бърза доставка" }
-  },
-  {
-    id: 7,
-    name: "Сапфирени протектори за задна камера Sapphire Shield",
-    brand: "Apple",
-    model: "iPhone 15 Pro",
-    category: "protectors",
-    price: 29.00,
-    oldPrice: null,
-    image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "ПРЕМИУМ",
-    description: "Индивидуални метални пръстени със сапфирени стъкла, предпазващи лещите на камерата без промяна в качеството на снимките.",
-    specs: { material: "Синтетичен сапфир & Алуминий", weight: "2г", origin: "Германия", delivery: "Бърза доставка" }
-  },
-  {
-    id: 8,
-    name: "UV стъклен протектор Liquid Glass",
-    brand: "Samsung",
-    model: "Galaxy S24 Ultra",
-    category: "protectors",
-    price: 35.00,
-    oldPrice: 45.00,
-    image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "ХИТ",
-    description: "Иновативен протектор с течно UV лепило, специално за извити екрани. Предотвратява белене и въздушни мехурчета.",
-    specs: { material: "Оптично закалено стъкло", weight: "6г", origin: "Корея", delivery: "Бърза доставка" }
-  },
-  // accessories & chargers
-  {
-    id: 9,
-    name: "Магнитна стойка за кола MagHold N52",
-    brand: "Apple",
-    model: "Всички модели",
-    category: "car_acc",
-    price: 49.00,
-    oldPrice: null,
-    image: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "БЕСТСЕЛЪР",
-    description: "Стойка за кола за въздуховод с 16 супер силни N52 магнита. Съвместима с MagSafe технология.",
-    specs: { material: "Алуминий & Силикон", weight: "60г", origin: "Китай", delivery: "Бърза доставка" }
-  },
-  {
-    id: 10,
-    name: "Мултифункционална безжична станция VoltDock 3-в-1",
-    brand: "Apple",
-    model: "Всички модели",
-    category: "wireless_chargers",
-    price: 119.00,
-    oldPrice: 159.00,
-    image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "ТОП ИЗБОР",
-    description: "Бързо безжично зареждане едновременно за вашия телефон, смарт часовник и безжични слушалки.",
-    specs: { material: "Авиационен алуминий", weight: "220г", origin: "Германия", delivery: "Бърза доставка" }
-  },
-  {
-    id: 11,
-    name: "Бързо мрежово зарядно GaN 65W Pro",
-    brand: "Всички",
-    model: "Всички модели",
-    category: "all_chargers",
-    price: 55.00,
-    oldPrice: 69.00,
-    image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "НОВО",
-    description: "Иновативно GaN зарядно с три порта (2x USB-C + 1x USB-A) за супер бързо зареждане на телефон, таблет и лаптоп.",
-    specs: { material: "Огнеупорен поликарбонат", weight: "95г", origin: "Китай", delivery: "Бърза доставка" }
-  },
-  {
-    id: 12,
-    name: "Оригинален кабел Type-C към Lightning Fast Charge",
-    brand: "Apple",
-    model: "Всички модели",
-    category: "original_cables",
-    price: 29.00,
-    oldPrice: null,
-    image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800",
-    rating: 5,
-    tag: "ОРИГИНАЛЕН",
-    description: "Оригинален подсилен плетен кабел с дължина 1.2 метра, поддържащ бързо Power Delivery зареждане.",
-    specs: { material: "Плетен найлон & Медни нишки", weight: "35г", origin: "САЩ", delivery: "Бърза доставка" }
-  },
-  {
-    id: 13,
-    name: "Алуминиева стойка за бюро AluStand",
-    brand: "Всички",
-    model: "Всички модели",
-    category: "desk_holder",
-    price: 35.00,
-    oldPrice: 45.00,
-    image: "assets/cat_desk_stand.png",
-    rating: 5,
-    tag: "ПРЕМИУМ",
-    description: "Стабилна сгъваема алуминиева поставка за телефон или таблет. Силиконови подложки против плъзгане и регулиране на ъгъла.",
-    specs: { material: "Алуминиева сплав", weight: "150г", origin: "Германия", delivery: "Бърза доставка с преглед" }
-  },
-  {
-    id: 14,
-    name: "Селфи стик с трипод TripodPro",
-    brand: "Всички",
-    model: "Всички модели",
-    category: "selfie_stick",
-    price: 39.00,
-    oldPrice: null,
-    image: "assets/cat_selfie_stick.png",
-    rating: 4,
-    tag: "ХИТ",
-    description: "Разтегателен селфи стик с вграден трипод и безжично Bluetooth дистанционно. Въртене на 360 градуса.",
-    specs: { material: "Неръждаема стомана & ABS", weight: "180г", origin: "Корея", delivery: "Бърза доставка с преглед" }
-  },
-  {
-    id: 15,
-    name: "Дизайнерски силиконов попсокет PopGrip",
-    brand: "Всички",
-    model: "Всички модели",
-    category: "pop_socket",
-    price: 15.00,
-    oldPrice: 19.00,
-    image: "assets/cat_pop_socket.png",
-    rating: 5,
-    tag: "ПОПУЛЯРНО",
-    description: "Удобна и здрава стойка за пръст за задната страна на телефона. Сигурен захват и лесно сгъване.",
-    specs: { material: "Премиум силикон", weight: "10г", origin: "Китай", delivery: "Бърза доставка с преглед" }
-  },
-  {
-    id: 16,
+    _id: "prod_5",
     name: "Външна батерия MagSafe Power Bank 10000mAh",
     brand: "Apple",
     model: "Всички модели",
     category: "power_banks",
-    price: 59.00,
-    oldPrice: 89.00,
+    priceB2C: 59.00,
+    oldPriceB2C: 89.00,
+    priceB2B: 47.00,
+    oldPriceB2B: 71.00,
     image: "assets/cat_power_bank.png",
     rating: 5,
     tag: "БЕСТСЕЛЪР",
-    description: "Ултратънка магнитна външна батерия с капацитет 10000mAh. Бързо зареждане и перфектно прилепване към MagSafe.",
+    description: "Ултратънък магнитен външен акумулатор. Бързо безжично зареждане и перфектно сцепление с MagSafe.",
     specs: { material: "Поликарбонат & Алуминий", weight: "190г", origin: "Япония", delivery: "Бърза доставка с преглед" }
   }
 ];
 
-// --- PHONE MODELS MAPPING PER BRAND ---
-const BRAND_MODELS = {
-  "Apple": ["iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 14 Pro Max", "iPhone 14 Pro", "iPhone 13 Pro Max", "iPhone 13"],
-  "Samsung": ["Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23", "Galaxy A55"],
-  "Xiaomi": ["Xiaomi 14 Ultra", "Xiaomi 13T Pro", "Redmi Note 13 Pro+", "Redmi Note 12 Pro"],
-  "Huawei": ["Pura 70 Ultra", "Mate 60 Pro", "P60 Pro"],
-  "Honor": ["Magic 6 Pro", "Honor 90"],
-  "MOTO": ["Edge 50 Ultra", "Edge 40"],
-  "Nokia": ["Nokia G42", "Nokia XR21"],
-  "OnePlus": ["OnePlus 12", "OnePlus Nord 4"],
-  "Oppo": ["Reno 12 Pro"],
-  "Vivo": ["X100 Pro"],
-  "Google": ["Pixel 8 Pro", "Pixel 8", "Pixel 7a"],
-  "TCL": ["TCL 505"],
-  "Realme": ["Realme GT 6"],
-  "LG": ["Velvet"],
-  "Lenovo": ["Legion Y90"],
-  "Infinix": ["Note 40 Pro"]
-};
-
-// --- BRANDS LIST ---
-const BRANDS = Object.keys(BRAND_MODELS);
-
-// --- CATEGORIES LIST ---
-const CATEGORIES = [
+const STATIC_CATEGORIES = [
   { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.png" },
   { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.png" },
   { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.png" },
@@ -270,127 +99,189 @@ const CATEGORIES = [
   { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.png" }
 ];
 
-// --- SHOPPING CART STATE ---
+const STATIC_BRANDS = [
+  { name: "Apple", logo: "logo_apple.png" },
+  { name: "Samsung", logo: "logo_samsung.png" },
+  { name: "Xiaomi", logo: "logo_xiaomi.png" },
+  { name: "Huawei", logo: "logo_huawei.png" },
+  { name: "Google", logo: "logo_google.png" },
+  { name: "MOTO", logo: "logo_moto.png" }
+];
+
+const STATIC_MODELS = [
+  { name: "iPhone 15 Pro Max", brand: "Apple" },
+  { name: "iPhone 15 Pro", brand: "Apple" },
+  { name: "iPhone 14 Pro Max", brand: "Apple" },
+  { name: "Galaxy S24 Ultra", brand: "Samsung" },
+  { name: "Galaxy S23 Ultra", brand: "Samsung" },
+  { name: "Redmi Note 13 Pro+", brand: "Xiaomi" }
+];
+
+// --- APP STATE ---
+let PRODUCTS = [...STATIC_PRODUCTS];
+let CATEGORIES = [...STATIC_CATEGORIES];
+let BRANDS = [...STATIC_BRANDS];
+let MODELS = [...STATIC_MODELS];
+let PROMOTIONS = [];
+
 let cart = JSON.parse(localStorage.getItem('caseking_cart')) || [];
-let activeQuickViewProduct = null;
 let selectedBrand = null;
 let selectedModel = null;
 let selectedCategory = null;
+let currentUser = null;
+let googleRegisterTemp = null;
+let activeRegType = "B2C";
+let activeCheckoutType = "B2C";
+let activeProductPageQty = 1;
 
-// --- BRANDS LOGO MAPPING ---
-const BRANDS_WITH_LOGOS = {
-  "Apple": "logo_apple.png",
-  "Samsung": "logo_samsung.png",
-  "Xiaomi": "logo_xiaomi.png",
-  "Huawei": "logo_huawei.png",
-  "Google": "logo_google.png",
-  "MOTO": "logo_moto.png",
-  "Honor": "logo_honor.png",
-  "Nokia": "logo_nokia.png",
-  "OnePlus": "logo_oneplus.png",
-  "Oppo": "logo_oppo.png",
-  "Vivo": "logo_vivo.png",
-  "TCL": "logo_tcl.png",
-  "Realme": "logo_realme.png",
-  "LG": "logo_lg.png",
-  "Lenovo": "logo_lenovo.png",
-  "Infinix": "logo_infinix.png"
-};
+// --- PASS HASH UTILITY ---
+async function hashPassword(password) {
+  const msgBuffer = new TextEncoder().encode(password);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
-// --- DYNAMIC RENDER FUNCTIONS ---
+// --- CONVEX DATA ACTIONS ---
+async function loadData() {
+  try {
+    const dbProducts = await convex.query("products:get");
+    if (dbProducts && dbProducts.length > 0) {
+      PRODUCTS = dbProducts;
+    }
+    
+    const dbCats = await convex.query("meta:getCategories");
+    if (dbCats && dbCats.length > 0) {
+      CATEGORIES = dbCats;
+    }
+    
+    const dbBrands = await convex.query("meta:getBrands");
+    if (dbBrands && dbBrands.length > 0) {
+      BRANDS = dbBrands;
+    }
+    
+    const dbModels = await convex.query("meta:getModels");
+    if (dbModels && dbModels.length > 0) {
+      MODELS = dbModels;
+    }
+    
+    const dbPromos = await convex.query("promotions:getActive");
+    if (dbPromos) {
+      PROMOTIONS = dbPromos;
+    }
+    console.log("Storefront data successfully loaded dynamically from Convex.");
+  } catch (err) {
+    console.warn("Could not load dynamic data from Convex, falling back to static dataset.", err);
+  }
+}
+
+async function verifySession() {
+  const token = localStorage.getItem("caseking_session_token");
+  if (token) {
+    try {
+      const profile = await convex.query("users:getProfile", { sessionToken: token });
+      if (profile) {
+        currentUser = profile;
+        updateUserUIState();
+      } else {
+        localStorage.removeItem("caseking_session_token");
+      }
+    } catch (err) {
+      console.error("Session verification failed", err);
+    }
+  }
+}
+
+// --- DYNAMIC RENDERING ---
 function renderBrands() {
   const container = document.getElementById("brands-list");
+  const mobileContainer = document.getElementById("menu-brands-list");
   if (!container) return;
+  
   container.innerHTML = "";
+  if (mobileContainer) mobileContainer.innerHTML = "";
   
   BRANDS.forEach(brand => {
+    // Desktop Card
     const btn = document.createElement("button");
     btn.className = "brand-pill-btn";
-    if (selectedBrand === brand) {
-      btn.classList.add("active");
-    }
-    btn.onclick = () => selectBrand(brand);
+    if (selectedBrand === brand.name) btn.classList.add("active");
+    btn.onclick = () => selectBrand(brand.name);
     
-    if (BRANDS_WITH_LOGOS[brand]) {
-      btn.innerHTML = `
-        <img src="assets/${BRANDS_WITH_LOGOS[brand]}" alt="${brand}" class="brand-card-img" loading="lazy">
-        <span class="brand-card-text">${brand}</span>
-      `;
-    } else {
-      const firstLetter = brand.charAt(0);
-      btn.innerHTML = `
-        <div class="brand-placeholder-icon">${firstLetter}</div>
-        <span class="brand-card-text">${brand}</span>
-      `;
-    }
-    
+    btn.innerHTML = `
+      <img src="assets/${brand.logo}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
+      <span class="brand-card-text">${brand.name}</span>
+    `;
     container.appendChild(btn);
+
+    // Mobile menu drawer card
+    if (mobileContainer) {
+      const mBtn = document.createElement("button");
+      mBtn.className = "menu-brand-item";
+      mBtn.onclick = () => selectMobileBrand(brand.name, mBtn);
+      mBtn.innerHTML = `
+        <img src="assets/${brand.logo}" class="menu-brand-img" onerror="this.style.display='none'">
+        <span>${brand.name}</span>
+      `;
+      mobileContainer.appendChild(mBtn);
+    }
   });
 }
 
-function selectBrand(brand) {
-  selectedBrand = brand;
+function selectBrand(brandName) {
+  selectedBrand = brandName;
   selectedModel = null;
   selectedCategory = null;
   
-  // Clear category card selections
   document.querySelectorAll(".category-card").forEach(card => card.classList.remove("active"));
-  
-  // Highlight selected brand pill
-  const pills = document.querySelectorAll(".brand-pill-btn");
-  pills.forEach(pill => {
+  document.querySelectorAll(".brand-pill-btn").forEach(pill => {
     const textSpan = pill.querySelector(".brand-card-text");
-    if ((textSpan && textSpan.textContent === brand) || pill.textContent === brand) {
+    if (textSpan && textSpan.textContent === brandName) {
       pill.classList.add("active");
     } else {
       pill.classList.remove("active");
     }
   });
 
-  // Display Step 2 (Choose Model)
   const step2Title = document.getElementById("step2-title");
   const modelList = document.getElementById("models-list");
+  
   if (step2Title && modelList) {
     step2Title.style.display = "block";
-    step2Title.textContent = `СТЪПКА 2 - ИЗБЕРИ МОДЕЛ ЗА ${brand.toUpperCase()}:`;
+    step2Title.textContent = `СТЪПКА 2 - ИЗБЕРИ МОДЕЛ ЗА ${brandName.toUpperCase()}:`;
     modelList.style.display = "grid";
     modelList.innerHTML = "";
     
-    BRAND_MODELS[brand].forEach(model => {
+    const brandModels = MODELS.filter(m => m.brand === brandName);
+    brandModels.forEach(model => {
       const btn = document.createElement("button");
       btn.className = "model-pill-btn";
-      btn.onclick = () => selectModel(model);
+      btn.onclick = () => selectModel(model.name);
       btn.innerHTML = `
-        <div class="model-icon-box">
-          <i class="fas fa-mobile-alt"></i>
-        </div>
-        <span class="model-card-text">${model}</span>
+        <div class="model-icon-box"><i class="fas fa-mobile-alt"></i></div>
+        <span class="model-card-text">${model.name}</span>
       `;
       modelList.appendChild(btn);
     });
     
-    // Smooth scroll to models section
     step2Title.scrollIntoView({ behavior: "smooth" });
   }
   
   renderCatalog();
 }
 
-function selectModel(model) {
-  selectedModel = model;
+function selectModel(modelName) {
+  selectedModel = modelName;
   
-  // Highlight selected model pill
-  const pills = document.querySelectorAll(".model-pill-btn");
-  pills.forEach(pill => {
+  document.querySelectorAll(".model-pill-btn").forEach(pill => {
     const textSpan = pill.querySelector(".model-card-text");
-    if ((textSpan && textSpan.textContent === model) || pill.textContent === model) {
+    if (textSpan && textSpan.textContent === modelName) {
       pill.classList.add("active");
     } else {
       pill.classList.remove("active");
     }
   });
   
-  // Render filtered catalog
   renderCatalog();
   
   const catalogSection = document.getElementById("catalog");
@@ -404,7 +295,6 @@ function selectCategoryFilter(catId, element) {
   selectedBrand = null;
   selectedModel = null;
 
-  // Clear active steps states visual cues
   document.querySelectorAll(".brand-pill-btn, .model-pill-btn").forEach(p => p.classList.remove("active"));
   const step2Title = document.getElementById("step2-title");
   const modelList = document.getElementById("models-list");
@@ -413,7 +303,6 @@ function selectCategoryFilter(catId, element) {
     modelList.style.display = "none";
   }
 
-  // Highlight active category card
   document.querySelectorAll(".category-card").forEach(card => card.classList.remove("active"));
   if (element) element.classList.add("active");
 
@@ -453,7 +342,6 @@ function renderCatalog() {
   
   let filteredProducts = PRODUCTS;
 
-  // Apply Brand/Model filter or Category filter
   if (selectedBrand) {
     if (selectedModel) {
       filteredProducts = PRODUCTS.filter(p => p.model === selectedModel || p.brand === "Всички");
@@ -478,6 +366,16 @@ function renderCatalog() {
   filteredProducts.forEach(product => {
     const card = document.createElement("div");
     card.className = "product-card";
+    card.style.cursor = "pointer";
+    
+    // Clicking anywhere on the card opens its product page
+    card.onclick = (e) => {
+      // Exclude add to cart button click
+      if (e.target.classList.contains("btn-card-buy") || e.target.closest(".btn-card-buy")) {
+        return;
+      }
+      window.location.hash = `#product/${product._id}`;
+    };
     
     let ratingStars = "";
     for (let i = 1; i <= 5; i++) {
@@ -486,20 +384,20 @@ function renderCatalog() {
     
     const tagHtml = product.tag ? `<span class="badge-tag sale">${product.tag}</span>` : "";
     
-    const priceHtml = product.oldPrice 
-      ? `<span class="product-price old-price">${product.oldPrice.toFixed(2)} лв.</span>
-         <span class="product-price" style="color: var(--accent);">${product.price.toFixed(2)} лв.</span>`
-      : `<span class="product-price">${product.price.toFixed(2)} лв.</span>`;
+    // Choose active price (B2B vs B2C)
+    const isB2B = currentUser && currentUser.clientType === "B2B";
+    const price = isB2B ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
+    const oldPrice = isB2B ? product.oldPriceB2B : (product.oldPriceB2C ?? product.oldPrice);
+    
+    const priceHtml = oldPrice 
+      ? `<span class="product-price old-price">${oldPrice.toFixed(2)} лв.</span>
+         <span class="product-price" style="color: var(--accent);">${price.toFixed(2)} лв. ${isB2B ? '<span style="font-size:0.65rem; font-weight:600; color:var(--gold);">B2B</span>' : ''}</span>`
+      : `<span class="product-price">${price.toFixed(2)} лв. ${isB2B ? '<span style="font-size:0.65rem; font-weight:600; color:var(--gold);">B2B</span>' : ''}</span>`;
 
     card.innerHTML = `
       ${tagHtml}
       <div class="product-image-container">
         <img class="product-img" src="${product.image}" alt="${product.name}" loading="lazy">
-        <div class="product-overlay-actions">
-          <button class="action-icon-btn" onclick="openQuickView(${product.id})" title="Бърз преглед">
-            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-          </button>
-        </div>
       </div>
       <div class="product-details">
         <span class="product-category">${product.brand}</span>
@@ -508,14 +406,84 @@ function renderCatalog() {
         <div class="product-price-box">
           ${priceHtml}
         </div>
-        <button class="btn-card-buy" onclick="addToCart(${product.id}, 1)">Добави в количката</button>
+        <button class="btn-card-buy" onclick="addToCart('${product._id}', 1)">Добави в количката</button>
       </div>
     `;
     grid.appendChild(card);
   });
 }
 
-// --- CART STATE SYNC & RENDERING ---
+// --- PRODUCT PAGE ROUTE HANDLER ---
+function renderProductPage(productId) {
+  const p = PRODUCTS.find(item => item._id === productId);
+  if (!p) {
+    window.location.hash = "#";
+    return;
+  }
+  
+  activeProductPageQty = 1;
+  document.getElementById("product-page-qty-val").textContent = "1";
+  
+  // Set textual properties
+  document.getElementById("product-page-cat").textContent = p.brand;
+  document.getElementById("product-page-title").textContent = p.name;
+  document.getElementById("product-page-desc").textContent = p.description;
+  document.getElementById("product-page-image").src = p.image;
+  document.getElementById("product-page-image").alt = p.name;
+  
+  document.getElementById("product-page-spec-material").textContent = p.specs.material;
+  document.getElementById("product-page-spec-weight").textContent = p.specs.weight;
+  document.getElementById("product-page-spec-origin").textContent = p.specs.origin;
+  document.getElementById("product-page-spec-delivery").textContent = p.specs.delivery;
+  
+  // Stars
+  let ratingStars = "";
+  for (let i = 1; i <= 5; i++) {
+    ratingStars += `<i class="${i <= p.rating ? 'fas' : 'far'} fa-star"></i>`;
+  }
+  document.getElementById("product-page-stars").innerHTML = ratingStars;
+  
+  // Prices (B2B / B2C)
+  const isB2B = currentUser && currentUser.clientType === "B2B";
+  const price = isB2B ? (p.priceB2B ?? p.price) : (p.priceB2C ?? p.price);
+  const oldPrice = isB2B ? p.oldPriceB2B : (p.oldPriceB2C ?? p.oldPrice);
+  
+  const priceEl = document.getElementById("product-page-price");
+  const oldPriceEl = document.getElementById("product-page-old-price");
+  const badgeEl = document.getElementById("product-page-client-badge");
+  
+  priceEl.textContent = `${price.toFixed(2)} лв.`;
+  if (oldPrice) {
+    oldPriceEl.textContent = `${oldPrice.toFixed(2)} лв.`;
+    oldPriceEl.style.display = "inline";
+  } else {
+    oldPriceEl.style.display = "none";
+  }
+  
+  if (isB2B) {
+    badgeEl.textContent = "B2B ПАРТНЬОРСКА ЦЕНА";
+    badgeEl.style.display = "inline-block";
+  } else {
+    badgeEl.style.display = "none";
+  }
+  
+  // Event listeners
+  document.getElementById("product-page-qty-dec").onclick = () => {
+    if (activeProductPageQty > 1) {
+      activeProductPageQty--;
+      document.getElementById("product-page-qty-val").textContent = activeProductPageQty;
+    }
+  };
+  document.getElementById("product-page-qty-inc").onclick = () => {
+    activeProductPageQty++;
+    document.getElementById("product-page-qty-val").textContent = activeProductPageQty;
+  };
+  document.getElementById("product-page-add-to-cart").onclick = () => {
+    addToCart(p._id, activeProductPageQty);
+  };
+}
+
+// --- CART CALCULATIONS & RENDERING ---
 function updateCartCount() {
   const countElements = document.querySelectorAll(".cart-count");
   const totalQty = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -531,23 +499,37 @@ function saveCart() {
   renderCartItems();
 }
 
-function addToCart(productId, quantity = 1) {
-  const product = PRODUCTS.find(p => p.id === productId);
+window.addToCart = function(productId, quantity = 1) {
+  // Find product details
+  const product = PRODUCTS.find(p => p._id === productId);
   if (!product) return;
   
-  const existingItemIndex = cart.findIndex(item => item.id === productId);
+  // Determine pricing to store in cart (to lock B2B/B2C state)
+  const isB2B = currentUser && currentUser.clientType === "B2B";
+  const activePrice = isB2B ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
+  
+  const existingItemIndex = cart.findIndex(item => item.id === productId && !item.isGift);
   if (existingItemIndex > -1) {
     cart[existingItemIndex].quantity += quantity;
+    cart[existingItemIndex].price = activePrice; // update to latest login type rate
   } else {
-    cart.push({ ...product, quantity });
+    cart.push({
+      id: product._id,
+      name: product.name,
+      image: product.image,
+      price: activePrice,
+      brand: product.brand,
+      category: product.category,
+      quantity
+    });
   }
   
   saveCart();
   openCartSidebar();
-}
+};
 
-function updateCartItemQty(productId, newQty) {
-  const index = cart.findIndex(item => item.id === productId);
+window.updateCartItemQty = function(productId, newQty) {
+  const index = cart.findIndex(item => item.id === productId && !item.isGift);
   if (index === -1) return;
   
   if (newQty <= 0) {
@@ -556,285 +538,694 @@ function updateCartItemQty(productId, newQty) {
     cart[index].quantity = newQty;
   }
   saveCart();
-}
+};
 
-function removeFromCart(productId) {
-  cart = cart.filter(item => item.id !== productId);
+window.removeFromCart = function(productId) {
+  cart = cart.filter(item => item.id !== productId || item.isGift);
   saveCart();
-}
+};
 
 function renderCartItems() {
   const itemsContainer = document.getElementById("cart-items");
   const subtotalEl = document.getElementById("cart-subtotal");
-  const checkoutFormEl = document.getElementById("cart-checkout-form");
+  const promoBanner = document.getElementById("cart-promo-banner");
   
   if (!itemsContainer || !subtotalEl) return;
   
+  // Filter out any previous gift items to recalculate subtotal cleanly
+  cart = cart.filter(item => !item.isGift);
+  
+  let subtotal = 0;
+  cart.forEach(item => {
+    subtotal += item.price * item.quantity;
+  });
+  
+  // Calculate promotions dynamically
+  const clientType = currentUser ? currentUser.clientType : "B2C";
+  const activePromos = PROMOTIONS.filter(p => p.clientType === clientType && p.active);
+  
+  // 1. Free shipping check
+  const shippingPromo = activePromos.find(p => p.type === "free_shipping");
+  let shippingCost = 5.00;
+  let shippingPromoText = "";
+  
+  if (shippingPromo) {
+    if (subtotal >= shippingPromo.threshold) {
+      shippingCost = 0.00;
+      shippingPromoText = "Честито! Получавате БЕЗПЛАТНА доставка! 🚚";
+    } else {
+      const diff = shippingPromo.threshold - subtotal;
+      shippingPromoText = `Добавете още ${diff.toFixed(2)} лв. за БЕЗПЛАТНА доставка!`;
+    }
+  }
+
+  // 2. Gift check
+  const giftPromo = activePromos.find(p => p.type === "gift");
+  let giftPromoText = "";
+  
+  if (giftPromo && giftPromo.giftProductId) {
+    if (subtotal >= giftPromo.threshold) {
+      const giftProduct = PRODUCTS.find(p => p._id === giftPromo.giftProductId);
+      if (giftProduct) {
+        // Inject gift product to cart
+        cart.push({
+          id: giftProduct._id,
+          name: giftProduct.name + " (ПОДАРЪК)",
+          image: giftProduct.image,
+          price: 0.00,
+          quantity: 1,
+          isGift: true
+        });
+        giftPromoText = `Вземате безплатен подарък: ${giftProduct.name}! 🎁`;
+      }
+    } else {
+      const diff = giftPromo.threshold - subtotal;
+      const giftProduct = PRODUCTS.find(p => p._id === giftPromo.giftProductId);
+      const giftName = giftProduct ? giftProduct.name : "подарък";
+      giftPromoText = `Добавете още ${diff.toFixed(2)} лв. за ПОДАРЪК: ${giftName}!`;
+    }
+  }
+  
+  // Render Cart Item Rows
   if (cart.length === 0) {
     itemsContainer.innerHTML = `<div class="cart-empty-message">Вашата количка е празна.</div>`;
     subtotalEl.textContent = "0.00 лв.";
-    if (checkoutFormEl) checkoutFormEl.classList.remove("active");
+    if (promoBanner) promoBanner.style.display = "none";
     return;
   }
   
   itemsContainer.innerHTML = "";
-  let subtotal = 0;
-  
   cart.forEach(item => {
-    subtotal += item.price * item.quantity;
-    
     const itemRow = document.createElement("div");
     itemRow.className = "cart-item";
+    
+    const qtySelectHtml = item.isGift 
+      ? `<span class="cart-qty-val" style="color:var(--success); font-weight:600;">Подарък</span>`
+      : `<div class="cart-item-qty-row">
+          <button class="cart-qty-btn" onclick="updateCartItemQty('${item.id}', ${item.quantity - 1})">-</button>
+          <span class="cart-qty-val">${item.quantity}</span>
+          <button class="cart-qty-btn" onclick="updateCartItemQty('${item.id}', ${item.quantity + 1})">+</button>
+        </div>`;
+
+    const removeBtnHtml = item.isGift
+      ? ""
+      : `<button class="cart-item-remove-btn" onclick="removeFromCart('${item.id}')" title="Премахни">
+          <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>`;
+
     itemRow.innerHTML = `
       <img class="cart-item-img" src="${item.image}" alt="${item.name}">
       <div class="cart-item-details">
         <h4 class="cart-item-name">${item.name}</h4>
-        <span class="cart-item-price">${item.price.toFixed(2)} лв.</span>
-        <div class="cart-item-qty-row">
-          <button class="cart-qty-btn" onclick="updateCartItemQty(${item.id}, ${item.quantity - 1})">-</button>
-          <span class="cart-qty-val">${item.quantity}</span>
-          <button class="cart-qty-btn" onclick="updateCartItemQty(${item.id}, ${item.quantity + 1})">+</button>
-        </div>
+        <span class="cart-item-price">${item.price === 0 ? "0.00 лв." : item.price.toFixed(2) + " лв."}</span>
+        ${qtySelectHtml}
       </div>
-      <button class="cart-item-remove-btn" onclick="removeFromCart(${item.id})" title="Премахни">
-        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-      </button>
+      ${removeBtnHtml}
     `;
     itemsContainer.appendChild(itemRow);
   });
   
   subtotalEl.textContent = `${subtotal.toFixed(2)} лв.`;
-  if (checkoutFormEl) checkoutFormEl.classList.add("active");
+  
+  // Update banner text
+  if (promoBanner) {
+    const totalPromoText = [shippingPromoText, giftPromoText].filter(t => t !== "").join("<br>");
+    if (totalPromoText) {
+      promoBanner.innerHTML = totalPromoText;
+      promoBanner.style.display = "block";
+    } else {
+      promoBanner.style.display = "none";
+    }
+  }
 }
 
-function openCartSidebar() {
+window.openCartSidebar = function() {
   document.getElementById("cart-overlay").classList.add("active");
-}
+};
 
-function closeCartSidebar() {
+window.closeCartSidebar = function() {
   document.getElementById("cart-overlay").classList.remove("active");
-}
+};
 
-function openQuickView(productId) {
-  const product = PRODUCTS.find(p => p.id === productId);
-  if (!product) return;
+// --- CHECKOUT FUNNEL ---
+window.proceedToCheckout = function() {
+  closeCartSidebar();
+  window.location.hash = "#checkout";
+};
+
+window.switchCheckoutType = function(type) {
+  activeCheckoutType = type;
+  const btnB2C = document.getElementById("btn-checkout-b2c");
+  const btnB2B = document.getElementById("btn-checkout-b2b");
+  const b2bFields = document.getElementById("checkout-b2b-fields");
   
-  activeQuickViewProduct = product;
-  
-  document.getElementById("modal-cat").textContent = product.brand;
-  document.getElementById("modal-title").textContent = product.name;
-  document.getElementById("modal-desc").textContent = product.description;
-  document.getElementById("modal-image").src = product.image;
-  document.getElementById("modal-image").alt = product.name;
-  
-  document.getElementById("spec-metal").textContent = product.specs.material;
-  document.getElementById("spec-weight").textContent = product.specs.weight;
-  document.getElementById("spec-stone").textContent = product.specs.origin;
-  document.getElementById("spec-packaging").textContent = product.specs.delivery;
-  
-  let ratingStars = "";
-  for (let i = 1; i <= 5; i++) {
-    ratingStars += `<i class="${i <= product.rating ? 'fas' : 'far'} fa-star"></i>`;
-  }
-  document.getElementById("modal-stars").innerHTML = ratingStars;
-  
-  const priceBox = document.getElementById("modal-price");
-  if (product.oldPrice) {
-    priceBox.innerHTML = `
-      <span style="font-size: 1.2rem; color: var(--text-muted); text-decoration: line-through; font-weight: 500;">${product.oldPrice.toFixed(2)} лв.</span>
-      <span style="color: var(--accent);">${product.price.toFixed(2)} лв.</span>
-    `;
+  if (type === "B2B") {
+    btnB2B.classList.add("active");
+    btnB2C.classList.remove("active");
+    b2bFields.style.display = "block";
+    
+    // Mark B2B inputs required
+    document.getElementById("checkout-comp-name").required = true;
+    document.getElementById("checkout-comp-bulstat").required = true;
+    document.getElementById("checkout-comp-address").required = true;
+    document.getElementById("checkout-comp-mol").required = true;
   } else {
-    priceBox.innerHTML = `<span>${product.price.toFixed(2)} лв.</span>`;
+    btnB2C.classList.add("active");
+    btnB2B.classList.remove("active");
+    b2bFields.style.display = "none";
+    
+    // Remove B2B required state
+    document.getElementById("checkout-comp-name").required = false;
+    document.getElementById("checkout-comp-bulstat").required = false;
+    document.getElementById("checkout-comp-address").required = false;
+    document.getElementById("checkout-comp-mol").required = false;
   }
   
-  document.getElementById("modal-qty-val").textContent = "1";
-  document.getElementById("quickview-overlay").classList.add("active");
-}
+  renderCheckoutSummary();
+};
 
-function closeQuickView() {
-  document.getElementById("quickview-overlay").classList.remove("active");
-  activeQuickViewProduct = null;
-}
+window.toggleCheckoutVatCheckbox = function() {
+  const cb = document.getElementById("checkout-comp-vat");
+  cb.checked = !cb.checked;
+};
 
-// --- CONVEX DATA ACTIONS ---
-async function loadProducts() {
-  try {
-    let dbProducts = await convex.query("products:get");
-    
-    // If the database is empty, seed it with initial products dataset
-    if (!dbProducts || dbProducts.length === 0) {
-      console.log("Database is empty. Seeding initial products dataset to Convex...");
-      await convex.mutation("products:seed", { products: PRODUCTS });
-      dbProducts = await convex.query("products:get");
-    }
-    
-    if (dbProducts && dbProducts.length > 0) {
-      PRODUCTS.length = 0; // Clear static array
-      dbProducts.forEach((p, idx) => {
-        PRODUCTS.push({
-          id: p.id || (idx + 1),
-          name: p.name,
-          brand: p.brand,
-          model: p.model,
-          category: p.category,
-          price: p.price,
-          oldPrice: p.oldPrice,
-          image: p.image,
-          rating: p.rating,
-          tag: p.tag,
-          description: p.description,
-          specs: p.specs
-        });
-      });
-      console.log("Successfully loaded products dynamically from Convex database.");
-    }
-  } catch (err) {
-    console.warn("Could not connect to Convex database. Falling back to local static products dataset.", err);
+function renderCheckoutSummary() {
+  const container = document.getElementById("checkout-summary-items");
+  const subtotalEl = document.getElementById("checkout-sum-subtotal");
+  const shippingEl = document.getElementById("checkout-sum-shipping");
+  const totalEl = document.getElementById("checkout-sum-total");
+  
+  if (!container) return;
+  container.innerHTML = "";
+  
+  // Recalculate subtotal using non-gift items
+  let subtotal = 0;
+  cart.forEach(item => {
+    if (!item.isGift) subtotal += item.price * item.quantity;
+  });
+  
+  // Calculate promotions
+  const clientType = activeCheckoutType;
+  const activePromos = PROMOTIONS.filter(p => p.clientType === clientType && p.active);
+  
+  // Shipping cost promo calculation
+  const shippingPromo = activePromos.find(p => p.type === "free_shipping");
+  let shippingCost = 5.00;
+  if (shippingPromo && subtotal >= shippingPromo.threshold) {
+    shippingCost = 0.00;
   }
+  
+  // Filter cart to inject the correct gift if thresholds differ
+  cart = cart.filter(item => !item.isGift);
+  const giftPromo = activePromos.find(p => p.type === "gift");
+  if (giftPromo && giftPromo.giftProductId && subtotal >= giftPromo.threshold) {
+    const giftProduct = PRODUCTS.find(p => p._id === giftPromo.giftProductId);
+    if (giftProduct) {
+      cart.push({
+        id: giftProduct._id,
+        name: giftProduct.name + " (ПОДАРЪК)",
+        image: giftProduct.image,
+        price: 0.00,
+        quantity: 1,
+        isGift: true
+      });
+    }
+  }
+
+  cart.forEach(item => {
+    const div = document.createElement("div");
+    div.style.display = "flex";
+    div.style.justifyContent = "space-between";
+    div.style.marginBottom = "0.5rem";
+    div.style.fontSize = "0.9rem";
+    div.innerHTML = `
+      <span style="color: var(--text-muted);">${item.name} x ${item.quantity}</span>
+      <span style="color: #fff; font-weight:500;">${item.price === 0 ? "Подарък" : (item.price * item.quantity).toFixed(2) + " лв."}</span>
+    `;
+    container.appendChild(div);
+  });
+  
+  const total = subtotal + shippingCost;
+  
+  subtotalEl.textContent = `${subtotal.toFixed(2)} лв.`;
+  shippingEl.textContent = shippingCost === 0 ? "Безплатна" : `${shippingCost.toFixed(2)} лв.`;
+  totalEl.textContent = `${total.toFixed(2)} лв.`;
 }
 
-async function handleCheckout(event) {
+window.submitCheckout = async function(event) {
   event.preventDefault();
   
-  const name = document.getElementById("checkout-name").value.trim();
-  const phone = document.getElementById("checkout-phone").value.trim();
-  const address = document.getElementById("checkout-address").value.trim();
+  const name = document.getElementById("checkout-main-name").value.trim();
+  const phone = document.getElementById("checkout-main-phone").value.trim();
+  const address = document.getElementById("checkout-main-address").value.trim();
   
   if (!name || !phone || !address) {
-    alert("Моля попълнете всички задължителни полета за бърза поръчка!");
+    alert("Моля попълнете всички задължителни полета!");
     return;
   }
   
-  const orderNum = "CK-" + Math.floor(100000 + Math.random() * 900000);
-  
+  // Prepare items payload
   const orderItems = cart.map(item => ({
     id: item.id,
     name: item.name,
     price: item.price,
-    quantity: item.quantity
+    quantity: item.quantity,
+    isGift: item.isGift || false
   }));
   
-  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  // Calculate total
+  let subtotal = 0;
+  cart.forEach(item => {
+    if (!item.isGift) subtotal += item.price * item.quantity;
+  });
   
-  try {
-    // Save order mutation in Convex
-    await convex.mutation("orders:create", {
-      orderNumber: orderNum,
-      name,
-      phone,
-      address,
-      items: orderItems,
-      total
-    });
-    console.log("Successfully stored order CK-" + orderNum + " in Convex.");
-  } catch (err) {
-    console.warn("Could not save order to Convex database. Processing locally.", err);
+  const clientType = activeCheckoutType;
+  const activePromos = PROMOTIONS.filter(p => p.clientType === clientType && p.active);
+  const shippingPromo = activePromos.find(p => p.type === "free_shipping");
+  let shippingCost = 5.00;
+  if (shippingPromo && subtotal >= shippingPromo.threshold) {
+    shippingCost = 0.00;
   }
   
-  document.getElementById("order-tracking-id").textContent = orderNum;
-  document.getElementById("success-screen").classList.add("active");
+  const total = subtotal + shippingCost;
+  const orderNum = "CK-" + Math.floor(100000 + Math.random() * 900000);
   
-  cart = [];
-  saveCart();
-  closeCartSidebar();
-}
+  const orderPayload = {
+    orderNumber: orderNum,
+    name,
+    phone,
+    address,
+    items: orderItems,
+    total,
+    clientType,
+  };
+  
+  if (clientType === "B2B") {
+    orderPayload.companyName = document.getElementById("checkout-comp-name").value.trim();
+    orderPayload.companyBulstat = document.getElementById("checkout-comp-bulstat").value.trim();
+  }
+  
+  try {
+    await convex.mutation("orders:create", orderPayload);
+    
+    // Show success details
+    document.getElementById("order-tracking-id").textContent = orderNum;
+    document.getElementById("success-screen").classList.add("active");
+    
+    // Reset cart
+    cart = [];
+    saveCart();
+    
+    // Redirect to home
+    window.location.hash = "#";
+  } catch (err) {
+    alert("Грешка при изпращане на поръчката: " + err.message);
+  }
+};
 
-function closeSuccessScreen() {
+window.closeSuccessScreen = function() {
   document.getElementById("success-screen").classList.remove("active");
-  document.getElementById("checkout-form-id").reset();
+  document.getElementById("checkout-form-main").reset();
+  window.location.hash = "#";
+};
+
+// --- AUTH / PROFILE PORTAL ---
+window.openAuthModal = function() {
+  const modal = document.getElementById("auth-modal");
+  modal.style.display = "flex";
+  
+  if (currentUser) {
+    toggleAuthPanel("profile");
+    
+    document.getElementById("profile-display-name").textContent = currentUser.name;
+    document.getElementById("profile-display-email").textContent = currentUser.email;
+    document.getElementById("profile-display-type").textContent = currentUser.clientType === "B2B" ? "Фирмен (B2B)" : "Физически (B2C)";
+    
+    const compBox = document.getElementById("profile-display-comp-box");
+    if (currentUser.clientType === "B2B" && currentUser.companyDetails) {
+      document.getElementById("profile-display-comp-name").textContent = currentUser.companyDetails.name;
+      document.getElementById("profile-display-comp-bulstat").textContent = currentUser.companyDetails.bulstat;
+      compBox.style.display = "block";
+    } else {
+      compBox.style.display = "none";
+    }
+  } else {
+    toggleAuthPanel("login");
+    initGoogleLoginButton();
+  }
+};
+
+window.closeAuthModal = function() {
+  document.getElementById("auth-modal").style.display = "none";
+};
+
+window.toggleAuthPanel = function(panel) {
+  document.getElementById("auth-login-panel").style.display = panel === "login" ? "block" : "none";
+  document.getElementById("auth-register-panel").style.display = panel === "register" ? "block" : "none";
+  document.getElementById("auth-profile-panel").style.display = panel === "profile" ? "block" : "none";
+};
+
+window.switchRegType = function(type) {
+  activeRegType = type;
+  const btnB2C = document.getElementById("btn-reg-b2c");
+  const btnB2B = document.getElementById("btn-reg-b2b");
+  const b2bFields = document.getElementById("reg-b2b-fields");
+  
+  if (type === "B2B") {
+    btnB2B.classList.add("active");
+    btnB2C.classList.remove("active");
+    b2bFields.style.display = "block";
+    
+    document.getElementById("reg-comp-name").required = true;
+    document.getElementById("reg-comp-bulstat").required = true;
+    document.getElementById("reg-comp-address").required = true;
+    document.getElementById("reg-comp-mol").required = true;
+  } else {
+    btnB2C.classList.add("active");
+    btnB2B.classList.remove("active");
+    b2bFields.style.display = "none";
+    
+    document.getElementById("reg-comp-name").required = false;
+    document.getElementById("reg-comp-bulstat").required = false;
+    document.getElementById("reg-comp-address").required = false;
+    document.getElementById("reg-comp-mol").required = false;
+  }
+};
+
+window.toggleRegVatCheckbox = function() {
+  const cb = document.getElementById("reg-comp-vat");
+  cb.checked = !cb.checked;
+};
+
+// --- CUSTOM REGISTER & LOGIN HANDLERS ---
+window.handleUserRegister = async function(event) {
+  event.preventDefault();
+  
+  const email = document.getElementById("reg-email").value.trim();
+  const password = document.getElementById("reg-pass").value;
+  const name = document.getElementById("reg-name").value.trim();
+  const phone = document.getElementById("reg-phone").value.trim();
+  const address = document.getElementById("reg-address").value.trim();
+  
+  const regPayload = {
+    email,
+    password: password || null,
+    clientType: activeRegType,
+    name,
+    phone,
+    address,
+    googleId: googleRegisterTemp ? googleRegisterTemp.googleId : null
+  };
+  
+  if (activeRegType === "B2B") {
+    regPayload.companyDetails = {
+      name: document.getElementById("reg-comp-name").value.trim(),
+      bulstat: document.getElementById("reg-comp-bulstat").value.trim(),
+      address: document.getElementById("reg-comp-address").value.trim(),
+      mol: document.getElementById("reg-comp-mol").value.trim(),
+      vatRegistered: document.getElementById("reg-comp-vat").checked
+    };
+  }
+  
+  try {
+    const res = await convex.mutation("users:register", regPayload);
+    if (res.success) {
+      localStorage.setItem("caseking_session_token", res.sessionToken);
+      currentUser = {
+        _id: res.userId,
+        email,
+        clientType: res.clientType,
+        name: res.name,
+        companyDetails: regPayload.companyDetails
+      };
+      
+      googleRegisterTemp = null;
+      updateUserUIState();
+      closeAuthModal();
+      alert("Успешна регистрация!");
+    }
+  } catch (err) {
+    alert("Грешка при регистрация: " + err.message);
+  }
+};
+
+window.handleUserLogin = async function(event) {
+  event.preventDefault();
+  
+  const email = document.getElementById("auth-login-email").value.trim();
+  const password = document.getElementById("auth-login-pass").value;
+  
+  try {
+    const res = await convex.mutation("users:login", { email, password });
+    if (res.success) {
+      localStorage.setItem("caseking_session_token", res.sessionToken);
+      await verifySession();
+      closeAuthModal();
+    }
+  } catch (err) {
+    alert("Грешка при вход: " + err.message);
+  }
+};
+
+window.handleUserLogout = async function() {
+  const token = localStorage.getItem("caseking_session_token");
+  if (token) {
+    try {
+      await convex.mutation("users:logout", { sessionToken: token });
+    } catch (err) {
+      console.error(err);
+    }
+  }
+  
+  currentUser = null;
+  localStorage.removeItem("caseking_session_token");
+  
+  // Clear profile inputs
+  document.getElementById("reg-form").reset();
+  
+  updateUserUIState();
+  closeAuthModal();
+  alert("Успешно излязохте от профила си!");
+};
+
+function updateUserUIState() {
+  const pBtn = document.getElementById("header-profile-btn");
+  const nameSpan = document.getElementById("header-user-name");
+  
+  if (currentUser) {
+    pBtn.innerHTML = `<i class="fas fa-user-check" style="color:var(--gold);"></i>`;
+    nameSpan.textContent = currentUser.name.split(" ")[0];
+    nameSpan.style.display = "inline";
+    
+    // Auto-populate checkout details
+    document.getElementById("checkout-main-name").value = currentUser.name;
+    document.getElementById("checkout-main-phone").value = currentUser.phone;
+    document.getElementById("checkout-main-address").value = currentUser.address;
+    
+    if (currentUser.clientType === "B2B") {
+      switchCheckoutType("B2B");
+      if (currentUser.companyDetails) {
+        document.getElementById("checkout-comp-name").value = currentUser.companyDetails.name;
+        document.getElementById("checkout-comp-bulstat").value = currentUser.companyDetails.bulstat;
+        document.getElementById("checkout-comp-address").value = currentUser.companyDetails.address;
+        document.getElementById("checkout-comp-mol").value = currentUser.companyDetails.mol;
+        document.getElementById("checkout-comp-vat").checked = currentUser.companyDetails.vatRegistered;
+      }
+    } else {
+      switchCheckoutType("B2C");
+    }
+  } else {
+    pBtn.innerHTML = `<i class="fas fa-user"></i>`;
+    nameSpan.style.display = "none";
+    
+    // Reset checkout form fields
+    document.getElementById("checkout-form-main").reset();
+    switchCheckoutType("B2C");
+  }
+  
+  // Redraw catalog to update prices (B2B vs B2C)
+  renderCatalog();
+  saveCart(); // triggers cart items re-render with updated promo limits
 }
 
-// --- MOBILE SLIDING MENU ACTIONS ---
+// --- GOOGLE SIGN-IN HANDLER ---
+function initGoogleLoginButton() {
+  if (typeof google === "undefined" || !google.accounts) {
+    // Retry in 500ms if SDK not loaded
+    setTimeout(initGoogleLoginButton, 500);
+    return;
+  }
+  
+  google.accounts.id.initialize({
+    client_id: "103685477580-placeholder.apps.googleusercontent.com", // Client ID placeholder
+    callback: handleGoogleCredentialResponse
+  });
+  
+  google.accounts.id.renderButton(
+    document.getElementById("google-login-btn-container"),
+    { theme: "outline", size: "large", text: "signin_with" }
+  );
+}
+
+// JWT decoder helper
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
+async function handleGoogleCredentialResponse(response) {
+  const credential = response.credential;
+  const payload = parseJwt(credential);
+  if (!payload) {
+    alert("Грешка при валидация на Google профил.");
+    return;
+  }
+  
+  const email = payload.email;
+  const name = payload.name;
+  const googleId = payload.sub;
+  
+  try {
+    const res = await convex.mutation("users:googleLogin", { email, name, googleId });
+    if (res.success) {
+      // Logged in
+      localStorage.setItem("caseking_session_token", res.sessionToken);
+      await verifySession();
+      closeAuthModal();
+    } else if (res.needsRegistration) {
+      // Google account needs details registration
+      googleRegisterTemp = { email, name, googleId };
+      
+      toggleAuthPanel("register");
+      
+      // Fill email and name
+      document.getElementById("reg-email").value = email;
+      document.getElementById("reg-email").disabled = true;
+      document.getElementById("reg-name").value = name;
+      
+      // Hide password input since they register with Google
+      document.getElementById("reg-pass-group").style.display = "none";
+      document.getElementById("reg-pass").required = false;
+      
+      alert("Моля, попълнете вашия телефон и адрес за доставка, за да довършите профила си!");
+    }
+  } catch (err) {
+    alert("Грешка при вход с Google: " + err.message);
+  }
+}
+
+// --- CLIENT-SIDE ROUTER ---
+function handleRouting() {
+  const hash = window.location.hash;
+  
+  const homeView = document.getElementById("storefront-home-view");
+  const productView = document.getElementById("product-page-view");
+  const checkoutView = document.getElementById("checkout-page-view");
+  
+  if (hash.startsWith("#product/")) {
+    // Show Product Details View
+    homeView.style.display = "none";
+    checkoutView.style.display = "none";
+    productView.style.display = "block";
+    
+    const productId = hash.substring(9);
+    renderProductPage(productId);
+    window.scrollTo(0, 0);
+  } else if (hash === "#checkout") {
+    // Show Checkout funnel
+    homeView.style.display = "none";
+    productView.style.display = "none";
+    checkoutView.style.display = "block";
+    
+    renderCheckoutSummary();
+    window.scrollTo(0, 0);
+  } else {
+    // Show Standard Home/Catalog view
+    productView.style.display = "none";
+    checkoutView.style.display = "none";
+    homeView.style.display = "block";
+    
+    renderCatalog();
+  }
+}
+
+window.backToCatalog = function() {
+  window.location.hash = "#";
+};
+
+// --- MOBILE HAMBURGER MENU ACTIONS ---
 function openMobileMenu() {
   document.getElementById("mobile-menu-overlay").classList.add("active");
-  renderMenuBrands();
 }
 
 function closeMobileMenu() {
   document.getElementById("mobile-menu-overlay").classList.remove("active");
 }
 
-function renderMenuBrands() {
-  const container = document.getElementById("menu-brands-list");
-  if (!container) return;
-  container.innerHTML = "";
+function selectMobileBrand(brandName, btn) {
+  document.querySelectorAll(".menu-brand-item").forEach(item => item.classList.remove("active"));
+  btn.classList.add("active");
   
-  BRANDS.forEach(brand => {
-    const btn = document.createElement("button");
-    btn.className = "menu-brand-item";
-    if (selectedBrand === brand) {
-      btn.classList.add("active");
-    }
-    
-    const imgHtml = BRANDS_WITH_LOGOS[brand] 
-      ? `<img src="assets/${BRANDS_WITH_LOGOS[brand]}" alt="${brand}" class="menu-brand-img">`
-      : `<div class="menu-brand-placeholder">${brand.charAt(0)}</div>`;
-      
-    btn.innerHTML = `
-      ${imgHtml}
-      <span>${brand}</span>
+  const modelSection = document.getElementById("menu-models-section");
+  const modelTitle = document.getElementById("menu-models-title");
+  const modelList = document.getElementById("menu-models-list");
+  
+  modelSection.style.display = "block";
+  modelTitle.textContent = `Модели за ${brandName}`;
+  modelList.innerHTML = "";
+  
+  const brandModels = MODELS.filter(m => m.brand === brandName);
+  brandModels.forEach(model => {
+    const modelBtn = document.createElement("button");
+    modelBtn.className = "menu-model-item";
+    modelBtn.innerHTML = `
+      <i class="fas fa-mobile-alt"></i>
+      <span>${model.name}</span>
     `;
-    
-    btn.onclick = () => selectBrandFromMenu(brand);
-    container.appendChild(btn);
+    modelBtn.onclick = () => {
+      selectedBrand = brandName;
+      selectedModel = model.name;
+      selectedCategory = null;
+      
+      closeMobileMenu();
+      
+      // Sync desktop UI highlighting
+      document.querySelectorAll(".category-card").forEach(c => c.classList.remove("active"));
+      selectBrand(brandName);
+      selectModel(model.name);
+    };
+    modelList.appendChild(modelBtn);
   });
 }
 
-function selectBrandFromMenu(brand) {
-  selectBrand(brand);
-  
-  const modelsSection = document.getElementById("menu-models-section");
-  const modelsTitle = document.getElementById("menu-models-title");
-  const modelsList = document.getElementById("menu-models-list");
-  
-  if (modelsSection && modelsTitle && modelsList) {
-    modelsSection.style.display = "block";
-    modelsTitle.textContent = `Модели за ${brand}:`;
-    modelsList.innerHTML = "";
-    
-    BRAND_MODELS[brand].forEach(model => {
-      const btn = document.createElement("button");
-      btn.className = "menu-model-item";
-      btn.innerHTML = `
-        <i class="fas fa-mobile-alt"></i>
-        <span>${model}</span>
-      `;
-      btn.onclick = () => {
-        selectModel(model);
-        closeMobileMenu();
-      };
-      modelsList.appendChild(btn);
-    });
-  }
-}
-
-// --- EXPOSE GLOBALS FOR INLINE HTML ATTRIBUTES ---
-window.openCartSidebar = openCartSidebar;
-window.closeCartSidebar = closeCartSidebar;
-window.openMobileMenu = openMobileMenu;
-window.closeMobileMenu = closeMobileMenu;
-window.openQuickView = openQuickView;
-window.closeQuickView = closeQuickView;
-window.addToCart = addToCart;
-window.updateCartItemQty = updateCartItemQty;
-window.removeFromCart = removeFromCart;
-window.closeSuccessScreen = closeSuccessScreen;
-window.selectCategoryFilter = selectCategoryFilter;
-window.selectBrand = selectBrand;
-window.selectModel = selectModel;
-
 // --- INITIALIZATION ---
 async function initApp() {
-  // Load dynamic data from database
-  await loadProducts();
+  // Load dynamic database variables
+  await loadData();
   
+  // Verify session login
+  await verifySession();
+  
+  // Render views
   renderBrands();
   renderCategories();
   renderCatalog();
   updateCartCount();
   renderCartItems();
   
+  // Trigger router routing checks
+  handleRouting();
+  window.addEventListener("hashchange", handleRouting);
+  
+  // Background header transparency transitions on scroll
   window.addEventListener("scroll", () => {
     const header = document.querySelector("header");
     if (window.scrollY > 30) {
@@ -844,40 +1235,23 @@ async function initApp() {
     }
   });
   
-  const qtyDecBtn = document.getElementById("modal-qty-dec");
-  const qtyIncBtn = document.getElementById("modal-qty-inc");
-  const qtyValEl = document.getElementById("modal-qty-val");
-  
-  if (qtyDecBtn && qtyIncBtn && qtyValEl) {
-    qtyDecBtn.addEventListener("click", () => {
-      let currentVal = parseInt(qtyValEl.textContent);
-      if (currentVal > 1) {
-        qtyValEl.textContent = (currentVal - 1).toString();
-      }
-    });
-    
-    qtyIncBtn.addEventListener("click", () => {
-      let currentVal = parseInt(qtyValEl.textContent);
-      qtyValEl.textContent = (currentVal + 1).toString();
-    });
-  }
-  
-  const modalAddBtn = document.getElementById("modal-add-to-cart");
-  if (modalAddBtn) {
-    modalAddBtn.addEventListener("click", () => {
-      if (activeQuickViewProduct) {
-        const qty = parseInt(qtyValEl.textContent);
-        addToCart(activeQuickViewProduct.id, qty);
-        closeQuickView();
-      }
-    });
-  }
-  
-  const formElement = document.getElementById("checkout-form-id");
-  if (formElement) {
-    formElement.addEventListener("submit", handleCheckout);
-  }
+  // Google sign in init
+  initGoogleLoginButton();
 }
+
+// Global Exports
+window.openMobileMenu = openMobileMenu;
+window.closeMobileMenu = closeMobileMenu;
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.proceedToCheckout = proceedToCheckout;
+window.switchCheckoutType = switchCheckoutType;
+window.toggleCheckoutVatCheckbox = toggleCheckoutVatCheckbox;
+window.submitCheckout = submitCheckout;
+window.closeSuccessScreen = closeSuccessScreen;
+window.openCartSidebar = openCartSidebar;
+window.closeCartSidebar = closeCartSidebar;
+window.renderCartItems = renderCartItems;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);

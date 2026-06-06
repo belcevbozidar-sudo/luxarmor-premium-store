@@ -11,6 +11,9 @@
   
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="styles.css">
+  
+  <!-- Google Sign-In SDK client -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -43,6 +46,10 @@
           </svg>
           <span class="cart-count">0</span>
         </button>
+        <button class="header-btn" onclick="openAuthModal()" id="header-profile-btn" title="Профил / Вход">
+          <i class="fas fa-user"></i>
+        </button>
+        <span id="header-user-name" style="font-size:0.8rem; color:var(--gold); font-weight:600; display:none;"></span>
         <button class="header-btn mobile-menu-toggle" onclick="openMobileMenu()" title="Меню">
           <i class="fas fa-bars"></i>
         </button>
@@ -50,45 +57,172 @@
     </div>
   </header>
 
-  <!-- --- STEP 1: CHOOSE PHONE BRAND --- -->
-  <section class="step-section">
+  <!-- === STOREFRONT HOME VIEW === -->
+  <div id="storefront-home-view">
+    <!-- --- STEP 1: CHOOSE PHONE BRAND --- -->
+    <section class="step-section">
+      <div class="container">
+        <h2 class="step-title">СТЪПКА 1 - ИЗБЕРИ МАРКА ТЕЛЕФОН:</h2>
+        <div class="brands-list-container" id="brands-list">
+          <!-- Dynamically loaded -->
+        </div>
+      </div>
+    </section>
+
+    <!-- --- STEP 2: CHOOSE PHONE MODEL --- -->
+    <section class="step-section">
+      <div class="container">
+        <h2 class="step-title" id="step2-title" style="display: none;">СТЪПКА 2 - ИЗБЕРИ МОДЕЛ:</h2>
+        <div class="models-list-container" id="models-list" style="display: none;">
+          <!-- Dynamically loaded when brand is selected -->
+        </div>
+      </div>
+    </section>
+
+    <!-- --- CATEGORIES GRID --- -->
+    <section class="categories-section">
+      <div class="container">
+        <h2 class="step-title text-center">КАТЕГОРИИ</h2>
+        <div class="categories-grid" id="categories-grid">
+          <!-- Dynamically loaded -->
+        </div>
+      </div>
+    </section>
+
+    <!-- --- PRODUCT CATALOG --- -->
+    <section class="catalog" id="catalog">
+      <div class="container">
+        <h2 class="section-title" id="catalog-main-title">Всички Продукти</h2>
+        <p class="section-subtitle">CaseKing Premium Selection</p>
+        
+        <!-- Interactive Grid for Products -->
+        <div class="product-grid" id="product-grid">
+          <!-- Will be loaded dynamically via Javascript -->
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- === STOREFRONT PRODUCT PAGE VIEW === -->
+  <section class="product-page-section" id="product-page-view" style="display: none; padding: 3rem 0; min-height: 80vh;">
     <div class="container">
-      <h2 class="step-title">СТЪПКА 1 - ИЗБЕРИ МАРКА ТЕЛЕФОН:</h2>
-      <div class="brands-list-container" id="brands-list">
-        <!-- Dynamically loaded -->
+      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--gold); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+        <i class="fas fa-arrow-left"></i> Назад към каталога
+      </button>
+      <div class="product-page-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
+        <div class="product-page-image-panel" style="border: 1px solid var(--panel-border); border-radius: 12px; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; aspect-ratio: 1/1; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+          <img id="product-page-image" src="" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <div class="product-page-details-panel">
+          <span id="product-page-cat" style="color: var(--gold); font-size: 0.9rem; text-transform: uppercase; font-weight: 600; letter-spacing: 1px;"></span>
+          <h1 id="product-page-title" style="font-size: 2.25rem; font-weight: 700; margin: 0.5rem 0 1rem; color: #fff; line-height: 1.2;"></h1>
+          
+          <div class="modal-product-rating" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+            <div class="modal-stars" id="product-page-stars" style="color: var(--gold);"></div>
+            <span style="color: var(--text-muted); font-size: 0.85rem;">(Гарантиран произход)</span>
+          </div>
+          
+          <div class="product-page-price-box" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+            <span id="product-page-price" style="font-size: 2rem; font-weight: 700; color: var(--gold);"></span>
+            <span id="product-page-old-price" style="font-size: 1.25rem; text-decoration: line-through; color: var(--text-muted);"></span>
+            <span id="product-page-client-badge" class="admin-badge" style="display:none; font-size: 0.7rem; border-color: var(--gold); color: var(--gold); background: rgba(204,164,59,0.1); padding: 0.2rem 0.5rem; border-radius: 4px;"></span>
+          </div>
+          
+          <p id="product-page-desc" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; font-size: 1rem;"></p>
+          
+          <div class="modal-specs-list" style="margin-bottom: 2rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 1.25rem;">
+            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Материал:</span><span class="modal-spec-val" id="product-page-spec-material" style="color: #fff; font-weight: 500;"></span></div>
+            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Тегло:</span><span class="modal-spec-val" id="product-page-spec-weight" style="color: #fff; font-weight: 500;"></span></div>
+            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Производител:</span><span class="modal-spec-val" id="product-page-spec-origin" style="color: #fff; font-weight: 500;"></span></div>
+            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Доставка / Гаранция:</span><span class="modal-spec-val" id="product-page-spec-delivery" style="color: #fff; font-weight: 500;"></span></div>
+          </div>
+          
+          <div class="modal-actions" style="display: flex; gap: 1.5rem; align-items: center;">
+            <div class="qty-stepper" style="display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; background: rgba(0,0,0,0.2);">
+              <button class="qty-btn" id="product-page-qty-dec" style="background: transparent; border: none; color: #fff; width: 36px; height: 36px; cursor: pointer; font-size: 1.1rem; font-weight: 600;">-</button>
+               <span class="qty-val" id="product-page-qty-val" style="width: 30px; text-align: center; font-weight: 600;">1</span>
+               <button class="qty-btn" id="product-page-qty-inc" style="background: transparent; border: none; color: #fff; width: 36px; height: 36px; cursor: pointer; font-size: 1.1rem; font-weight: 600;">+</button>
+            </div>
+            <button class="btn-premium" id="product-page-add-to-cart" style="flex: 1; padding: 0.85rem 2rem;">Добави в Количката</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- --- STEP 2: CHOOSE PHONE MODEL --- -->
-  <section class="step-section">
-    <div class="container">
-      <h2 class="step-title" id="step2-title" style="display: none;">СТЪПКА 2 - ИЗБЕРИ МОДЕЛ:</h2>
-      <div class="models-list-container" id="models-list" style="display: none;">
-        <!-- Dynamically loaded when brand is selected -->
-      </div>
-    </div>
-  </section>
-
-  <!-- --- CATEGORIES GRID --- -->
-  <section class="categories-section">
-    <div class="container">
-      <h2 class="step-title text-center">КАТЕГОРИИ</h2>
-      <div class="categories-grid" id="categories-grid">
-        <!-- Dynamically loaded -->
-      </div>
-    </div>
-  </section>
-
-  <!-- --- PRODUCT CATALOG --- -->
-  <section class="catalog" id="catalog">
-    <div class="container">
-      <h2 class="section-title" id="catalog-main-title">Всички Продукти</h2>
-      <p class="section-subtitle">CaseKing Premium Selection</p>
+  <!-- === STOREFRONT CHECKOUT PAGE VIEW === -->
+  <section class="checkout-page-section" id="checkout-page-view" style="display: none; padding: 3rem 0; min-height: 80vh;">
+    <div class="container" style="max-width: 950px;">
+      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--gold); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+        <i class="fas fa-arrow-left"></i> Обратно към магазина
+      </button>
       
-      <!-- Interactive Grid for Products -->
-      <div class="product-grid" id="product-grid">
-        <!-- Will be loaded dynamically via Javascript -->
+      <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem; color: #fff;">Оформяне на поръчката</h1>
+      
+      <div class="checkout-grid" style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 2.5rem; align-items: start;">
+        <!-- Forms -->
+        <div class="checkout-form-panel" style="background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; padding: 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+          <div class="checkout-type-selectors" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem;">
+            <button type="button" class="btn-secondary active" id="btn-checkout-b2c" onclick="switchCheckoutType('B2C')" style="flex: 1; padding: 0.75rem;">Физическо лице</button>
+            <button type="button" class="btn-secondary" id="btn-checkout-b2b" onclick="switchCheckoutType('B2B')" style="flex: 1; padding: 0.75rem;">Фирмена поръчка (B2B)</button>
+          </div>
+          
+          <form id="checkout-form-main" onsubmit="submitCheckout(event)">
+            <div class="form-group">
+              <label>Име и Фамилия / Получател *</label>
+              <input type="text" id="checkout-main-name" required placeholder="напр. Иван Иванов">
+            </div>
+            <div class="form-group">
+              <label>Телефон за връзка *</label>
+              <input type="text" id="checkout-main-phone" required placeholder="напр. 0889XXXXXX">
+            </div>
+            <div class="form-group">
+              <label>Адрес за доставка *</label>
+              <input type="text" id="checkout-main-address" required placeholder="Град, улица, офис на Еконт/Спиди">
+            </div>
+            
+            <!-- Company B2B Fields (Conditional) -->
+            <div id="checkout-b2b-fields" style="display: none; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 1.5rem; margin-top: 1.5rem;">
+              <h3 style="font-size: 1.15rem; color: var(--gold); margin-bottom: 1.2rem; font-weight:600;">Фирмени Данни за фактура</h3>
+              <div class="form-group">
+                <label>Име на фирмата *</label>
+                <input type="text" id="checkout-comp-name" placeholder="напр. Фирма ООД">
+              </div>
+              <div class="form-group">
+                <label>ЕИК / БУЛСТАТ *</label>
+                <input type="text" id="checkout-comp-bulstat" placeholder="напр. 123456789">
+              </div>
+              <div class="form-group">
+                <label>Адрес на регистрация *</label>
+                <input type="text" id="checkout-comp-address" placeholder="гр. София, ул. Примерна 1">
+              </div>
+              <div class="form-group">
+                <label>МОЛ (Материално отговорно лице) *</label>
+                <input type="text" id="checkout-comp-mol" placeholder="напр. Георги Георгиев">
+              </div>
+              <div class="remember-me-container" onclick="toggleCheckoutVatCheckbox()" style="margin-top: 1rem; color: var(--text-muted); cursor:pointer;">
+                <input type="checkbox" id="checkout-comp-vat" style="accent-color:var(--gold);">
+                <span style="font-size:0.9rem; margin-left:0.5rem;">Регистрирана по ДДС</span>
+              </div>
+            </div>
+            
+            <button type="submit" class="btn-premium" style="width: 100%; margin-top: 2rem; padding: 1rem;">Завърши поръчката</button>
+          </form>
+        </div>
+        
+        <!-- Summary -->
+        <div class="checkout-summary-panel" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 2rem; position: sticky; top: 120px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+          <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.75rem; color: #fff;">Вашата поръчка</h3>
+          <div id="checkout-summary-items" style="max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 0.5rem;">
+            <!-- Dynamically populated -->
+          </div>
+          
+          <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Продукти:</span><span id="checkout-sum-subtotal" style="color: #fff; font-weight:500;">0.00 лв.</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Доставка:</span><span id="checkout-sum-shipping" style="color: #fff; font-weight:500;">5.00 лв.</span></div>
+            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.25rem; margin-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.75rem;"><span style="color: var(--gold);">Общо:</span><span id="checkout-sum-total" style="color: var(--gold);">0.00 лв.</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -147,115 +281,125 @@
           <span class="cart-summary-total" id="cart-subtotal">0.00 лв.</span>
         </div>
         
-        <!-- Interactive Checkout form inside sidebar -->
-        <div class="cart-checkout-form-container" id="cart-checkout-form">
-          <h4 class="form-title">Данни за Бърза Поръчка</h4>
-          <form id="checkout-form-id">
-            <div class="form-group">
-              <label for="checkout-name">Две имена *</label>
-              <input type="text" id="checkout-name" class="form-input" placeholder="Иван Иванов" required>
-            </div>
-            <div class="form-group">
-              <label for="checkout-phone">Телефон *</label>
-              <input type="tel" id="checkout-phone" class="form-input" placeholder="0889 65 00 60" required>
-            </div>
-            <div class="form-group">
-              <label for="checkout-address">Адрес на Еконт / Спиди или личен *</label>
-              <input type="text" id="checkout-address" class="form-input" placeholder="Офис на Еконт - София Младост" required>
-            </div>
-            
-            <div class="checkout-btn-group">
-              <button type="submit" class="btn-premium btn-checkout-submit">Изпрати Поръчката</button>
-              <a href="tel:0889650060" class="btn-phone-order">
-                <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                Поръчай директно по телефон
-              </a>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- --- SLIDING MOBILE MENU SIDEBAR --- -->
-  <div class="cart-sidebar-overlay" id="mobile-menu-overlay">
-    <div class="cart-sidebar mobile-menu-sidebar">
-      <div class="cart-header">
-        <h3 class="cart-header-title">Изберете Марка и Модел</h3>
-        <button class="cart-close-btn" onclick="closeMobileMenu()" title="Затвори">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <div class="mobile-menu-content">
-        <div class="menu-section">
-          <h4 class="menu-section-title">Марки</h4>
-          <div class="menu-brands-grid" id="menu-brands-list">
-            <!-- Dynamically loaded -->
-          </div>
-        </div>
+        <div class="cart-promo-banner" id="cart-promo-banner" style="display:none; font-size: 0.85rem; padding: 0.75rem; background: rgba(204,164,59,0.1); border: 1px dashed var(--gold); border-radius: 6px; margin-top: 1rem; color: #fff; text-align: center;"></div>
         
-        <div class="menu-section" id="menu-models-section" style="display: none;">
-          <h4 class="menu-section-title" id="menu-models-title">Модели</h4>
-          <div class="menu-models-grid" id="menu-models-list">
-            <!-- Dynamically loaded when brand is selected -->
-          </div>
-        </div>
+        <button class="btn-premium" onclick="proceedToCheckout()" style="width: 100%; margin-top: 1rem; padding: 0.85rem;">Напред към поръчка</button>
       </div>
     </div>
   </div>
 
-  <!-- --- PRODUCT QUICK VIEW MODAL --- -->
-  <div class="modal-overlay" id="quickview-overlay">
-    <div class="modal-wrapper">
-      <button class="modal-close-btn" onclick="closeQuickView()" title="Затвори">
+  <!-- --- AUTHENTICATION MODAL OVERLAY --- -->
+  <div class="modal-overlay" id="auth-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); justify-content: center; align-items: center; z-index: 1000;">
+    <div class="modal-wrapper" style="max-width: 450px; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.5); backdrop-filter: blur(10px); position: relative; width: 100%;">
+      <button class="modal-close-btn" onclick="closeAuthModal()" title="Затвори" style="position: absolute; top: 1.5rem; right: 1.5rem; background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">
         <i class="fas fa-times"></i>
       </button>
       
-      <div class="modal-image-panel">
-        <img id="modal-image" src="" alt="">
+      <!-- LOGIN PANEL -->
+      <div id="auth-login-panel">
+        <h3 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: #fff; text-align: center;">Вход в акаунт</h3>
+        <form onsubmit="handleUserLogin(event)">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Имейл адрес *</label>
+            <input type="email" id="auth-login-email" required placeholder="your@email.com">
+          </div>
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label>Парола *</label>
+            <input type="password" id="auth-login-pass" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn-premium" style="width: 100%; padding: 0.85rem; margin-bottom: 1rem;">Вход</button>
+        </form>
+        
+        <!-- Google Sign-in Slot -->
+        <div style="margin: 1.5rem 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+          <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);;"></span>
+          <span>или влезте с</span>
+          <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);"></span>
+        </div>
+        <div id="google-login-btn-container" style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+          <!-- Managed by Google Identity Services SDK -->
+        </div>
+        
+        <p style="font-size: 0.9rem; text-align: center; color: var(--text-muted);">Нямате акаунт? <a href="#" onclick="toggleAuthPanel('register')" style="color: var(--gold); text-decoration: none; font-weight: 500;">Регистрирайте се тук</a></p>
       </div>
       
-      <div class="modal-details-panel">
-        <span class="modal-product-cat" id="modal-cat">Категория</span>
-        <h3 class="modal-product-title" id="modal-title">Име на продукта</h3>
+      <!-- REGISTRATION PANEL -->
+      <div id="auth-register-panel" style="display: none;">
+        <h3 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #fff; text-align: center;">Създаване на профил</h3>
         
-        <div class="modal-product-rating">
-          <div class="modal-stars" id="modal-stars"></div>
-          <span class="modal-rating-count">(Гарантиран произход)</span>
+        <div class="checkout-type-selectors" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; background: rgba(0,0,0,0.2); padding: 0.25rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+          <button type="button" class="btn-secondary active" id="btn-reg-b2c" onclick="switchRegType('B2C')" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">Физически</button>
+          <button type="button" class="btn-secondary" id="btn-reg-b2b" onclick="switchRegType('B2B')" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">Фирмен (B2B)</button>
         </div>
         
-        <div class="modal-product-price" id="modal-price">0.00 лв.</div>
-        <p class="modal-product-desc" id="modal-desc">Кратко описание на продукта...</p>
+        <form id="reg-form" onsubmit="handleUserRegister(event)" style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+          <!-- Shared info -->
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Имейл адрес *</label>
+            <input type="email" id="reg-email" required placeholder="your@email.com">
+          </div>
+          <div class="form-group" id="reg-pass-group" style="margin-bottom: 0.75rem;">
+            <label>Парола *</label>
+            <input type="password" id="reg-pass" required placeholder="••••••••">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Име и Фамилия / Лице за контакти *</label>
+            <input type="text" id="reg-name" required placeholder="Иван Иванов">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Телефон *</label>
+            <input type="text" id="reg-phone" required placeholder="0889XXXXXX">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Адрес за доставка *</label>
+            <input type="text" id="reg-address" required placeholder="Град, улица, офис">
+          </div>
+          
+          <!-- B2B specific registration fields -->
+          <div id="reg-b2b-fields" style="display: none; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.75rem;">
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label>Фирма (Име) *</label>
+              <input type="text" id="reg-comp-name" placeholder="Фирма ООД">
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label>ЕИК / БУЛСТАТ *</label>
+              <input type="text" id="reg-comp-bulstat" placeholder="123456789">
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label>Адрес на регистрация *</label>
+              <input type="text" id="reg-comp-address" placeholder="гр. София, ул. Примерна 1">
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label>МОЛ *</label>
+              <input type="text" id="reg-comp-mol" placeholder="МОЛ на фирмата">
+            </div>
+            <div class="remember-me-container" onclick="toggleRegVatCheckbox()" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); cursor:pointer;">
+              <input type="checkbox" id="reg-comp-vat" style="accent-color:var(--gold);">
+              <span style="margin-left:0.5rem;">Регистрирана по ДДС</span>
+            </div>
+          </div>
+          
+          <button type="submit" class="btn-premium" style="width: 100%; padding: 0.85rem; margin-top: 1.5rem;">Регистрация</button>
+        </form>
         
-        <div class="modal-specs-list">
-          <div class="modal-spec-row">
-            <span class="modal-spec-label">Материал:</span>
-            <span class="modal-spec-val" id="spec-metal">Сребро 925</span>
-          </div>
-          <div class="modal-spec-row">
-            <span class="modal-spec-label">Съвместимост:</span>
-            <span class="modal-spec-val" id="spec-weight">~3.20г</span>
-          </div>
-          <div class="modal-spec-row">
-            <span class="modal-spec-label">Производител:</span>
-            <span class="modal-spec-val" id="spec-stone">Цирконий</span>
-          </div>
-          <div class="modal-spec-row">
-            <span class="modal-spec-label">Доставка / Гаранция:</span>
-            <span class="modal-spec-val" id="spec-packaging">Луксозна кутия и сертификат</span>
-          </div>
-        </div>
-        
-        <div class="modal-actions">
-          <div class="qty-stepper">
-            <button class="qty-btn" id="modal-qty-dec">-</button>
-            <span class="qty-val" id="modal-qty-val">1</span>
-            <button class="qty-btn" id="modal-qty-inc">+</button>
-          </div>
-          <button class="btn-premium btn-modal-add" id="modal-add-to-cart">Добави в Количката</button>
-        </div>
+        <p style="font-size: 0.9rem; text-align: center; color: var(--text-muted); margin-top: 1rem;">Вече имате акаунт? <a href="#" onclick="toggleAuthPanel('login')" style="color: var(--gold); text-decoration: none; font-weight: 500;">Влезте оттук</a></p>
       </div>
+      
+      <!-- PROFILE PANEL -->
+      <div id="auth-profile-panel" style="display: none; text-align: center;">
+        <h3 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #fff;">Вашият Профил</h3>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; text-align: left; font-size: 0.95rem; border: 1px solid rgba(204,164,59,0.15);">
+          <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">Име:</span> <strong id="profile-display-name" style="color: #fff;"></strong></div>
+          <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">Имейл:</span> <span id="profile-display-email" style="color: #fff;"></span></div>
+          <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">Тип профил:</span> <span id="profile-display-type" class="admin-badge" style="display:inline-block; font-size:0.65rem; border-color:var(--gold); color:var(--gold); background:rgba(204,164,59,0.15);"></span></div>
+          <div id="profile-display-comp-box" style="display: none; margin-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.5rem;">
+            <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">Фирма:</span> <span id="profile-display-comp-name" style="color: #fff;"></span></div>
+            <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">ЕИК:</span> <span id="profile-display-comp-bulstat" style="color: #fff;"></span></div>
+          </div>
+        </div>
+        <button class="btn-premium" onclick="handleUserLogout()" style="width: 100%; padding: 0.85rem; background: transparent; border: 1px solid var(--danger); color: var(--danger); cursor:pointer;">Изход от профила</button>
+      </div>
+      
     </div>
   </div>
 
@@ -274,6 +418,35 @@
       <div class="order-number" id="order-tracking-id">CK-XXXXXX</div>
       
       <button class="btn-premium" onclick="closeSuccessScreen()" style="width: 100%;">Обратно към Магазина</button>
+    </div>
+  </div>
+
+  <!-- --- MOBILE SLIDING MENU OVERLAY --- -->
+  <div class="mobile-menu-overlay" id="mobile-menu-overlay">
+    <div class="mobile-menu-sidebar">
+      <div class="menu-header">
+        <span class="menu-logo-text">CaseKing</span>
+        <button class="menu-close-btn" onclick="closeMobileMenu()" title="Затвори">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="menu-nav-links">
+        <a href="#" class="menu-nav-link" onclick="closeMobileMenu()">Начало</a>
+        <a href="#catalog" class="menu-nav-link" onclick="closeMobileMenu()">Каталог</a>
+        <a href="#footer" class="menu-nav-link" onclick="closeMobileMenu()">Контакти</a>
+      </div>
+      <div class="menu-brands-section">
+        <h4 class="menu-section-title">Марки Телефони</h4>
+        <div class="menu-brands-grid" id="menu-brands-list">
+          <!-- Dynamically loaded -->
+        </div>
+      </div>
+      <div class="menu-models-section" id="menu-models-section" style="display: none;">
+        <h4 class="menu-section-title" id="menu-models-title">Модели</h4>
+        <div class="menu-models-grid" id="menu-models-list">
+          <!-- Dynamically loaded -->
+        </div>
+      </div>
     </div>
   </div>
 

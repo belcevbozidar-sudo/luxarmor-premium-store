@@ -8,8 +8,12 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
+import type * as meta from "../meta.js";
 import type * as orders from "../orders.js";
 import type * as products from "../products.js";
+import type * as promotions from "../promotions.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -18,8 +22,12 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
+  meta: typeof meta;
   orders: typeof orders;
   products: typeof products;
+  promotions: typeof promotions;
+  users: typeof users;
 }>;
 
 /**

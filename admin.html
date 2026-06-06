@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CaseKing - Админ Панел</title>
+  
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --gold: #cca43b;
+      --gold-dark: #b58d2a;
+      --gold-light: #e0be67;
+      --gold-glow: rgba(204, 164, 59, 0.2);
+      --bg: #0c0d0e;
+      --panel: #141618;
+      --panel-border: rgba(204, 164, 59, 0.15);
+      --text: #f0f0f2;
+      --text-muted: #a0a5b0;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- LOGIN PAGE --- */
+    .login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #1b1d20 0%, #08090a 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.4s ease;
+    }
+
+    .login-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .login-card {
+      background: rgba(20, 22, 24, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px var(--gold-glow);
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+
+    .login-logo {
+      width: 180px;
+      margin-bottom: 2rem;
+    }
+
+    .login-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .login-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    .login-form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .login-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .login-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 8px var(--gold-glow);
+    }
+
+    .remember-me-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .remember-me-container input {
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #000;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, filter 0.2s;
+    }
+
+    .btn-login:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn-login:active {
+      transform: scale(0.98);
+    }
+
+    .login-error {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      display: none;
+      background: rgba(231, 76, 60, 0.1);
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid rgba(231, 76, 60, 0.2);
+    }
+
+    /* --- DASHBOARD HEADER --- */
+    header {
+      background-color: var(--panel);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-img {
+      height: 40px;
+    }
+
+    .admin-badge {
+      background: rgba(204, 164, 59, 0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .btn-logout:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* --- LAYOUT GRID --- */
+    .dashboard-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 250px;
+      background-color: var(--panel);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+      gap: 0.5rem;
+    }
+
+    .nav-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      text-align: left;
+      transition: all 0.3s;
+    }
+
+    .nav-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    .nav-tab-btn.active {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+      background: #0f1012;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .btn-action {
+      padding: 0.6rem 1.2rem;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      transition: transform 0.2s, filter 0.2s;
+    }
+
+    .btn-action:hover {
+      filter: brightness(1.1);
+    }
+
+    /* --- DATA TABLES / LISTS --- */
+    .table-container {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    th {
+      background: rgba(0, 0, 0, 0.2);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-icon:hover {
+      background: var(--gold-glow);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-icon.delete:hover {
+      background: rgba(231, 76, 60, 0.15);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-status.pending { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+    .badge-status.completed { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+    .badge-status.cancelled { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+
+    /* --- MODALS --- */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--gold);
+    }
+
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    /* --- BRAND & MODELS SPECIFIC LAYOUT --- */
+    .meta-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2rem;
+    }
+
+    .meta-panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+      height: fit-content;
+    }
+
+    .meta-panel-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .meta-item {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.03);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.3s;
+    }
+
+    .meta-item:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .meta-item-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .meta-logo-preview {
+      height: 24px;
+      max-width: 60px;
+      object-fit: contain;
+    }
+
+    /* Order details formatting */
+    .order-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .order-details-card {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .order-details-card h4 {
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 0.25rem;
+      color: var(--gold);
+    }
+    .order-details-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+    }
+    .order-details-row .label { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <!-- --- SECURE LOGIN OVERLAY --- -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+      <img src="assets/logo.png" alt="CaseKing Logo" class="login-logo">
+      <h3 class="login-title">Вход за Администратори</h3>
+      <p class="login-subtitle" id="login-subtitle">Моля, въведете сигурната парола за достъп.</p>
+      
+      <div class="login-form-group">
+        <label class="login-label">ПАРОЛА:</label>
+        <input type="password" id="admin-pass" class="login-input" placeholder="••••••••" required>
+      </div>
+      
+      <div class="remember-me-container" onclick="toggleRememberCheckbox()">
+        <input type="checkbox" id="remember-me">
+        <span>Запомни това устройство</span>
+      </div>
+      
+      <button class="btn-login" id="btn-login-submit" onclick="attemptAdminLogin()">Вход</button>
+      
+      <div class="login-error" id="login-error-msg"></div>
+    </div>
+  </div>
+
+  <!-- --- MAIN HEADER --- -->
+  <header>
+    <div class="logo-container">
+      <img src="assets/logo.png" alt="CaseKing Logo" class="logo-img">
+      <span class="admin-badge">Админ Панел</span>
+    </div>
+    
+    <div class="header-actions">
+      <span style="font-size: 0.9rem; color: var(--text-muted);"><i class="fas fa-user-shield"></i> Администратор</span>
+      <button class="btn-logout" onclick="adminLogout()">Изход</button>
+    </div>
+  </header>
+
+  <!-- --- MAIN GRID --- -->
+  <div class="dashboard-container">
+    
+    <!-- Sidebar navigation -->
+    <div class="sidebar">
+      <button class="nav-tab-btn active" onclick="switchTab('products-tab', this)"><i class="fas fa-box"></i> Продукти</button>
+      <button class="nav-tab-btn" onclick="switchTab('metadata-tab', this)"><i class="fas fa-tags"></i> Марки & Модели</button>
+      <button class="nav-tab-btn" onclick="switchTab('promotions-tab', this)"><i class="fas fa-gift"></i> Промоции & Подаръци</button>
+      <button class="nav-tab-btn" onclick="switchTab('orders-tab', this)"><i class="fas fa-shopping-bag"></i> Поръчки</button>
+    </div>
+    
+    <!-- Main workspace content -->
+    <div class="main-content">
+      
+      <!-- === TAB 1: PRODUCTS === -->
+      <div class="tab-panel active" id="products-tab">
+        <div class="section-header">
+          <h2 class="section-title">Управление на Продукти</h2>
+          <button class="btn-action" onclick="openProductModal()"><i class="fas fa-plus"></i> Добави Продукт</button>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Снимка</th>
+                <th>Име</th>
+                <th>Марка</th>
+                <th>Модел</th>
+                <th>Категория</th>
+                <th>Цена B2C</th>
+                <th>Цена B2B</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="products-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- === TAB 2: METADATA === -->
+      <div class="tab-panel" id="metadata-tab">
+        <div class="section-header">
+          <h2 class="section-title">Управление на Марки и Модели</h2>
+        </div>
+        
+        <div class="meta-layout">
+          <!-- Brands Control -->
+          <div class="meta-panel">
+            <div class="meta-panel-title">
+              <span>Марки</span>
+              <button class="btn-icon" onclick="openBrandModal()" title="Добави Марка"><i class="fas fa-plus"></i></button>
+            </div>
+            <div class="meta-list" id="brands-list">
+              <!-- Dynamically loaded -->
+            </div>
+          </div>
+          
+          <!-- Models Control -->
+          <div class="meta-panel">
+            <div class="meta-panel-title">
+              <span>Модели за Телефон</span>
+              <button class="btn-icon" onclick="openModelModal()" title="Добави Модел"><i class="fas fa-plus"></i></button>
+            </div>
+            <div class="meta-list" id="models-list">
+              <!-- Dynamically loaded -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- === TAB 3: PROMOTIONS === -->
+      <div class="tab-panel" id="promotions-tab">
+        <div class="section-header">
+          <h2 class="section-title">Промоционални Оферти и Подаръци</h2>
+          <button class="btn-action" onclick="openPromotionModal()"><i class="fas fa-plus"></i> Създай Промоция</button>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Тип Клиент</th>
+                <th>Тип Промоция</th>
+                <th>Праг (Сума)</th>
+                <th>Избран Подарък</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="promotions-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- === TAB 4: ORDERS === -->
+      <div class="tab-panel" id="orders-tab">
+        <div class="section-header">
+          <h2 class="section-title">Поръчки от Клиенти</h2>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Номер</th>
+                <th>Име</th>
+                <th>Телефон</th>
+                <th>Сума</th>
+                <th>Тип Клиент</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- === MODAL: ADD/EDIT PRODUCT === -->
+  <div class="modal" id="product-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="product-modal-title">Добавяне на Нов Продукт</h3>
+        <button class="modal-close" onclick="closeProductModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="product-form" onsubmit="saveProduct(event)">
+          <input type="hidden" id="product-id">
+          
+          <div class="form-group">
+            <label>Име на продукта:</label>
+            <input type="text" id="product-name" required placeholder="напр. Кожен Магнитeн Кейс">
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Марка на телефона:</label>
+              <select id="product-brand" onchange="updateProductModelOptions()" required>
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Специфичен Модел (или Всички):</label>
+              <select id="product-model" required>
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Категория аксесоар:</label>
+              <select id="product-category" required>
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Етикет / Таг (незадължително):</label>
+              <input type="text" id="product-tag" placeholder="напр. БЕСТСЕЛЪР, НОВО">
+            </div>
+          </div>
+          
+          <div class="form-grid" style="border: 1px solid rgba(204,164,59,0.15); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label style="color: var(--gold);">Цена B2C (Физически лица):</label>
+              <input type="number" step="0.01" id="product-price-b2c" required placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label>Стара Цена B2C (ако има):</label>
+              <input type="number" step="0.01" id="product-old-price-b2c" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label style="color: var(--gold);">Цена B2B (Фирмен акаунт):</label>
+              <input type="number" step="0.01" id="product-price-b2b" required placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label>Стара Цена B2B (ако има):</label>
+              <input type="number" step="0.01" id="product-old-price-b2b" placeholder="0.00">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Линк към снимка на продукта:</label>
+            <input type="text" id="product-image" required placeholder="https://unsplash.com/... или assets/...">
+          </div>
+          
+          <div class="form-group">
+            <label>Описание на български език:</label>
+            <textarea id="product-desc" rows="3" required placeholder="Подробно описание..."></textarea>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Материал:</label>
+              <input type="text" id="product-spec-material" required placeholder="напр. Силикон, Кожа">
+            </div>
+            <div class="form-group">
+              <label>Тегло:</label>
+              <input type="text" id="product-spec-weight" required placeholder="напр. 30г">
+            </div>
+            <div class="form-group">
+              <label>Произход:</label>
+              <input type="text" id="product-spec-origin" required placeholder="напр. Германия">
+            </div>
+            <div class="form-group">
+              <label>Срок на доставка:</label>
+              <input type="text" id="product-spec-delivery" required placeholder="напр. Бърза доставка">
+            </div>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeProductModal()">Отказ</button>
+            <button type="submit" class="btn-action">Запази Продукт</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- === MODAL: ADD BRAND === -->
+  <div class="modal" id="brand-modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Добавяне на Марка</h3>
+        <button class="modal-close" onclick="closeBrandModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="saveBrand(event)">
+          <div class="form-group">
+            <label>Име на марката:</label>
+            <input type="text" id="brand-name-input" required placeholder="напр. Apple, Samsung">
+          </div>
+          <div class="form-group">
+            <label>Име на логото (с разширение):</label>
+            <input type="text" id="brand-logo-input" required placeholder="напр. logo_apple.png">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeBrandModal()">Отказ</button>
+            <button type="submit" class="btn-action">Добави</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- === MODAL: ADD MODEL === -->
+  <div class="modal" id="model-modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Добавяне на Модел за Телефон</h3>
+        <button class="modal-close" onclick="closeModelModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="saveModel(event)">
+          <div class="form-group">
+            <label>Избери марка:</label>
+            <select id="model-brand-select" required>
+              <!-- Loaded dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Име на модела:</label>
+            <input type="text" id="model-name-input" required placeholder="напр. iPhone 16 Pro">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeModelModal()">Отказ</button>
+            <button type="submit" class="btn-action">Добави</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- === MODAL: ADD/EDIT PROMOTION === -->
+  <div class="modal" id="promotion-modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="promotion-modal-title">Създаване на Промоция</h3>
+        <button class="modal-close" onclick="closePromotionModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="promotion-form" onsubmit="savePromotion(event)">
+          <input type="hidden" id="promo-id">
+          
+          <div class="form-group">
+            <label>Тип клиент:</label>
+            <select id="promo-client-type" required>
+              <option value="B2C">B2C (Физически лица)</option>
+              <option value="B2B">B2B (Фирми)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Тип промоция:</label>
+            <select id="promo-type" onchange="togglePromoGiftSelect()" required>
+              <option value="free_shipping">Безплатна доставка</option>
+              <option value="gift">Подарък към поръчката</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Праг на поръчката за активиране (лв.):</label>
+            <input type="number" step="0.01" id="promo-threshold" required placeholder="напр. 50.00">
+          </div>
+          
+          <div class="form-group" id="promo-gift-group" style="display: none;">
+            <label>Избери продукт за подарък:</label>
+            <select id="promo-gift-product">
+              <!-- Dynamically populated from products list -->
+            </select>
+          </div>
+          
+          <div class="remember-me-container" onclick="togglePromoActiveCheckbox()" style="margin-top: 1rem;">
+            <input type="checkbox" id="promo-active" checked>
+            <span>Активна промоция</span>
+          </div>
+          
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closePromotionModal()">Отказ</button>
+            <button type="submit" class="btn-action">Запази Промоция</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- === MODAL: VIEW ORDER DETAILS === -->
+  <div class="modal" id="order-modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3>Детайли за Поръчка <span id="order-details-num" style="color: var(--gold);"></span></h3>
+        <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="order-details-grid">
+          <div class="order-details-card">
+            <h4>Информация за клиента</h4>
+            <div class="order-details-row"><span class="label">Име:</span> <span id="order-details-name"></span></div>
+            <div class="order-details-row"><span class="label">Телефон:</span> <span id="order-details-phone"></span></div>
+            <div class="order-details-row"><span class="label">Тип:</span> <span id="order-details-client-type"></span></div>
+            <div id="order-details-company-box" style="display:none; margin-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.5rem;">
+              <div class="order-details-row"><span class="label">Фирма:</span> <span id="order-details-comp-name"></span></div>
+              <div class="order-details-row"><span class="label">ЕИК:</span> <span id="order-details-comp-bulstat"></span></div>
+            </div>
+          </div>
+          <div class="order-details-card">
+            <h4>Информация за доставката</h4>
+            <div class="order-details-row"><span class="label">Адрес:</span> <span id="order-details-address"></span></div>
+            <div class="order-details-row"><span class="label">Дата:</span> <span id="order-details-date"></span></div>
+            <div class="order-details-row"><span class="label">Обща сума:</span> <span id="order-details-total" style="font-weight:600; color:var(--gold);"></span></div>
+          </div>
+        </div>
+
+        <h4 style="margin-bottom: 0.5rem; color: #fff;">Поръчани продукти:</h4>
+        <div class="table-container" style="margin-bottom: 1.5rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Продукт</th>
+                <th>Ед. Цена</th>
+                <th>Количество</th>
+                <th>Общо</th>
+              </tr>
+            </thead>
+            <tbody id="order-items-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="form-group">
+          <label>Промяна на статус на поръчката:</label>
+          <select id="order-status-select" onchange="updateOrderStatus()">
+            <option value="pending">Чакаща (Pending)</option>
+            <option value="completed">Завършена (Completed)</option>
+            <option value="cancelled">Анулирана (Cancelled)</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Convex Web SDK -->
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

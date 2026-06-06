@@ -8,6 +8,86 @@ export const get = query({
   },
 });
 
+export const getById = query({
+  args: { id: v.string() },
+  handler: async (ctx, args) => {
+    try {
+      const dbId = ctx.db.normalizeId("products", args.id);
+      if (!dbId) return null;
+      return await ctx.db.get(dbId);
+    } catch {
+      return null;
+    }
+  },
+});
+
+export const create = mutation({
+  args: {
+    name: v.string(),
+    brand: v.string(),
+    model: v.string(),
+    category: v.string(),
+    image: v.string(),
+    rating: v.number(),
+    tag: v.union(v.string(), v.null()),
+    description: v.string(),
+    specs: v.object({
+      material: v.string(),
+      weight: v.string(),
+      origin: v.string(),
+      delivery: v.string(),
+    }),
+    priceB2C: v.number(),
+    oldPriceB2C: v.union(v.number(), v.null()),
+    priceB2B: v.number(),
+    oldPriceB2B: v.union(v.number(), v.null()),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.insert("products", args);
+  },
+});
+
+export const update = mutation({
+  args: {
+    id: v.string(),
+    name: v.string(),
+    brand: v.string(),
+    model: v.string(),
+    category: v.string(),
+    image: v.string(),
+    rating: v.number(),
+    tag: v.union(v.string(), v.null()),
+    description: v.string(),
+    specs: v.object({
+      material: v.string(),
+      weight: v.string(),
+      origin: v.string(),
+      delivery: v.string(),
+    }),
+    priceB2C: v.number(),
+    oldPriceB2C: v.union(v.number(), v.null()),
+    priceB2B: v.number(),
+    oldPriceB2B: v.union(v.number(), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const { id, ...data } = args;
+    const dbId = ctx.db.normalizeId("products", id);
+    if (!dbId) throw new Error("Invalid product ID");
+    await ctx.db.patch(dbId, data);
+    return "Product updated successfully";
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.string() },
+  handler: async (ctx, args) => {
+    const dbId = ctx.db.normalizeId("products", args.id);
+    if (!dbId) throw new Error("Invalid product ID");
+    await ctx.db.delete(dbId);
+    return "Product removed successfully";
+  },
+});
+
 export const seed = mutation({
   args: {
     products: v.array(
@@ -34,10 +114,46 @@ export const seed = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db.query("products").collect();
     if (existing.length > 0) {
-      return "Already seeded";
+      // If products exist, but don't have priceB2C/priceB2B, we migratel/patch them!
+      for (const p of existing) {
+        const anyP = p as any;
+        if (anyP.priceB2C === undefined) {
+          const pB2C = anyP.price || 29.00;
+          const oldPB2C = anyP.oldPrice || null;
+          const pB2B = Math.round(pB2C * 0.8 * 100) / 100;
+          const oldPB2B = oldPB2C ? Math.round(oldPB2C * 0.8 * 100) / 100 : null;
+          await ctx.db.patch(p._id, {
+            priceB2C: pB2C,
+            oldPriceB2C: oldPB2C,
+            priceB2B: pB2B,
+            oldPriceB2B: oldPB2B
+          });
+        }
+      }
+      return "Already seeded/migrated";
     }
+    
     for (const p of args.products) {
-      await ctx.db.insert("products", p);
+      const pB2C = p.price;
+      const oldPB2C = p.oldPrice;
+      const pB2B = Math.round(pB2C * 0.8 * 100) / 100;
+      const oldPB2B = oldPB2C ? Math.round(oldPB2C * 0.8 * 100) / 100 : null;
+
+      await ctx.db.insert("products", {
+        name: p.name,
+        brand: p.brand,
+        model: p.model,
+        category: p.category,
+        image: p.image,
+        rating: p.rating,
+        tag: p.tag,
+        description: p.description,
+        specs: p.specs,
+        priceB2C: pB2C,
+        oldPriceB2C: oldPB2C,
+        priceB2B: pB2B,
+        oldPriceB2B: oldPB2B,
+      });
     }
     return "Seeded successfully";
   },
