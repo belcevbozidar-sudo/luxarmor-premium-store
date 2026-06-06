@@ -784,15 +784,31 @@
       
       <!-- === TAB: DASHBOARD === -->
       <div class="tab-panel active" id="dashboard-tab">
-        <div class="section-header">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
           <h2 class="section-title">Месечна Статистика & Оборот</h2>
+          
+          <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.2); padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+            <label style="font-size: 0.85rem; color: var(--text-muted); margin: 0; white-space: nowrap;"><i class="fas fa-filter"></i> Период:</label>
+            <select id="dashboard-time-filter" onchange="renderDashboardStats()" style="padding: 0.25rem 0.5rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: #fff; font-size: 0.85rem; outline: none; cursor: pointer;">
+              <option value="today">Днес</option>
+              <option value="yesterday">Вчера</option>
+              <option value="7days">Последните 7 дни</option>
+              <option value="14days">Последните 14 дни</option>
+              <option value="28days">Последните 28 дни</option>
+              <option value="1month" selected>Последния 1 месец</option>
+              <option value="3months">Последните 3 м.</option>
+              <option value="6months">Последните 6 м.</option>
+              <option value="1year">Последната 1 г.</option>
+              <option value="always">Винаги</option>
+            </select>
+          </div>
         </div>
         
         <!-- Stats Widgets Grid -->
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;" class="dashboard-grid">
           <div class="meta-panel" style="text-align: center; padding: 2rem;">
             <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
-            <h4 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Оборот за този месец</h4>
+            <h4 id="stat-revenue-label" style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Оборот за този месец</h4>
             <p id="stat-month-revenue" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0.00 лв.</p>
           </div>
           <div class="meta-panel" style="text-align: center; padding: 2rem;">
@@ -802,12 +818,12 @@
           </div>
           <div class="meta-panel" style="text-align: center; padding: 2rem;">
             <i class="fas fa-shopping-cart" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
-            <h4 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Брой Поръчки</h4>
+            <h4 id="stat-orders-label" style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Брой Поръчки</h4>
             <p id="stat-orders-count" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0</p>
           </div>
           <div class="meta-panel" style="text-align: center; padding: 2rem;">
             <i class="fas fa-building" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
-            <h4 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">B2B Партньори</h4>
+            <h4 id="stat-b2b-label" style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">B2B Партньори</h4>
             <p id="stat-b2b-count" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0</p>
           </div>
         </div>

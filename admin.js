@@ -1267,48 +1267,138 @@ function renderB2BUsers() {
 }
 
 // --- DASHBOARD STATISTICS ---
-function renderDashboardStats() {
+function isDateInPeriod(dateStr, period) {
+  if (period === 'always') return true;
+  if (!dateStr) return false;
+  
+  const date = new Date(dateStr);
+  const now = new Date();
+  
+  // Start of today (00:00:00.000 local time)
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  // Start of yesterday (00:00:00.000 local time)
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+  
+  switch (period) {
+    case 'today':
+      return date >= startOfToday;
+      
+    case 'yesterday':
+      return date >= startOfYesterday && date < startOfToday;
+      
+    case '7days': {
+      const boundary = new Date(now);
+      boundary.setDate(boundary.getDate() - 7);
+      return date >= boundary;
+    }
+    case '14days': {
+      const boundary = new Date(now);
+      boundary.setDate(boundary.getDate() - 14);
+      return date >= boundary;
+    }
+    case '28days': {
+      const boundary = new Date(now);
+      boundary.setDate(boundary.getDate() - 28);
+      return date >= boundary;
+    }
+    case '1month': {
+      const boundary = new Date(now);
+      boundary.setMonth(boundary.getMonth() - 1);
+      return date >= boundary;
+    }
+    case '3months': {
+      const boundary = new Date(now);
+      boundary.setMonth(boundary.getMonth() - 3);
+      return date >= boundary;
+    }
+    case '6months': {
+      const boundary = new Date(now);
+      boundary.setMonth(boundary.getMonth() - 6);
+      return date >= boundary;
+    }
+    case '1year': {
+      const boundary = new Date(now);
+      boundary.setFullYear(boundary.getFullYear() - 1);
+      return date >= boundary;
+    }
+    default:
+      return true;
+  }
+}
+
+window.renderDashboardStats = function() {
   const monthRevenueEl = document.getElementById("stat-month-revenue");
   const lifetimeRevenueEl = document.getElementById("stat-lifetime-revenue");
   const ordersCountEl = document.getElementById("stat-orders-count");
   const b2bCountEl = document.getElementById("stat-b2b-count");
   
+  const revenueLabel = document.getElementById("stat-revenue-label");
+  const ordersLabel = document.getElementById("stat-orders-label");
+  const b2bLabel = document.getElementById("stat-b2b-label");
+  
   if (!monthRevenueEl) return;
   
+  const filterEl = document.getElementById("dashboard-time-filter");
+  const period = filterEl ? filterEl.value : "1month";
+  
+  // Set labels
+  let suffix = "за периода";
+  if (period === "today") suffix = "за Днес";
+  else if (period === "yesterday") suffix = "за Вчера";
+  else if (period === "7days") suffix = "за последните 7 дни";
+  else if (period === "14days") suffix = "за последните 14 дни";
+  else if (period === "28days") suffix = "за последните 28 дни";
+  else if (period === "1month") suffix = "за последния 1 месец";
+  else if (period === "3months") suffix = "за последните 3 месеца";
+  else if (period === "6months") suffix = "за последните 6 месеца";
+  else if (period === "1year") suffix = "за последната 1 година";
+  else if (period === "always") suffix = "(Винаги)";
+  
+  if (revenueLabel) revenueLabel.textContent = "Оборот " + suffix;
+  if (ordersLabel) ordersLabel.textContent = "Поръчки " + suffix;
+  if (b2bLabel) b2bLabel.textContent = "Нови B2B Партньори " + (period === "always" ? "(Винаги)" : suffix);
+  
+  // Calculate Lifetime Revenue
   const nonCancelledOrders = allOrders.filter(o => o.status !== "cancelled");
   const lifetimeRevenue = nonCancelledOrders.reduce((sum, o) => sum + o.total, 0);
   
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
+  // Filter orders in period
+  const periodOrders = allOrders.filter(o => isDateInPeriod(o.createdAt, period));
+  const periodNonCancelledOrders = periodOrders.filter(o => o.status !== "cancelled");
+  const periodRevenue = periodNonCancelledOrders.reduce((sum, o) => sum + o.total, 0);
   
-  const thisMonthOrders = nonCancelledOrders.filter(o => {
-    const oDate = new Date(o.createdAt);
-    return oDate.getFullYear() === currentYear && oDate.getMonth() === currentMonth;
-  });
-  const monthRevenue = thisMonthOrders.reduce((sum, o) => sum + o.total, 0);
-  
+  // Filter B2B partners in period
   const b2bUsers = allUsers.filter(u => u.clientType === "B2B");
+  const periodB2bUsers = b2bUsers.filter(u => isDateInPeriod(u.createdAt, period));
   
-  monthRevenueEl.textContent = `${monthRevenue.toFixed(2)} лв.`;
+  // Render stats
+  monthRevenueEl.textContent = `${periodRevenue.toFixed(2)} лв.`;
   lifetimeRevenueEl.textContent = `${lifetimeRevenue.toFixed(2)} лв.`;
-  ordersCountEl.textContent = allOrders.length;
-  b2bCountEl.textContent = b2bUsers.length;
+  ordersCountEl.textContent = periodOrders.length;
+  b2bCountEl.textContent = period === "always" ? b2bUsers.length : periodB2bUsers.length;
   
+  // Render filtered recent orders
   const recentTbody = document.getElementById("dashboard-recent-orders");
   if (recentTbody) {
     recentTbody.innerHTML = "";
-    const recent = allOrders.slice(0, 5);
-    recent.forEach(o => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><strong>${o.orderNumber}</strong></td>
-        <td>${o.name}</td>
-        <td>${o.total.toFixed(2)} лв.</td>
-        <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(204,164,59,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
-        <td><span class="badge-status ${o.status}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
-      `;
-      recentTbody.appendChild(tr);
-    });
+    const recent = periodOrders.slice(0, 5);
+    
+    if (recent.length === 0) {
+      recentTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">Няма поръчки за избрания период</td></tr>`;
+    } else {
+      recent.forEach(o => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${o.orderNumber}</strong></td>
+          <td>${o.name}</td>
+          <td>${o.total.toFixed(2)} лв.</td>
+          <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(204,164,59,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
+          <td><span class="badge-status ${o.status}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
+        `;
+        recentTbody.appendChild(tr);
+      });
+    }
   }
 }
