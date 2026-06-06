@@ -5,6 +5,7 @@
   --primary: #0f172a;          /* Rich slate navy/charcoal */
   --primary-light: #1e293b;    /* Charcoal tone for high contrast elements */
   --accent: #cca43b;           /* Premium CaseKing gold */
+  --gold: #cca43b;             /* Backwards compatibility gold color */
   --accent-light: #faf5e6;     /* Light gold/cream backdrop */
   --accent-hover: #b58f2a;     /* Darker gold for hovers */
   --accent-glow: rgba(204, 164, 59, 0.15);
@@ -426,12 +427,12 @@ header.scrolled {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(40%) contrast(90%);
+  filter: none;
   transition: var(--transition-smooth);
 }
 
 .category-card:hover .category-card-img {
-  filter: grayscale(0%) contrast(100%);
+  filter: none;
 }
 
 .category-card-overlay {
@@ -440,7 +441,7 @@ header.scrolled {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.65);
+  background-color: rgba(15, 23, 42, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -450,7 +451,7 @@ header.scrolled {
 }
 
 .category-card:hover .category-card-overlay {
-  background-color: rgba(15, 23, 42, 0.35);
+  background-color: rgba(15, 23, 42, 0.15);
 }
 
 .category-card-title {

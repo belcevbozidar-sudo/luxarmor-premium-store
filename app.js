@@ -124,6 +124,22 @@ let BRANDS = [...STATIC_BRANDS];
 let MODELS = [...STATIC_MODELS];
 let PROMOTIONS = [];
 
+try {
+  const cachedProducts = localStorage.getItem("caseking_cached_products");
+  const cachedCategories = localStorage.getItem("caseking_cached_categories");
+  const cachedBrands = localStorage.getItem("caseking_cached_brands");
+  const cachedModels = localStorage.getItem("caseking_cached_models");
+  const cachedPromotions = localStorage.getItem("caseking_cached_promotions");
+  
+  if (cachedProducts) PRODUCTS = JSON.parse(cachedProducts);
+  if (cachedCategories) CATEGORIES = JSON.parse(cachedCategories);
+  if (cachedBrands) BRANDS = JSON.parse(cachedBrands);
+  if (cachedModels) MODELS = JSON.parse(cachedModels);
+  if (cachedPromotions) PROMOTIONS = JSON.parse(cachedPromotions);
+} catch (e) {
+  console.warn("Could not load cached data from localStorage:", e);
+}
+
 let cart = JSON.parse(localStorage.getItem('caseking_cart')) || [];
 let selectedBrand = null;
 let selectedModel = null;
@@ -134,6 +150,33 @@ let activeRegType = "B2C";
 let activeCheckoutType = "B2C";
 let appliedPromo = null;
 let activeProductPageQty = 1;
+
+// --- MODEL NORMALIZATION UTILITIES ---
+function normalizeModel(name) {
+  if (!name) return "";
+  return name.toString()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/rt-\d+/gi, "") // remove RT-21, RT-22 etc.
+    .replace(/4g/gi, "")
+    .replace(/5g/gi, "")
+    .replace(/galaxy/gi, "")
+    .replace(/samsung/gi, "")
+    .replace(/[-_]/g, "")
+    .trim();
+}
+
+function getCleanModelName(name) {
+  if (!name) return "";
+  let clean = name.toString()
+    .replace(/\s+RT-\d+/gi, "")
+    .trim();
+  
+  if (clean.toUpperCase().startsWith("SAMSUNG ")) {
+    clean = "Samsung " + clean.substring(8);
+  }
+  return clean;
+}
 
 // --- PASS HASH UTILITY ---
 async function hashPassword(password) {
@@ -149,26 +192,31 @@ async function loadData() {
     const dbProducts = await convex.query("products:get");
     if (dbProducts && dbProducts.length > 0) {
       PRODUCTS = dbProducts;
+      localStorage.setItem("caseking_cached_products", JSON.stringify(dbProducts));
     }
     
     const dbCats = await convex.query("meta:getCategories");
     if (dbCats && dbCats.length > 0) {
       CATEGORIES = dbCats;
+      localStorage.setItem("caseking_cached_categories", JSON.stringify(dbCats));
     }
     
     const dbBrands = await convex.query("meta:getBrands");
     if (dbBrands && dbBrands.length > 0) {
       BRANDS = dbBrands;
+      localStorage.setItem("caseking_cached_brands", JSON.stringify(dbBrands));
     }
     
     const dbModels = await convex.query("meta:getModels");
     if (dbModels && dbModels.length > 0) {
       MODELS = dbModels;
+      localStorage.setItem("caseking_cached_models", JSON.stringify(dbModels));
     }
     
     const dbPromos = await convex.query("promotions:getActive");
     if (dbPromos) {
       PROMOTIONS = dbPromos;
+      localStorage.setItem("caseking_cached_promotions", JSON.stringify(dbPromos));
     }
     console.log("Storefront data successfully loaded dynamically from Convex.");
   } catch (err) {
@@ -254,13 +302,28 @@ function selectBrand(brandName) {
     modelList.innerHTML = "";
     
     const brandModels = MODELS.filter(m => m.brand === brandName);
+    const seen = new Set();
+    const uniqueModels = [];
+    
     brandModels.forEach(model => {
+      const cleanName = getCleanModelName(model.name);
+      const norm = normalizeModel(cleanName);
+      if (!seen.has(norm)) {
+        seen.add(norm);
+        uniqueModels.push({
+          displayName: cleanName,
+          original: model
+        });
+      }
+    });
+
+    uniqueModels.forEach(model => {
       const btn = document.createElement("button");
       btn.className = "model-pill-btn";
-      btn.onclick = () => selectModel(model.name);
+      btn.onclick = () => selectModel(model.displayName);
       btn.innerHTML = `
         <div class="model-icon-box"><i class="fas fa-mobile-alt"></i></div>
-        <span class="model-card-text">${model.name}</span>
+        <span class="model-card-text">${model.displayName}</span>
       `;
       modelList.appendChild(btn);
     });
@@ -345,7 +408,8 @@ function renderCatalog() {
 
   if (selectedBrand) {
     if (selectedModel) {
-      filteredProducts = PRODUCTS.filter(p => p.model === selectedModel || p.brand === "Всички");
+      const normSelected = normalizeModel(selectedModel);
+      filteredProducts = PRODUCTS.filter(p => normalizeModel(p.model) === normSelected || p.brand === "Всички");
       if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedModel}`;
     } else {
       filteredProducts = PRODUCTS.filter(p => p.brand === selectedBrand || p.brand === "Всички");
@@ -1278,13 +1342,7 @@ function selectMobileBrand(brandName, btn) {
 
 // --- INITIALIZATION ---
 async function initApp() {
-  // Load dynamic database variables
-  await loadData();
-  
-  // Verify session login
-  await verifySession();
-  
-  // Render views
+  // Render views immediately with cached or static dataset (instant mount!)
   renderBrands();
   renderCategories();
   renderCatalog();
@@ -1294,6 +1352,17 @@ async function initApp() {
   // Trigger router routing checks
   handleRouting();
   window.addEventListener("hashchange", handleRouting);
+  
+  // Load dynamic database variables in background
+  loadData().then(() => {
+    // Re-render views with fresh database values once loaded
+    renderBrands();
+    renderCategories();
+    renderCatalog();
+  });
+  
+  // Verify session login in background
+  verifySession();
   
   // Background header transparency transitions on scroll
   window.addEventListener("scroll", () => {
@@ -1305,7 +1374,6 @@ async function initApp() {
     }
   });
   
-  // Google sign in init
   // Google sign in init
   initGoogleLoginButton();
 }

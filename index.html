@@ -131,7 +131,7 @@
         </div>
         <div class="product-page-details-panel">
           <span id="product-page-cat" style="color: var(--gold); font-size: 0.9rem; text-transform: uppercase; font-weight: 600; letter-spacing: 1px;"></span>
-          <h1 id="product-page-title" style="font-size: 2.25rem; font-weight: 700; margin: 0.5rem 0 1rem; color: #fff; line-height: 1.2;"></h1>
+          <h1 id="product-page-title" style="font-size: 2.25rem; font-weight: 700; margin: 0.5rem 0 1rem; color: var(--primary); line-height: 1.2;"></h1>
           
           <div class="modal-product-rating" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
             <div class="modal-stars" id="product-page-stars" style="color: var(--gold);"></div>
@@ -146,18 +146,18 @@
           
           <p id="product-page-desc" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; font-size: 1rem;"></p>
           
-          <div class="modal-specs-list" style="margin-bottom: 2rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 1.25rem;">
-            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Материал:</span><span class="modal-spec-val" id="product-page-spec-material" style="color: #fff; font-weight: 500;"></span></div>
-            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Тегло:</span><span class="modal-spec-val" id="product-page-spec-weight" style="color: #fff; font-weight: 500;"></span></div>
-            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Производител:</span><span class="modal-spec-val" id="product-page-spec-origin" style="color: #fff; font-weight: 500;"></span></div>
-            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Доставка / Гаранция:</span><span class="modal-spec-val" id="product-page-spec-delivery" style="color: #fff; font-weight: 500;"></span></div>
+          <div class="modal-specs-list" style="margin-bottom: 2rem; background: rgba(15,23,42,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem;">
+            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Материал:</span><span class="modal-spec-val" id="product-page-spec-material" style="color: var(--primary); font-weight: 500;"></span></div>
+            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Тегло:</span><span class="modal-spec-val" id="product-page-spec-weight" style="color: var(--primary); font-weight: 500;"></span></div>
+            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Производител:</span><span class="modal-spec-val" id="product-page-spec-origin" style="color: var(--primary); font-weight: 500;"></span></div>
+            <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Доставка / Гаранция:</span><span class="modal-spec-val" id="product-page-spec-delivery" style="color: var(--primary); font-weight: 500;"></span></div>
           </div>
           
           <div class="modal-actions" style="display: flex; gap: 1.5rem; align-items: center;">
-            <div class="qty-stepper" style="display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; background: rgba(0,0,0,0.2);">
-              <button class="qty-btn" id="product-page-qty-dec" style="background: transparent; border: none; color: #fff; width: 36px; height: 36px; cursor: pointer; font-size: 1.1rem; font-weight: 600;">-</button>
-               <span class="qty-val" id="product-page-qty-val" style="width: 30px; text-align: center; font-weight: 600;">1</span>
-               <button class="qty-btn" id="product-page-qty-inc" style="background: transparent; border: none; color: #fff; width: 36px; height: 36px; cursor: pointer; font-size: 1.1rem; font-weight: 600;">+</button>
+            <div class="qty-stepper" style="display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; background: rgba(15,23,42,0.05); color: var(--primary);">
+              <button class="qty-btn" id="product-page-qty-dec" style="background: transparent; border: none; color: var(--primary); width: 36px; height: 36px; cursor: pointer; font-size: 1.1rem; font-weight: 600;">-</button>
+               <span class="qty-val" id="product-page-qty-val" style="width: 30px; text-align: center; font-weight: 600; color: var(--primary);">1</span>
+               <button class="qty-btn" id="product-page-qty-inc" style="background: transparent; border: none; color: var(--primary); width: 36px; height: 36px; cursor: pointer; font-size: 1.1rem; font-weight: 600;">+</button>
             </div>
             <button class="btn-premium" id="product-page-add-to-cart" style="flex: 1; padding: 0.85rem 2rem;">Добави в Количката</button>
           </div>
@@ -169,16 +169,7 @@
   <!-- === STOREFRONT CHECKOUT PAGE VIEW === -->
   <section class="checkout-page-section" id="checkout-page-view" style="display: none; padding: 3rem 0; min-height: 80vh;">
     <div class="container" style="max-width: 950px;">
-      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--gold); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
-        <i class="fas fa-arrow-left"></i> Обратно към магазина
-      </button>
-      
-      <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem; color: #fff;">Оформяне на поръчката</h1>
-      
-      <div class="checkout-grid" style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 2.5rem; align-items: start;">
-        <!-- Forms -->
-        <div class="checkout-form-panel" style="background: var(--panel); border: 1px solid var(--panel-border); border-radius: 12px; padding: 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-          <div class="checkout-type-selectors" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem;">
+      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--primary); padding: 0.5rem 1rem; border-radius: 6px;           <div class="checkout-type-selectors" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
             <button type="button" class="btn-secondary active" id="btn-checkout-b2c" onclick="switchCheckoutType('B2C')" style="flex: 1; padding: 0.75rem;">Физическо лице</button>
             <button type="button" class="btn-secondary" id="btn-checkout-b2b" onclick="switchCheckoutType('B2B')" style="flex: 1; padding: 0.75rem;">Фирмена поръчка (B2B)</button>
           </div>
@@ -198,7 +189,7 @@
             </div>
             
             <!-- Company B2B Fields (Conditional) -->
-            <div id="checkout-b2b-fields" style="display: none; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 1.5rem; margin-top: 1.5rem;">
+            <div id="checkout-b2b-fields" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 1.5rem; margin-top: 1.5rem;">
               <h3 style="font-size: 1.15rem; color: var(--gold); margin-bottom: 1.2rem; font-weight:600;">Фирмени Данни за фактура</h3>
               <div class="form-group">
                 <label>Име на фирмата *</label>
@@ -227,28 +218,28 @@
         </div>
         
         <!-- Summary -->
-        <div class="checkout-summary-panel" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 2rem; position: sticky; top: 120px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-          <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.75rem; color: #fff;">Вашата поръчка</h3>
+        <div class="checkout-summary-panel" style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; position: sticky; top: 120px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+          <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; color: var(--primary);">Вашата поръчка</h3>
           <div id="checkout-summary-items" style="max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 0.5rem;">
             <!-- Dynamically populated -->
           </div>
           
-          <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
-            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Продукти:</span><span id="checkout-sum-subtotal" style="color: #fff; font-weight:500;">0.00 лв.</span></div>
-            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Доставка:</span><span id="checkout-sum-shipping" style="color: #fff; font-weight:500;">5.00 лв.</span></div>
+          <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Продукти:</span><span id="checkout-sum-subtotal" style="color: var(--primary); font-weight:500;">0.00 лв.</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Доставка:</span><span id="checkout-sum-shipping" style="color: var(--primary); font-weight:500;">5.00 лв.</span></div>
             <div id="checkout-sum-discount-row" style="display: none; justify-content: space-between; color: #2ecc71;"><span style="font-weight: 500;">Отстъпка:</span><span id="checkout-sum-discount" style="font-weight: 500;">-0.00 лв.</span></div>
             
             <!-- Promo Code Input Section -->
-            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.25rem;">
+            <div style="border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.25rem;">
               <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.35rem;">Имате ли промо код?</label>
               <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="checkout-promo-input" placeholder="Код (напр. IVAN10)" style="flex: 1; padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; color: #fff; font-size: 0.85rem; outline: none;">
+                <input type="text" id="checkout-promo-input" placeholder="Код (напр. IVAN10)" style="flex: 1; padding: 0.4rem 0.6rem; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 6px; color: var(--primary); font-size: 0.85rem; outline: none;">
                 <button type="button" class="btn-secondary" id="btn-apply-promo" onclick="applyPromoCode()" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; border: 1px solid var(--gold); color: var(--gold); background: transparent;">Приложи</button>
               </div>
               <div id="checkout-promo-msg" style="font-size: 0.8rem; margin-top: 0.35rem; display: none;"></div>
             </div>
-
-            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.25rem; margin-top: 0.75rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.75rem;"><span style="color: var(--gold);">Общо:</span><span id="checkout-sum-total" style="color: var(--gold);">0.00 лв.</span></div>
+ 
+            <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.25rem; margin-top: 0.75rem; border-top: 1px dashed var(--border-color); padding-top: 0.75rem;"><span style="color: var(--gold);">Общо:</span><span id="checkout-sum-total" style="color: var(--gold);">0.00 лв.</span></div>
           </div>
         </div>
       </div>
