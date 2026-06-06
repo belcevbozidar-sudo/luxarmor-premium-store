@@ -231,22 +231,22 @@ const PRODUCTS = [
 
 // --- PHONE MODELS MAPPING PER BRAND ---
 const BRAND_MODELS = {
-  "Apple": ["iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 14 Pro Max", "iPhone 14 Pro", "iPhone 13 Pro Max", "iPhone 13", "Всички модели"],
-  "Samsung": ["Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23", "Galaxy A55", "Всички модели"],
-  "Xiaomi": ["Xiaomi 14 Ultra", "Xiaomi 13T Pro", "Redmi Note 13 Pro+", "Redmi Note 12 Pro", "Всички модели"],
-  "Huawei": ["Pura 70 Ultra", "Mate 60 Pro", "P60 Pro", "Всички модели"],
-  "Honor": ["Magic 6 Pro", "Honor 90", "Всички модели"],
-  "MOTO": ["Edge 50 Ultra", "Edge 40", "Всички модели"],
-  "Nokia": ["Nokia G42", "Nokia XR21", "Всички модели"],
-  "OnePlus": ["OnePlus 12", "OnePlus Nord 4", "Всички модели"],
-  "Oppo": ["Reno 12 Pro", "Всички модели"],
-  "Vivo": ["X100 Pro", "Всички модели"],
-  "Google": ["Pixel 8 Pro", "Pixel 8", "Pixel 7a", "Всички модели"],
-  "TCL": ["TCL 505", "Всички модели"],
-  "Realme": ["Realme GT 6", "Всички модели"],
-  "LG": ["Velvet", "Всички модели"],
-  "Lenovo": ["Legion Y90", "Всички модели"],
-  "Infinix": ["Note 40 Pro", "Всички модели"]
+  "Apple": ["iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 14 Pro Max", "iPhone 14 Pro", "iPhone 13 Pro Max", "iPhone 13"],
+  "Samsung": ["Galaxy S24 Ultra", "Galaxy S24+", "Galaxy S24", "Galaxy S23 Ultra", "Galaxy S23", "Galaxy A55"],
+  "Xiaomi": ["Xiaomi 14 Ultra", "Xiaomi 13T Pro", "Redmi Note 13 Pro+", "Redmi Note 12 Pro"],
+  "Huawei": ["Pura 70 Ultra", "Mate 60 Pro", "P60 Pro"],
+  "Honor": ["Magic 6 Pro", "Honor 90"],
+  "MOTO": ["Edge 50 Ultra", "Edge 40"],
+  "Nokia": ["Nokia G42", "Nokia XR21"],
+  "OnePlus": ["OnePlus 12", "OnePlus Nord 4"],
+  "Oppo": ["Reno 12 Pro"],
+  "Vivo": ["X100 Pro"],
+  "Google": ["Pixel 8 Pro", "Pixel 8", "Pixel 7a"],
+  "TCL": ["TCL 505"],
+  "Realme": ["Realme GT 6"],
+  "LG": ["Velvet"],
+  "Lenovo": ["Legion Y90"],
+  "Infinix": ["Note 40 Pro"]
 };
 
 // --- BRANDS LIST ---
@@ -368,6 +368,8 @@ function selectBrand(brand) {
     // Smooth scroll to models section
     step2Title.scrollIntoView({ behavior: "smooth" });
   }
+  
+  renderCatalog();
 }
 
 function selectModel(model) {
@@ -448,13 +450,14 @@ function renderCatalog() {
   let filteredProducts = PRODUCTS;
 
   // Apply Brand/Model filter or Category filter
-  if (selectedModel) {
-    if (selectedModel === "Всички модели") {
-      filteredProducts = PRODUCTS.filter(p => p.brand === selectedBrand || p.brand === "Всички");
+  if (selectedBrand) {
+    if (selectedModel) {
+      filteredProducts = PRODUCTS.filter(p => p.model === selectedModel || p.brand === "Всички");
+      if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedModel}`;
     } else {
-      filteredProducts = PRODUCTS.filter(p => p.model === selectedModel || p.model === "Всички модели" || p.brand === "Всички");
+      filteredProducts = PRODUCTS.filter(p => p.brand === selectedBrand || p.brand === "Всички");
+      if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedBrand}`;
     }
-    if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedModel}`;
   } else if (selectedCategory) {
     filteredProducts = PRODUCTS.filter(p => p.category === selectedCategory);
     const catObj = CATEGORIES.find(c => c.id === selectedCategory);
