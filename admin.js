@@ -975,9 +975,31 @@ function handleCSVFile(file) {
 }
 
 function parseCSVText(text) {
+  // Auto-detect delimiter: comma (,) vs semicolon (;)
+  let firstLine = "";
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '\r' || text[i] === '\n') {
+      break;
+    }
+    firstLine += text[i];
+  }
+  
+  let commas = 0;
+  let semicolons = 0;
+  let inQuotes = false;
+  for (let i = 0; i < firstLine.length; i++) {
+    if (firstLine[i] === '"') {
+      inQuotes = !inQuotes;
+    } else if (!inQuotes) {
+      if (firstLine[i] === ',') commas++;
+      else if (firstLine[i] === ';') semicolons++;
+    }
+  }
+  const delimiter = semicolons > commas ? ';' : ',';
+
   const lines = [];
   let row = [""];
-  let inQuotes = false;
+  inQuotes = false;
 
   for (let i = 0; i < text.length; i++) {
     const c = text[i];
@@ -990,7 +1012,7 @@ function parseCSVText(text) {
       } else {
         inQuotes = !inQuotes;
       }
-    } else if (c === ',' && !inQuotes) {
+    } else if (c === delimiter && !inQuotes) {
       row.push('');
     } else if ((c === '\r' || c === '\n') && !inQuotes) {
       if (c === '\r' && next === '\n') {
@@ -1117,6 +1139,9 @@ window.confirmCSVImport = async function() {
 
 // --- CATEGORIES MANAGEMENT ---
 window.openCategoryModal = function() {
+  document.getElementById("category-id-input").value = "";
+  document.getElementById("category-name-input").value = "";
+  document.getElementById("category-image-input").value = "";
   document.getElementById("category-modal").classList.add("active");
 };
 
@@ -1152,6 +1177,9 @@ window.deleteCategory = async function(catId) {
 
 // --- PROMO CODES MANAGEMENT ---
 window.openPromoCodeModal = function() {
+  document.getElementById("promo-code-input").value = "";
+  document.getElementById("promo-code-type").value = "percent";
+  document.getElementById("promo-code-value").value = "";
   document.getElementById("promo-code-modal").classList.add("active");
 };
 
