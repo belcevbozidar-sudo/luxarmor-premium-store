@@ -959,23 +959,195 @@ function handleFiles(files) {
 }
 
 // --- CSV PARSING & PRODUCTS IMPORT ---
-function handleCSVFile(file) {
-  if (!file.name.endsWith(".csv")) {
-    alert("Моля, изберете валиден CSV файл!");
-    return;
+const KNOWN_BRANDS = ["Apple", "Samsung", "Xiaomi", "Huawei", "Honor", "MOTO", "Nokia", "OnePlus", "Oppo", "Vivo", "TCL", "Realme", "LG", "Lenovo", "Infinix", "Tranyoo"];
+
+function parseBrandAndModel(name, cat) {
+  let nameClean = (name || "").toString().trim();
+  let catClean = (cat || "").toString().trim();
+  
+  let brand = "Всички марки";
+  let model = "Всички модели";
+  
+  if (catClean.includes('>')) {
+    const paths = catClean.split(',');
+    const lastPath = paths[paths.length - 1];
+    const parts = lastPath.split('>').map(p => p.trim());
+    
+    if (parts.length >= 3) {
+      const brandPart = parts[1];
+      const modelPart = parts[2];
+      
+      if (brandPart.toLowerCase().includes("iphone")) {
+        brand = "Apple";
+      } else {
+        for (const b of KNOWN_BRANDS) {
+          if (brandPart.toLowerCase().includes(b.toLowerCase())) {
+            brand = b;
+            break;
+          }
+        }
+      }
+      model = modelPart;
+    } else if (parts.length === 2) {
+      const brandPart = parts[1];
+      if (brandPart.toLowerCase().includes("iphone")) {
+        brand = "Apple";
+      } else {
+        for (const b of KNOWN_BRANDS) {
+          if (brandPart.toLowerCase().includes(b.toLowerCase())) {
+            brand = b;
+            break;
+          }
+        }
+      }
+      if (brand !== "Всички марки" && brandPart.toLowerCase() !== brand.toLowerCase()) {
+        model = brandPart;
+      }
+    }
   }
   
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const text = e.target.result;
-    const rows = parseCSVText(text);
-    processCSVData(rows);
-  };
-  reader.readAsText(file, "UTF-8");
+  if (brand === "Всички марки") {
+    const nameLower = nameClean.toLowerCase();
+    if (nameLower.includes("iphone") || nameLower.includes("apple") || nameLower.includes("ipad")) {
+      brand = "Apple";
+    } else {
+      for (const b of KNOWN_BRANDS) {
+        if (nameLower.includes(b.toLowerCase())) {
+          brand = b;
+          break;
+        }
+      }
+    }
+  }
+  
+  if (brand) {
+    if (brand.toLowerCase() === "iphone" || brand.toLowerCase() === "apple") {
+      brand = "Apple";
+    } else {
+      for (const kb of KNOWN_BRANDS) {
+        if (kb.toLowerCase() === brand.toLowerCase()) {
+          brand = kb;
+          break;
+        }
+      }
+    }
+  }
+  
+  if (model === "Всички модели" || model.toLowerCase() === brand.toLowerCase() || model === "iPhone") {
+    const regex = /(?:\s|^)(?:за|зa|za)\s+([a-zA-Z0-9\s\-\.\+\(\)]+)/i;
+    const match = nameClean.match(regex);
+    if (match) {
+      const candidate = match[1].trim();
+      const stopWords = ["черен", "червен", "син", "бял", "розов", "златен", "лилав", "зелен", "сив", "тъмносин", "матиращ", "протектор", "калъф", "кейс", "гръб", "плетен", "удароустойчив", "с", "и", "в", "на"];
+      const cleanedWords = [];
+      for (const word of candidate.split(/\s+/)) {
+        if (stopWords.includes(word.toLowerCase())) {
+          break;
+        }
+        cleanedWords.push(word);
+      }
+      if (cleanedWords.length > 0) {
+        model = cleanedWords.join(" ");
+      }
+    }
+  }
+  
+  model = model.trim();
+  if (brand !== "Всички марки" && model !== "Всички модели") {
+    if (brand.toLowerCase() === "apple") {
+      if (!model.toLowerCase().startsWith("iphone") && !model.toLowerCase().startsWith("ipad")) {
+        model = "iPhone " + model;
+      }
+    } else {
+      if (!model.toLowerCase().startsWith(brand.toLowerCase())) {
+        model = brand + " " + model;
+      }
+    }
+  }
+  
+  if (brand.toLowerCase() === "apple") {
+    brand = "Apple";
+    if (model.startsWith("Apple ")) {
+      model = model.substring(6);
+    }
+    if (!model.startsWith("iPhone") && !model.startsWith("iPad")) {
+      model = "iPhone " + model;
+    }
+  }
+  
+  const garbageList = ["червен", "черен", "син", "бял", "златен", "розов", "лилав", "зелен", "сив", "тъмносин", "матиращ", "протектор", "калъф", "кейс"];
+  for (const garbage of garbageList) {
+    if (model.toLowerCase().endsWith(" " + garbage)) {
+      model = model.substring(0, model.length - garbage.length - 1).trim();
+    }
+  }
+  
+  return { brand, model };
+}
+
+function getCategoryIdAndName(catStr, nameStr) {
+  const cStr = (catStr || "").toString().toLowerCase();
+  const nStr = (nameStr || "").toString().toLowerCase();
+  
+  if (cStr.includes("стойка") || cStr.includes("стойки") || nStr.includes("стойка") || nStr.includes("стойки")) {
+    return { id: "car_acc", name: "Аксесоари за автомобил" };
+  } else if (cStr.includes("батерия") || cStr.includes("батерии") || cStr.includes("power bank") || nStr.includes("външна батерия")) {
+    return { id: "power_banks", name: "Външни батерии" };
+  } else if (cStr.includes("слушалки") || nStr.includes("слушалки")) {
+    return { id: "headphones", name: "Слушалки" };
+  } else if (cStr.includes("памети") || cStr.includes("flash") || cStr.includes("micro sd") || cStr.includes("sd карти") || nStr.includes("sd") || nStr.includes("flash")) {
+    return { id: "memory_cards", name: "Памети & Карти" };
+  } else if (cStr.includes("фолио за машина") || nStr.includes("фолио за машина") || nStr.includes("хидравлично фолио") || nStr.includes("hydrogel film")) {
+    return { id: "hydrogel_film", name: "Хидрогел фолио" };
+  } else if (cStr.includes("зарядно") || cStr.includes("зарядни") || nStr.includes("зарядно") || nStr.includes("зарядни") || nStr.includes("адаптер")) {
+    return { id: "all_chargers", name: "Зарядни устройства" };
+  } else if (cStr.includes("кабели") || cStr.includes("кабел") || nStr.includes("кабел") || cStr.includes("адаптер")) {
+    return { id: "original_cables", name: "Кабели за зареждане" };
+  } else if (nStr.includes("протектор") || nStr.includes("стъкло") || nStr.includes("стъклен") || nStr.includes("glass")) {
+    return { id: "protectors", name: "Протектори за екран" };
+  } else if (nStr.includes("тефтер") || nStr.includes("калъф") || nStr.includes("кейс") || nStr.includes("гръб") || nStr.includes("силикон") || nStr.includes("кожен") || nStr.includes("case")) {
+    return { id: "cases", name: "Кейсове / Калъфи" };
+  } else {
+    return { id: "pop_socket", name: "Попсокет / Връзки" };
+  }
+}
+
+function cleanProductName(name) {
+  if (!name) return "";
+  let n = name.toString().trim();
+  if (n.includes(',') && n.split(' ').length < 4) {
+    n = n.replace(/,/g, ' ');
+  }
+  return n.replace(/\s+/g, ' ').trim();
+}
+
+function handleCSVFile(file) {
+  const nameLower = file.name.toLowerCase();
+  if (nameLower.endsWith(".xlsx") || nameLower.endsWith(".xls")) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type: 'array'});
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+      processCSVData(rows);
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (nameLower.endsWith(".csv")) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      const rows = parseCSVText(text);
+      processCSVData(rows);
+    };
+    reader.readAsText(file, "UTF-8");
+  } else {
+    alert("Моля, изберете валиден CSV или Excel (.xlsx, .xls) файл!");
+  }
 }
 
 function parseCSVText(text) {
-  // Auto-detect delimiter: comma (,) vs semicolon (;)
   let firstLine = "";
   for (let i = 0; i < text.length; i++) {
     if (text[i] === '\r' || text[i] === '\n') {
@@ -1008,7 +1180,7 @@ function parseCSVText(text) {
     if (c === '"') {
       if (inQuotes && next === '"') {
         row[row.length - 1] += '"';
-        i++; // skip next quote
+        i++;
       } else {
         inQuotes = !inQuotes;
       }
@@ -1016,7 +1188,7 @@ function parseCSVText(text) {
       row.push('');
     } else if ((c === '\r' || c === '\n') && !inQuotes) {
       if (c === '\r' && next === '\n') {
-        i++; // skip next \n
+        i++;
       }
       lines.push(row);
       row = [''];
@@ -1032,36 +1204,49 @@ function parseCSVText(text) {
 
 function processCSVData(rows) {
   if (rows.length < 2) {
-    alert("CSV файлът трябва да съдържа поне един ред с хедъри и един ред с данни!");
+    alert("Таблицата трябва да съдържа поне един ред с хедъри и един ред с данни!");
     return;
   }
   
-  const headers = rows[0].map(h => h.trim().toLowerCase());
+  const headers = rows[0].map(h => h.toString().trim().toLowerCase());
+  const isSellaviFormat = headers.includes("име на продукта") && headers.includes("цена") && headers.includes("категория");
   
-  const findHeaderIdx = (variants) => {
-    for (const variant of variants) {
-      const idx = headers.indexOf(variant.toLowerCase());
-      if (idx !== -1) return idx;
+  let nameIdx, brandIdx, modelIdx, categoryIdx, priceB2CIdx, priceB2BIdx, descIdx, matIdx, weightIdx, originIdx, delIdx, imgIdx;
+  
+  if (isSellaviFormat) {
+    nameIdx = headers.indexOf("име на продукта");
+    categoryIdx = headers.indexOf("категория");
+    priceB2CIdx = headers.indexOf("цена");
+    imgIdx = headers.indexOf("снимка на продукт");
+    modelIdx = headers.indexOf("модел");
+    descIdx = headers.indexOf("описание");
+    weightIdx = headers.indexOf("тегло");
+    matIdx = headers.indexOf("материал");
+  } else {
+    const findHeaderIdx = (variants) => {
+      for (const variant of variants) {
+        const idx = headers.indexOf(variant.toLowerCase());
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    };
+    nameIdx = findHeaderIdx(["name", "име"]);
+    brandIdx = findHeaderIdx(["brand", "марка"]);
+    modelIdx = findHeaderIdx(["model", "модел"]);
+    categoryIdx = findHeaderIdx(["category", "категория"]);
+    priceB2CIdx = findHeaderIdx(["priceb2c", "цена b2c", "цена", "b2c цена"]);
+    priceB2BIdx = findHeaderIdx(["priceb2b", "цена b2b", "b2b цена"]);
+    descIdx = findHeaderIdx(["description", "описание"]);
+    matIdx = findHeaderIdx(["material", "материал"]);
+    weightIdx = findHeaderIdx(["weight", "тегло", "грама"]);
+    originIdx = findHeaderIdx(["origin", "произход", "държава"]);
+    delIdx = findHeaderIdx(["delivery", "доставка"]);
+    imgIdx = findHeaderIdx(["image", "снимка", "изображение"]);
+    
+    if (nameIdx === -1 || brandIdx === -1 || categoryIdx === -1 || priceB2CIdx === -1) {
+      alert("Липсват задължителни колони в таблицата! Задължителни са: Име (Name), Марка (Brand), Категория (Category), Цена B2C (PriceB2C).");
+      return;
     }
-    return -1;
-  };
-
-  const nameIdx = findHeaderIdx(["name", "име"]);
-  const brandIdx = findHeaderIdx(["brand", "марка"]);
-  const modelIdx = findHeaderIdx(["model", "модел"]);
-  const categoryIdx = findHeaderIdx(["category", "категория"]);
-  const priceB2CIdx = findHeaderIdx(["priceb2c", "цена b2c", "цена", "b2c цена"]);
-  const priceB2BIdx = findHeaderIdx(["priceb2b", "цена b2b", "b2b цена"]);
-  const descIdx = findHeaderIdx(["description", "описание"]);
-  const matIdx = findHeaderIdx(["material", "материал"]);
-  const weightIdx = findHeaderIdx(["weight", "тегло", "грама"]);
-  const originIdx = findHeaderIdx(["origin", "произход", "държава"]);
-  const delIdx = findHeaderIdx(["delivery", "доставка"]);
-  const imgIdx = findHeaderIdx(["image", "снимка", "изображение"]);
-  
-  if (nameIdx === -1 || brandIdx === -1 || categoryIdx === -1 || priceB2CIdx === -1) {
-    alert("Липсват задължителни колони в CSV файла! Задължителни са: Име (Name), Марка (Brand), Категория (Category), Цена B2C (PriceB2C).");
-    return;
   }
   
   parsedCSVProducts = [];
@@ -1071,26 +1256,54 @@ function processCSVData(rows) {
     if (row.length < headers.length) continue;
     if (!row[nameIdx]) continue;
     
-    const priceB2C = parseFloat(row[priceB2CIdx]) || 0;
-    const priceB2B = priceB2BIdx !== -1 ? (parseFloat(row[priceB2BIdx]) || Math.round(priceB2C * 0.8 * 100) / 100) : (Math.round(priceB2C * 0.8 * 100) / 100);
+    let name = cleanProductName(row[nameIdx].toString());
+    let brand = "Всички марки";
+    let model = "Всички модели";
+    let category = "pop_socket";
+    let priceB2C = parseFloat(row[priceB2CIdx]) || 0;
+    let priceB2B = 0;
+    let image = imgIdx !== -1 && row[imgIdx] ? row[imgIdx].toString().trim() : "assets/logo.png";
+    let description = descIdx !== -1 && row[descIdx] ? row[descIdx].toString().trim() : "";
+    let material = matIdx !== -1 && row[matIdx] ? row[matIdx].toString().trim() : "Премиум силикон / TPU / Кожа";
+    let weight = weightIdx !== -1 && row[weightIdx] ? row[weightIdx].toString().trim() : "30г";
+    if (weight && !weight.endsWith("г")) weight = weight + "г";
+    
+    if (isSellaviFormat) {
+      const catVal = row[categoryIdx] ? row[categoryIdx].toString().trim() : "";
+      const parsedMeta = parseBrandAndModel(name, catVal);
+      brand = parsedMeta.brand;
+      model = parsedMeta.model;
+      
+      const catMeta = getCategoryIdAndName(catVal, name);
+      category = catMeta.id;
+      
+      priceB2B = Math.round(priceB2C * 0.8 * 100) / 100;
+      if (!description) description = `${name}. Премиум телефонен аксесоар от най-висок клас.`;
+    } else {
+      brand = brandIdx !== -1 && row[brandIdx] ? row[brandIdx].toString().trim() : "Всички марки";
+      model = modelIdx !== -1 && row[modelIdx] ? row[modelIdx].toString().trim() : "Всички модели";
+      category = row[categoryIdx] ? row[categoryIdx].toString().trim() : "pop_socket";
+      priceB2B = priceB2BIdx !== -1 ? (parseFloat(row[priceB2BIdx]) || Math.round(priceB2C * 0.8 * 100) / 100) : (Math.round(priceB2C * 0.8 * 100) / 100);
+      if (!description) description = "Премиум аксесоар за телефон";
+    }
     
     const product = {
-      name: row[nameIdx].trim(),
-      brand: row[brandIdx].trim(),
-      model: modelIdx !== -1 ? row[modelIdx].trim() : "Всички модели",
-      category: row[categoryIdx].trim(),
+      name,
+      brand,
+      model,
+      category,
       priceB2C,
       priceB2B,
       rating: 5,
       tag: null,
-      description: descIdx !== -1 ? row[descIdx].trim() : "Премиум аксесоар за телефон",
+      description,
       specs: {
-        material: matIdx !== -1 ? row[matIdx].trim() : "Силикон",
-        weight: weightIdx !== -1 ? row[weightIdx].trim() : "30г",
-        origin: originIdx !== -1 ? row[originIdx].trim() : "Германия",
-        delivery: delIdx !== -1 ? row[delIdx].trim() : "Бърза доставка"
+        material,
+        weight,
+        origin: originIdx !== -1 && row[originIdx] ? row[originIdx].toString().trim() : "Германия",
+        delivery: delIdx !== -1 && row[delIdx] ? row[delIdx].toString().trim() : "Бърза доставка до 24 часа"
       },
-      image: imgIdx !== -1 ? row[imgIdx].trim() : "assets/logo.png"
+      image
     };
     
     parsedCSVProducts.push(product);
@@ -1132,10 +1345,67 @@ window.confirmCSVImport = async function() {
   
   try {
     let importedCount = 0;
+    
+    // Build metadata cache
+    const existingCats = await convex.query("meta:getCategories");
+    const existingBrands = await convex.query("meta:getBrands");
+    const existingModels = await convex.query("meta:getModels");
+    
+    const catsCache = new Set(existingCats.map(c => c.id));
+    const brandsCache = new Set(existingBrands.map(b => b.name.toLowerCase()));
+    const modelsCache = new Set(existingModels.map(m => `${m.brand.toLowerCase()}:${m.name.toLowerCase()}`));
+    
+    const catNames = {
+      "car_acc": "Аксесоари за автомобил",
+      "power_banks": "Външни батерии",
+      "headphones": "Слушалки",
+      "memory_cards": "Памети & Карти",
+      "hydrogel_film": "Хидрогел фолио",
+      "all_chargers": "Зарядни устройства",
+      "original_cables": "Кабели за зареждане",
+      "protectors": "Протектори за екран",
+      "cases": "Кейсове / Калъфи",
+      "pop_socket": "Попсокет / Връзки"
+    };
+
     for (const p of parsedCSVProducts) {
+      // Create category if missing
+      if (!catsCache.has(p.category)) {
+        const catName = catNames[p.category] || p.category;
+        await convex.mutation("meta:addCategory", {
+          id: p.category,
+          name: catName,
+          image: `assets/cat_${p.category}.png`
+        });
+        catsCache.add(p.category);
+      }
+      
+      // Create brand if missing
+      const brandLower = p.brand.toLowerCase();
+      if (p.brand !== "Всички марки" && !brandsCache.has(brandLower)) {
+        const logoName = `logo_${brandLower}_clean.png`;
+        await convex.mutation("meta:addBrand", {
+          name: p.brand,
+          logo: logoName
+        });
+        brandsCache.add(brandLower);
+      }
+      
+      // Create model if missing
+      const modelLower = p.model.toLowerCase();
+      const modelKey = `${p.brand.toLowerCase()}:${modelLower}`;
+      if (p.brand !== "Всички марки" && p.model !== "Всички модели" && !modelsCache.has(modelKey)) {
+        await convex.mutation("meta:addModel", {
+          brand: p.brand,
+          name: p.model
+        });
+        modelsCache.add(modelKey);
+      }
+      
       await convex.mutation("products:create", p);
       importedCount++;
     }
+    
     alert(`Успешно импортирани ${importedCount} продукта!`);
     parsedCSVProducts = [];
     document.getElementById("csv-preview-section").style.display = "none";
@@ -1143,6 +1413,91 @@ window.confirmCSVImport = async function() {
     loadDashboardData();
   } catch (err) {
     alert("Грешка при импортиране: " + err.message);
+  }
+};
+
+window.exportProductsToExcel = async function() {
+  try {
+    const products = await convex.query("products:get");
+    if (products.length === 0) {
+      alert("Няма налични продукти за експортиране!");
+      return;
+    }
+    
+    const rows = [];
+    
+    const slugify = (text) => {
+      return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\wа-яА-Я0-9\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    };
+    
+    const categoryPaths = {
+      "cases": (p) => `Аксесоари,Аксесоари>${p.brand},Аксесоари>${p.brand}>${p.model}`,
+      "protectors": (p) => `Аксесоари,Аксесоари>${p.brand},Аксесоари>${p.brand}>${p.model}`,
+      "car_acc": (p) => `Аксесоари,Аксесоари>Автоаксесоари,Аксесоари>Автоаксесоари>Стойки за кола`,
+      "power_banks": (p) => `Power Bank ( Външна батерия )`,
+      "headphones": (p) => `Слушалки,Слушалки>Безжични слушалки`,
+      "memory_cards": (p) => `Памети,Памети>USB Flash памети`,
+      "hydrogel_film": (p) => `Фолио за машина`,
+      "all_chargers": (p) => `Зарядни устройства,Зарядни устройства>Tranyoo`,
+      "original_cables": (p) => `Кабели и Адаптери`,
+      "pop_socket": (p) => `Аксесоари`
+    };
+
+    products.forEach(p => {
+      const catPath = categoryPaths[p.category] ? categoryPaths[p.category](p) : "Аксесоари";
+      const weightNum = parseFloat(p.specs.weight) || 30;
+      
+      const row = {
+        "ID на продукта": p._id,
+        "статус": 1,
+        "Име на продукта": p.name,
+        "Описание": p.description,
+        "Мета заглавие": p.name,
+        "Мета описание": p.description,
+        "Ключови думи": p.name.split(" ").join(","),
+        "URL": slugify(p.name),
+        "Мета тагове": p.name.split(" ").join(","),
+        "Модел": p.specs.material || "RT-11",
+        "SKU": p._id,
+        "Цена": p.priceB2C,
+        "Мярка за размер": "сантиметър",
+        "Дължина": 10,
+        "Широчина": 10,
+        "Височина": 10,
+        "Мярка за тегло/обем": "грам",
+        "Тегло": weightNum,
+        "Скрий": 0,
+        "Баркод": " ",
+        "Количество": 100000,
+        "Мин. количество за поръчка": 1,
+        "Макс. количество за поръчка": 100,
+        "Отчет на наличността": 1,
+        "Наличност": "Наличен",
+        "Последователност на показване": 0,
+        "Снимка на продукт": p.image,
+        "Категория": catPath,
+        "Фильтры": " ",
+        "Препоръчани продукти": " ",
+        "Размер на отстъпката": "",
+        "Начало": "",
+        "Край": "",
+        "Опции за продукти": ""
+      };
+      rows.push(row);
+    });
+    
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Продукти");
+    
+    XLSX.writeFile(workbook, "product_export.xlsx");
+  } catch (err) {
+    alert("Грешка при експортиране: " + err.message);
   }
 };
 

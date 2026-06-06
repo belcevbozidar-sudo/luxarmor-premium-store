@@ -1036,23 +1036,24 @@
       
       <!-- === TAB: IMPORT PRODUCTS === -->
       <div class="tab-panel" id="import-tab">
-        <div class="section-header">
-          <h2 class="section-title">Групово Качване на Продукти (CSV формат)</h2>
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <h2 class="section-title">Групово Управление на Продукти (Excel / CSV)</h2>
+          <button class="btn-action" onclick="exportProductsToExcel()" style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-file-export"></i> Експортирай Продукти (Excel)</button>
         </div>
         
         <div class="meta-panel" style="margin-bottom: 2rem; padding: 2rem;">
           <h3 style="margin-bottom: 1rem; color: #fff;">Инструкции за Импорт</h3>
           <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.6;">
-            За да качите продукти от Excel, експортирайте ексел файла си като <strong>CSV (Comma Separated Values)</strong>. Уверете се, че първият ред съдържа следните колони с точни заглавия на български или английски език:<br>
+            Можете да качите Вашата таблица директно в <strong>Excel (.xlsx)</strong> формат или в стандартен <strong>CSV</strong> формат. Първият ред трябва да съдържа съответните заглавия на колоните на български или английски:<br>
             <code style="background: rgba(0,0,0,0.5); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--gold); display: block; margin-top: 0.5rem; font-family: monospace; overflow-x: auto;">Име, Марка, Модел, Категория, Цена B2C, Цена B2B, Описание, Материал, Тегло, Произход, Доставка, Снимка</code>
-            <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.35rem;">(Или съответно на английски: Name, Brand, Model, Category, PriceB2C, PriceB2B, Description, Material, Weight, Origin, Delivery, Image)</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.35rem;">(Или заглавията от експортирания от сайта/платформата файл: Име на продукта, Категория, Цена, Снимка на продукт, Модел, Описание, Тегло, Материал)</span>
           </p>
           
           <div id="csv-dropzone" style="border: 2px dashed var(--gold); border-radius: 12px; padding: 3rem; text-align: center; background: rgba(0,0,0,0.2); cursor: pointer; position: relative; margin-top: 1.5rem;">
-            <i class="fas fa-file-csv" style="font-size: 3.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
-            <h4 style="color: #fff; margin-bottom: 0.5rem;">Изберете CSV файл от Вашето устройство</h4>
+            <i class="fas fa-file-excel" style="font-size: 3.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
+            <h4 style="color: #fff; margin-bottom: 0.5rem;">Изберете Excel (.xlsx) или CSV файл от Вашето устройство</h4>
             <span style="font-size: 0.85rem; color: var(--text-muted);">Или издърпайте и пуснете файла тук</span>
-            <input type="file" id="csv-file-input" accept=".csv" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+            <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
           </div>
         </div>
         
@@ -1424,6 +1425,8 @@
     </div>
   </div>
 
+  <!-- SheetJS Excel Library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- Convex Web SDK -->
   <script type="module" src="admin.js"></script>
 </body>

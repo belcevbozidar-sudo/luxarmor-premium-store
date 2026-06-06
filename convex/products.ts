@@ -166,3 +166,51 @@ export const seed = mutation({
     return "Seeded successfully";
   },
 });
+
+export const clearAll = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    for (const p of products) {
+      await ctx.db.delete(p._id);
+    }
+    return `Deleted ${products.length} products`;
+  },
+});
+
+export const createBatch = mutation({
+  args: {
+    products: v.array(
+      v.object({
+        name: v.string(),
+        brand: v.string(),
+        model: v.string(),
+        category: v.string(),
+        image: v.string(),
+        images: v.optional(v.array(v.string())),
+        rating: v.number(),
+        tag: v.union(v.string(), v.null()),
+        description: v.string(),
+        specs: v.object({
+          material: v.string(),
+          weight: v.string(),
+          origin: v.string(),
+          delivery: v.string(),
+        }),
+        priceB2C: v.number(),
+        oldPriceB2C: v.union(v.number(), v.null()),
+        priceB2B: v.number(),
+        oldPriceB2B: v.union(v.number(), v.null()),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    let count = 0;
+    for (const p of args.products) {
+      await ctx.db.insert("products", p);
+      count++;
+    }
+    return count;
+  },
+});
+
