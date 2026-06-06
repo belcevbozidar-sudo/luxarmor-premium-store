@@ -170,6 +170,62 @@ const PRODUCTS = [
     tag: "ОРИГИНАЛЕН",
     description: "Оригинален подсилен плетен кабел с дължина 1.2 метра, поддържащ бързо Power Delivery зареждане.",
     specs: { material: "Плетен найлон & Медни нишки", weight: "35г", origin: "САЩ", delivery: "Бърза доставка" }
+  },
+  {
+    id: 13,
+    name: "Алуминиева стойка за бюро AluStand",
+    brand: "Всички",
+    model: "Всички модели",
+    category: "desk_holder",
+    price: 35.00,
+    oldPrice: 45.00,
+    image: "assets/cat_desk_stand.png",
+    rating: 5,
+    tag: "ПРЕМИУМ",
+    description: "Стабилна сгъваема алуминиева поставка за телефон или таблет. Силиконови подложки против плъзгане и регулиране на ъгъла.",
+    specs: { material: "Алуминиева сплав", weight: "150г", origin: "Германия", delivery: "Бърза доставка с преглед" }
+  },
+  {
+    id: 14,
+    name: "Селфи стик с трипод TripodPro",
+    brand: "Всички",
+    model: "Всички модели",
+    category: "selfie_stick",
+    price: 39.00,
+    oldPrice: null,
+    image: "assets/cat_selfie_stick.png",
+    rating: 4,
+    tag: "ХИТ",
+    description: "Разтегателен селфи стик с вграден трипод и безжично Bluetooth дистанционно. Въртене на 360 градуса.",
+    specs: { material: "Неръждаема стомана & ABS", weight: "180г", origin: "Корея", delivery: "Бърза доставка с преглед" }
+  },
+  {
+    id: 15,
+    name: "Дизайнерски силиконов попсокет PopGrip",
+    brand: "Всички",
+    model: "Всички модели",
+    category: "pop_socket",
+    price: 15.00,
+    oldPrice: 19.00,
+    image: "assets/cat_pop_socket.png",
+    rating: 5,
+    tag: "ПОПУЛЯРНО",
+    description: "Удобна и здрава стойка за пръст за задната страна на телефона. Сигурен захват и лесно сгъване.",
+    specs: { material: "Премиум силикон", weight: "10г", origin: "Китай", delivery: "Бърза доставка с преглед" }
+  },
+  {
+    id: 16,
+    name: "Външна батерия MagSafe Power Bank 10000mAh",
+    brand: "Apple",
+    model: "Всички модели",
+    category: "power_banks",
+    price: 59.00,
+    oldPrice: 89.00,
+    image: "assets/cat_power_bank.png",
+    rating: 5,
+    tag: "БЕСТСЕЛЪР",
+    description: "Ултратънка магнитна външна батерия с капацитет 10000mAh. Бързо зареждане и перфектно прилепване към MagSafe.",
+    specs: { material: "Поликарбонат & Алуминий", weight: "190г", origin: "Япония", delivery: "Бърза доставка с преглед" }
   }
 ];
 
@@ -198,30 +254,16 @@ const BRANDS = Object.keys(BRAND_MODELS);
 
 // --- CATEGORIES LIST ---
 const CATEGORIES = [
-  { id: "car_acc", name: "Аксесоари за автомобил", image: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?auto=format&fit=crop&q=80&w=800" },
-  { id: "bike_acc", name: "Аксесоари за велосипед", image: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?auto=format&fit=crop&q=80&w=800" },
-  { id: "desk_holder", name: "Поставка за бюро", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
-  { id: "selfie_stick", name: "Селфи Стик", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "car_chargers", name: "Зарядни за кола", image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800" },
-  { id: "pop_socket", name: "ПОП СОКЕТ / ВРЪЗКИ ЗА ТЕЛЕФОН", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "kids_headphones", name: "Детски слушалки", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
-  { id: "wireless_chargers", name: "Безжични зарядни", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
-  { id: "lightning_cables", name: "Кабели за iPhone/Lightning", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "original_cables", name: "Оригинални кабели", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "micro_usb_cables", name: "Кабели Micro USB", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "type_c_cables", name: "Кабели Type C", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "power_banks", name: "Външни батерии / Power banks", image: "https://images.unsplash.com/photo-1574920162043-b872873f19c8?auto=format&fit=crop&q=80&w=800" },
-  { id: "hubs", name: "Хъбове", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
-  { id: "audio_cables", name: "Аудио / Видео Кабели", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "flash_cards", name: "Карти с памет / Флашки", image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&q=80&w=800" },
-  { id: "headphones", name: "Слушалки", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
-  { id: "bt_headphones", name: "Bluetooth слушалки", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
-  { id: "handsfree", name: "Безжични слушалки / Handsfree", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
-  { id: "speakers", name: "Колонки", image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&q=80&w=800" },
-  { id: "adapters", name: "Преходници", image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800" },
-  { id: "gadgets", name: "Джаджи", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "original_cables_alt", name: "Оригинални кабели", image: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?auto=format&fit=crop&q=80&w=800" },
-  { id: "all_chargers", name: "Всички зарядни", image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?auto=format&fit=crop&q=80&w=800" }
+  { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.png" },
+  { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.png" },
+  { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.png" },
+  { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.png" },
+  { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.png" },
+  { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.png" },
+  { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.png" },
+  { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.png" },
+  { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.png" },
+  { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.png" }
 ];
 
 // --- SHOPPING CART STATE ---
@@ -230,6 +272,16 @@ let activeQuickViewProduct = null;
 let selectedBrand = null;
 let selectedModel = null;
 let selectedCategory = null;
+
+// --- BRANDS LOGO MAPPING ---
+const BRANDS_WITH_LOGOS = {
+  "Apple": "logo_apple.png",
+  "Samsung": "logo_samsung.png",
+  "Xiaomi": "logo_xiaomi.png",
+  "Huawei": "logo_huawei.png",
+  "Google": "logo_google.png",
+  "MOTO": "logo_moto.png"
+};
 
 // --- DYNAMIC RENDER FUNCTIONS ---
 function renderBrands() {
@@ -240,8 +292,24 @@ function renderBrands() {
   BRANDS.forEach(brand => {
     const btn = document.createElement("button");
     btn.className = "brand-pill-btn";
-    btn.textContent = brand;
+    if (selectedBrand === brand) {
+      btn.classList.add("active");
+    }
     btn.onclick = () => selectBrand(brand);
+    
+    if (BRANDS_WITH_LOGOS[brand]) {
+      btn.innerHTML = `
+        <img src="assets/${BRANDS_WITH_LOGOS[brand]}" alt="${brand}" class="brand-card-img" loading="lazy">
+        <span class="brand-card-text">${brand}</span>
+      `;
+    } else {
+      const firstLetter = brand.charAt(0);
+      btn.innerHTML = `
+        <div class="brand-placeholder-icon">${firstLetter}</div>
+        <span class="brand-card-text">${brand}</span>
+      `;
+    }
+    
     container.appendChild(btn);
   });
 }
@@ -249,11 +317,16 @@ function renderBrands() {
 function selectBrand(brand) {
   selectedBrand = brand;
   selectedModel = null;
+  selectedCategory = null;
+  
+  // Clear category card selections
+  document.querySelectorAll(".category-card").forEach(card => card.classList.remove("active"));
   
   // Highlight selected brand pill
   const pills = document.querySelectorAll(".brand-pill-btn");
   pills.forEach(pill => {
-    if (pill.textContent === brand) {
+    const textSpan = pill.querySelector(".brand-card-text");
+    if ((textSpan && textSpan.textContent === brand) || pill.textContent === brand) {
       pill.classList.add("active");
     } else {
       pill.classList.remove("active");
@@ -266,14 +339,19 @@ function selectBrand(brand) {
   if (step2Title && modelList) {
     step2Title.style.display = "block";
     step2Title.textContent = `СТЪПКА 2 - ИЗБЕРИ МОДЕЛ ЗА ${brand.toUpperCase()}:`;
-    modelList.style.display = "flex";
+    modelList.style.display = "grid";
     modelList.innerHTML = "";
     
     BRAND_MODELS[brand].forEach(model => {
       const btn = document.createElement("button");
       btn.className = "model-pill-btn";
-      btn.textContent = model;
       btn.onclick = () => selectModel(model);
+      btn.innerHTML = `
+        <div class="model-icon-box">
+          <i class="fas fa-mobile-alt"></i>
+        </div>
+        <span class="model-card-text">${model}</span>
+      `;
       modelList.appendChild(btn);
     });
     
@@ -288,7 +366,8 @@ function selectModel(model) {
   // Highlight selected model pill
   const pills = document.querySelectorAll(".model-pill-btn");
   pills.forEach(pill => {
-    if (pill.textContent === model) {
+    const textSpan = pill.querySelector(".model-card-text");
+    if ((textSpan && textSpan.textContent === model) || pill.textContent === model) {
       pill.classList.add("active");
     } else {
       pill.classList.remove("active");
