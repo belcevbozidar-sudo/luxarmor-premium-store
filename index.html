@@ -6,6 +6,16 @@
   <title>CaseKing - Избери Марка и Модел за Телефон | Кейсове и Аксесоари</title>
   <meta name="description" content="Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с бърза доставка, преглед и тест!">
   
+  <!-- Premium Preview Meta Tags -->
+  <meta property="og:title" content="CaseKing - Премиум Кейсове и Аксесоари за Телефони">
+  <meta property="og:description" content="Най-големият избор на премиум кейсове, протектори и аксесоари. Изберете марка, модел и поръчайте с бърза доставка и преглед!">
+  <meta property="og:image" content="https://luxarmor-premium-store.vercel.app/assets/logo.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://luxarmor-premium-store.vercel.app/assets/logo.png">
+
   <!-- Premium FontAwesome CDN for Luxury Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -110,8 +120,14 @@
         <i class="fas fa-arrow-left"></i> Назад към каталога
       </button>
       <div class="product-page-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
-        <div class="product-page-image-panel" style="border: 1px solid var(--panel-border); border-radius: 12px; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; aspect-ratio: 1/1; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-          <img id="product-page-image" src="" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+        <div class="product-page-left-column">
+          <div class="product-page-image-panel" style="border: 1px solid var(--panel-border); border-radius: 12px; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; aspect-ratio: 1/1; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <img id="product-page-image" src="" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <!-- Multiple Images Thumbnails Panel -->
+          <div class="product-page-thumbnails" id="product-page-thumbnails" style="display: flex; gap: 0.5rem; margin-top: 1rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: thin;">
+            <!-- Dynamically populated -->
+          </div>
         </div>
         <div class="product-page-details-panel">
           <span id="product-page-cat" style="color: var(--gold); font-size: 0.9rem; text-transform: uppercase; font-weight: 600; letter-spacing: 1px;"></span>
@@ -254,7 +270,8 @@
       <p class="footer-copy">© 2026 CaseKing. Всички права запазени.</p>
       <div class="footer-trust-logos">
         <span>📦 Преглед и Тест</span>
-        <span>🚚 Бърза доставка</span>
+        <!-- Secret button to admin panel -->
+        <span onclick="window.location.href='/admin'" style="cursor: pointer;" title="Админ">🚚 Бърза доставка</span>
       </div>
     </div>
   </footer>
@@ -312,7 +329,7 @@
         
         <!-- Google Sign-in Slot -->
         <div style="margin: 1.5rem 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
-          <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);;"></span>
+          <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);"></span>
           <span>или влезте с</span>
           <span style="flex: 1; height: 1px; background: rgba(255,255,255,0.05);"></span>
         </div>

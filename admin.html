@@ -75,6 +75,7 @@
     .login-logo {
       width: 180px;
       margin-bottom: 2rem;
+      cursor: pointer;
     }
 
     .login-title {
@@ -129,7 +130,6 @@
       font-size: 0.9rem;
       color: var(--text-muted);
       user-select: none;
-      cursor: pointer;
     }
 
     .remember-me-container input {
@@ -186,6 +186,7 @@
       display: flex;
       align-items: center;
       gap: 1rem;
+      cursor: pointer;
     }
 
     .logo-img {
@@ -225,6 +226,24 @@
     .btn-logout:hover {
       border-color: var(--danger);
       color: var(--danger);
+    }
+
+    .mobile-nav-toggle {
+      display: none;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--gold);
+      font-size: 1.2rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mobile-nav-toggle:hover {
+      background: rgba(255,255,255,0.05);
     }
 
     /* --- LAYOUT GRID --- */
@@ -565,7 +584,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: background 0.3s;
+      transition: background 0.3s, border-color 0.3s;
     }
 
     .meta-item:hover {
@@ -617,7 +636,7 @@
   <!-- --- SECURE LOGIN OVERLAY --- -->
   <div class="login-overlay" id="login-overlay">
     <div class="login-card">
-      <img src="assets/logo.png" alt="CaseKing Logo" class="login-logo">
+      <img src="assets/logo.png" alt="CaseKing Logo" class="login-logo" onclick="redirectToHome()">
       <h3 class="login-title">Вход за Администратори</h3>
       <p class="login-subtitle" id="login-subtitle">Моля, въведете сигурната парола за достъп.</p>
       
@@ -626,9 +645,10 @@
         <input type="password" id="admin-pass" class="login-input" placeholder="••••••••" required>
       </div>
       
-      <div class="remember-me-container" onclick="toggleRememberCheckbox()">
+      <!-- Standard Remember Me checkbox structure to fix double check mark event bug -->
+      <div class="remember-me-container">
         <input type="checkbox" id="remember-me">
-        <span>Запомни това устройство</span>
+        <label for="remember-me" style="cursor: pointer; margin-left: 0.5rem;">Запомни това устройство</label>
       </div>
       
       <button class="btn-login" id="btn-login-submit" onclick="attemptAdminLogin()">Вход</button>
@@ -639,12 +659,13 @@
 
   <!-- --- MAIN HEADER --- -->
   <header>
-    <div class="logo-container">
+    <div class="logo-container" onclick="redirectToHome()">
       <img src="assets/logo.png" alt="CaseKing Logo" class="logo-img">
       <span class="admin-badge">Админ Панел</span>
     </div>
     
     <div class="header-actions">
+      <button class="mobile-nav-toggle" onclick="toggleAdminMobileMenu()"><i class="fas fa-bars"></i></button>
       <span style="font-size: 0.9rem; color: var(--text-muted);"><i class="fas fa-user-shield"></i> Администратор</span>
       <button class="btn-logout" onclick="adminLogout()">Изход</button>
     </div>
@@ -654,7 +675,7 @@
   <div class="dashboard-container">
     
     <!-- Sidebar navigation -->
-    <div class="sidebar">
+    <div class="sidebar" id="admin-sidebar">
       <button class="nav-tab-btn active" onclick="switchTab('products-tab', this)"><i class="fas fa-box"></i> Продукти</button>
       <button class="nav-tab-btn" onclick="switchTab('metadata-tab', this)"><i class="fas fa-tags"></i> Марки & Модели</button>
       <button class="nav-tab-btn" onclick="switchTab('promotions-tab', this)"><i class="fas fa-gift"></i> Промоции & Подаръци</button>
@@ -698,6 +719,10 @@
           <h2 class="section-title">Управление на Марки и Модели</h2>
         </div>
         
+        <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 1.5rem;">
+          <i class="fas fa-info-circle"></i> Кликнете върху някоя от марките за избор на марка, за да филтрирате и покажете само моделите телефони, асоциирани с нея.
+        </p>
+        
         <div class="meta-layout">
           <!-- Brands Control -->
           <div class="meta-panel">
@@ -713,7 +738,7 @@
           <!-- Models Control -->
           <div class="meta-panel">
             <div class="meta-panel-title">
-              <span>Модели за Телефон</span>
+              <span id="models-panel-title">Всички Модели</span>
               <button class="btn-icon" onclick="openModelModal()" title="Добави Модел"><i class="fas fa-plus"></i></button>
             </div>
             <div class="meta-list" id="models-list">
@@ -790,9 +815,24 @@
         <form id="product-form" onsubmit="saveProduct(event)">
           <input type="hidden" id="product-id">
           
+          <!-- Multiple Images File Drag & Drop Zone at the top of the form -->
+          <div class="form-group full-width" style="border: 2px dashed var(--gold); border-radius: 8px; padding: 1.5rem; text-align: center; background: rgba(0,0,0,0.2); position: relative; cursor: pointer; margin-bottom: 1rem;">
+            <i class="fas fa-images" style="font-size: 2rem; color: var(--gold); margin-bottom: 0.5rem;"></i>
+            <p style="font-weight: 500; font-size: 0.95rem; margin-bottom: 0.25rem; color: #fff;">Качване на снимки от устройството</p>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Изберете снимки или ги издърпайте тук</span>
+            <input type="file" id="product-images-input" multiple accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+          </div>
+          
+          <div class="form-group full-width">
+            <label>Подредба на качените снимки (издърпайте хендъла за пренареждане):</label>
+            <div id="product-images-preview" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-top: 0.5rem; min-height: 80px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 0.5rem; border: 1px solid rgba(255,255,255,0.05);">
+              <!-- Rendered dynamic thumbnails with touch drag handle -->
+            </div>
+          </div>
+          
           <div class="form-group">
             <label>Име на продукта:</label>
-            <input type="text" id="product-name" required placeholder="напр. Кожен Магнитeн Кейс">
+            <input type="text" id="product-name" required placeholder="напр. Кожен Магнитен Кейс">
           </div>
           
           <div class="form-grid">
@@ -840,11 +880,6 @@
               <label>Стара Цена B2B (ако има):</label>
               <input type="number" step="0.01" id="product-old-price-b2b" placeholder="0.00">
             </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Линк към снимка на продукта:</label>
-            <input type="text" id="product-image" required placeholder="https://unsplash.com/... или assets/...">
           </div>
           
           <div class="form-group">
@@ -973,9 +1008,9 @@
             </select>
           </div>
           
-          <div class="remember-me-container" onclick="togglePromoActiveCheckbox()" style="margin-top: 1rem;">
-            <input type="checkbox" id="promo-active" checked>
-            <span>Активна промоция</span>
+          <div class="remember-me-container" onclick="togglePromoActiveCheckbox()" style="margin-top: 1rem; cursor:pointer;">
+            <input type="checkbox" id="promo-active" checked style="accent-color:var(--gold);">
+            <span style="margin-left:0.5rem; color:var(--text-muted);">Активна промоция</span>
           </div>
           
           <div class="modal-footer">

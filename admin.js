@@ -9,6 +9,23 @@ let allModels = [];
 let allPromotions = [];
 let allOrders = [];
 
+const STATIC_CATEGORIES = [
+  { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.png" },
+  { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.png" },
+  { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.png" },
+  { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.png" },
+  { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.png" },
+  { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.png" },
+  { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.png" },
+  { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.png" },
+  { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.png" },
+  { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.png" }
+];
+
+let allCategories = [...STATIC_CATEGORIES];
+let uploadedImages = [];
+let selectedBrandFilter = null;
+
 // --- CANVAS BROWSER FINGERPRINT ---
 function getBrowserFingerprint() {
   const canvas = document.createElement("canvas");
@@ -128,13 +145,18 @@ window.attemptAdminLogin = async function() {
 window.adminLogout = function() {
   adminToken = null;
   localStorage.removeItem("caseking_admin_token");
-  document.getElementById("admin-pass").value = "";
-  document.getElementById("login-overlay").classList.remove("hidden");
+  window.location.href = "/";
 };
 
-window.toggleRememberCheckbox = function() {
-  const cb = document.getElementById("remember-me");
-  cb.checked = !cb.checked;
+window.redirectToHome = function() {
+  window.location.href = "/";
+};
+
+window.toggleAdminMobileMenu = function() {
+  const sidebar = document.getElementById("admin-sidebar");
+  if (sidebar) {
+    sidebar.classList.toggle("active");
+  }
 };
 
 // --- DATA FETCHING & RENDERING ---
@@ -143,6 +165,16 @@ async function loadDashboardData() {
     allProducts = await convex.query("products:get");
     allBrands = await convex.query("meta:getBrands");
     allModels = await convex.query("meta:getModels");
+    
+    try {
+      const dbCats = await convex.query("meta:getCategories");
+      if (dbCats && dbCats.length > 0) {
+        allCategories = dbCats;
+      }
+    } catch (catErr) {
+      console.warn("Could not load categories from db, using static fallback", catErr);
+    }
+    
     allPromotions = await convex.query("promotions:getAll");
     allOrders = await convex.query("orders:get");
     
@@ -162,10 +194,12 @@ function populateFormSelects() {
   const brandSelect = document.getElementById("product-brand");
   const metaBrandSelect = document.getElementById("model-brand-select");
   const giftSelect = document.getElementById("promo-gift-product");
+  const categorySelect = document.getElementById("product-category");
   
   brandSelect.innerHTML = '<option value="">-- Избери марка --</option>';
   metaBrandSelect.innerHTML = '<option value="">-- Избери марка --</option>';
   giftSelect.innerHTML = '<option value="">-- Избери подарък --</option>';
+  categorySelect.innerHTML = '<option value="">-- Избери категория --</option>';
   
   allBrands.forEach(b => {
     brandSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
@@ -174,6 +208,10 @@ function populateFormSelects() {
   
   allProducts.forEach(p => {
     giftSelect.innerHTML += `<option value="${p._id}">${p.name} (${p.brand})</option>`;
+  });
+  
+  allCategories.forEach(cat => {
+    categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
   });
 }
 
@@ -197,6 +235,12 @@ window.switchTab = function(tabId, btn) {
   
   document.getElementById(tabId).classList.add("active");
   btn.classList.add("active");
+  
+  // Close sidebar drawer on mobile
+  const sidebar = document.getElementById("admin-sidebar");
+  if (sidebar) {
+    sidebar.classList.remove("active");
+  }
 };
 
 // --- TAB 1: PRODUCTS LOGIC ---
@@ -250,7 +294,10 @@ window.openProductModal = function(productId = null) {
       document.getElementById("product-old-price-b2c").value = p.oldPriceB2C || "";
       document.getElementById("product-price-b2b").value = p.priceB2B || "";
       document.getElementById("product-old-price-b2b").value = p.oldPriceB2B || "";
-      document.getElementById("product-image").value = p.image;
+      
+      uploadedImages = p.images || (p.image ? [p.image] : []);
+      renderImagePreviews();
+      
       document.getElementById("product-desc").value = p.description;
       document.getElementById("product-spec-material").value = p.specs.material;
       document.getElementById("product-spec-weight").value = p.specs.weight;
@@ -261,6 +308,8 @@ window.openProductModal = function(productId = null) {
     document.getElementById("product-modal-title").textContent = "Добавяне на Нов Продукт";
     document.getElementById("product-id").value = "";
     document.getElementById("product-model").innerHTML = '<option value="Всички модели">Всички модели</option>';
+    uploadedImages = [];
+    renderImagePreviews();
   }
   
   modal.classList.add("active");
@@ -269,6 +318,132 @@ window.openProductModal = function(productId = null) {
 window.closeProductModal = function() {
   document.getElementById("product-modal").classList.remove("active");
 };
+
+function renderImagePreviews() {
+  const container = document.getElementById("product-images-preview");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  uploadedImages.forEach((imgSrc, idx) => {
+    const card = document.createElement("div");
+    card.className = "image-preview-card";
+    card.setAttribute("draggable", "true");
+    card.setAttribute("data-index", idx);
+    card.style.cssText = "position: relative; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; aspect-ratio: 1/1; background: #000; cursor: grab; user-select: none;";
+    
+    card.innerHTML = `
+      <img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none;">
+      <div class="drag-handle-rect" style="position: absolute; bottom: 4px; left: 4px; right: 4px; height: 24px; background: rgba(0,0,0,0.85); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--gold); border: 1px solid var(--gold); cursor: grab; user-select: none; pointer-events: none;">
+        <i class="fas fa-arrows-alt" style="margin-right: 4px;"></i> Издърпай
+      </div>
+      <button type="button" class="btn-delete-image" style="position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; background: rgba(231,76,60,0.8); border: none; color: #fff; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">&times;</button>
+    `;
+    
+    // Add delete handler
+    card.querySelector(".btn-delete-image").addEventListener("click", (e) => {
+      e.stopPropagation();
+      uploadedImages.splice(idx, 1);
+      renderImagePreviews();
+    });
+    
+    container.appendChild(card);
+  });
+  
+  setupDragAndDrop();
+}
+
+function setupDragAndDrop() {
+  const container = document.getElementById("product-images-preview");
+  if (!container) return;
+  const cards = container.querySelectorAll(".image-preview-card");
+  
+  let draggedCard = null;
+  
+  // Desktop Drag Events
+  cards.forEach(card => {
+    card.addEventListener("dragstart", (e) => {
+      draggedCard = card;
+      card.style.opacity = "0.5";
+      e.dataTransfer.effectAllowed = "move";
+    });
+    
+    card.addEventListener("dragend", () => {
+      draggedCard = null;
+      card.style.opacity = "1";
+      // Update our array based on new DOM order
+      const newImages = [];
+      container.querySelectorAll(".image-preview-card").forEach(c => {
+        const idx = parseInt(c.getAttribute("data-index"));
+        newImages.push(uploadedImages[idx]);
+      });
+      uploadedImages = newImages;
+      renderImagePreviews();
+    });
+    
+    card.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      
+      if (card === draggedCard) return;
+      
+      const rect = card.getBoundingClientRect();
+      const next = (e.clientX - rect.left) > (rect.width / 2);
+      
+      if (next) {
+        card.after(draggedCard);
+      } else {
+        card.before(draggedCard);
+      }
+    });
+  });
+  
+  // Touch Devices Events support
+  let activeTouchCard = null;
+  
+  cards.forEach(card => {
+    card.addEventListener("touchstart", (e) => {
+      activeTouchCard = card;
+      card.style.opacity = "0.5";
+      card.style.zIndex = "1000";
+    }, { passive: true });
+    
+    card.addEventListener("touchmove", (e) => {
+      if (!activeTouchCard) return;
+      const touch = e.touches[0];
+      
+      // Prevent scrolling while dragging
+      e.preventDefault();
+      
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetCard = element ? element.closest(".image-preview-card") : null;
+      
+      if (targetCard && targetCard !== activeTouchCard && targetCard.parentNode === container) {
+        const rect = targetCard.getBoundingClientRect();
+        const next = (touch.clientX - rect.left) > (rect.width / 2);
+        if (next) {
+          targetCard.after(activeTouchCard);
+        } else {
+          targetCard.before(activeTouchCard);
+        }
+      }
+    }, { passive: false });
+    
+    card.addEventListener("touchend", () => {
+      if (!activeTouchCard) return;
+      activeTouchCard.style.opacity = "1";
+      activeTouchCard.style.zIndex = "";
+      activeTouchCard = null;
+      
+      const newImages = [];
+      container.querySelectorAll(".image-preview-card").forEach(c => {
+        const idx = parseInt(c.getAttribute("data-index"));
+        newImages.push(uploadedImages[idx]);
+      });
+      uploadedImages = newImages;
+      renderImagePreviews();
+    });
+  });
+}
 
 window.saveProduct = async function(event) {
   event.preventDefault();
@@ -284,7 +459,8 @@ window.saveProduct = async function(event) {
     oldPriceB2C: document.getElementById("product-old-price-b2c").value ? parseFloat(document.getElementById("product-old-price-b2c").value) : null,
     priceB2B: parseFloat(document.getElementById("product-price-b2b").value),
     oldPriceB2B: document.getElementById("product-old-price-b2b").value ? parseFloat(document.getElementById("product-old-price-b2b").value) : null,
-    image: document.getElementById("product-image").value,
+    image: uploadedImages[0] || "",
+    images: uploadedImages,
     rating: 5,
     description: document.getElementById("product-desc").value,
     specs: {
@@ -327,14 +503,21 @@ function renderBrandsAndModels() {
   
   allBrands.forEach(b => {
     const div = document.createElement("div");
-    div.className = "meta-item";
+    div.className = "meta-item" + (selectedBrandFilter === b.name ? " selected" : "");
+    div.style.cursor = "pointer";
     div.innerHTML = `
-      <div class="meta-item-info">
+      <div class="meta-item-info" style="flex:1; display:flex; align-items:center; gap:0.75rem;">
         <img src="assets/${b.logo}" class="meta-logo-preview" onerror="this.style.display='none'">
         <strong>${b.name}</strong>
       </div>
-      <button class="btn-icon delete" onclick="deleteBrand('${b._id}')" title="Изтрий марка"><i class="fas fa-trash"></i></button>
+      <button class="btn-icon delete" onclick="event.stopPropagation(); deleteBrand('${b._id}')" title="Изтрий марка"><i class="fas fa-trash"></i></button>
     `;
+    
+    div.addEventListener("click", () => {
+      selectedBrandFilter = (selectedBrandFilter === b.name) ? null : b.name;
+      renderBrandsAndModels();
+    });
+    
     brandsContainer.appendChild(div);
   });
   
@@ -342,7 +525,18 @@ function renderBrandsAndModels() {
   const modelsContainer = document.getElementById("models-list");
   modelsContainer.innerHTML = "";
   
-  allModels.forEach(m => {
+  const titleSpan = document.getElementById("models-panel-title");
+  if (selectedBrandFilter) {
+    titleSpan.innerHTML = `Модели за <span style="color:var(--gold); font-weight:700;">${selectedBrandFilter}</span>`;
+  } else {
+    titleSpan.textContent = "Всички Модели";
+  }
+  
+  const filteredModels = selectedBrandFilter 
+    ? allModels.filter(m => m.brand === selectedBrandFilter)
+    : allModels;
+  
+  filteredModels.forEach(m => {
     const div = document.createElement("div");
     div.className = "meta-item";
     div.innerHTML = `
@@ -640,4 +834,63 @@ window.updateOrderStatus = async function() {
 };
 
 // --- INITIALIZE PAGE ---
-document.addEventListener("DOMContentLoaded", checkAuth);
+document.addEventListener("DOMContentLoaded", () => {
+  checkAuth();
+  
+  // File Uploader & Drag zone bindings
+  const imageInput = document.getElementById("product-images-input");
+  if (imageInput) {
+    imageInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        handleFiles(e.target.files);
+      }
+    });
+    
+    const dragZone = imageInput.parentElement;
+    if (dragZone) {
+      dragZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dragZone.style.borderColor = "#fff";
+      });
+      dragZone.addEventListener("dragleave", () => {
+        dragZone.style.borderColor = "var(--gold)";
+      });
+      dragZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dragZone.style.borderColor = "var(--gold)";
+        if (e.dataTransfer.files.length > 0) {
+          handleFiles(e.dataTransfer.files);
+        }
+      });
+    }
+  }
+  
+  // Document level click listener for closing mobile admin menu when clicking outside
+  document.addEventListener("click", (e) => {
+    const sidebar = document.getElementById("admin-sidebar");
+    const toggleBtn = document.querySelector(".mobile-nav-toggle");
+    if (sidebar && sidebar.classList.contains("active")) {
+      if (!sidebar.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
+        sidebar.classList.remove("active");
+      }
+    }
+  });
+});
+
+function handleFiles(files) {
+  const readers = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!file.type.startsWith("image/")) continue;
+    readers.push(new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    }));
+  }
+  
+  Promise.all(readers).then((results) => {
+    uploadedImages = [...uploadedImages, ...results];
+    renderImagePreviews();
+  });
+}

@@ -28,6 +28,7 @@ export const create = mutation({
     model: v.string(),
     category: v.string(),
     image: v.string(),
+    images: v.optional(v.array(v.string())), // multiple images support
     rating: v.number(),
     tag: v.union(v.string(), v.null()),
     description: v.string(),
@@ -55,6 +56,7 @@ export const update = mutation({
     model: v.string(),
     category: v.string(),
     image: v.string(),
+    images: v.optional(v.array(v.string())), // multiple images support
     rating: v.number(),
     tag: v.union(v.string(), v.null()),
     description: v.string(),
@@ -114,20 +116,25 @@ export const seed = mutation({
   handler: async (ctx, args) => {
     const existing = await ctx.db.query("products").collect();
     if (existing.length > 0) {
-      // If products exist, but don't have priceB2C/priceB2B, we migratel/patch them!
       for (const p of existing) {
         const anyP = p as any;
+        const patchData: any = {};
+        
         if (anyP.priceB2C === undefined) {
           const pB2C = anyP.price || 29.00;
           const oldPB2C = anyP.oldPrice || null;
-          const pB2B = Math.round(pB2C * 0.8 * 100) / 100;
-          const oldPB2B = oldPB2C ? Math.round(oldPB2C * 0.8 * 100) / 100 : null;
-          await ctx.db.patch(p._id, {
-            priceB2C: pB2C,
-            oldPriceB2C: oldPB2C,
-            priceB2B: pB2B,
-            oldPriceB2B: oldPB2B
-          });
+          patchData.priceB2C = pB2C;
+          patchData.oldPriceB2C = oldPB2C;
+          patchData.priceB2B = Math.round(pB2C * 0.8 * 100) / 100;
+          patchData.oldPriceB2B = oldPB2C ? Math.round(oldPB2C * 0.8 * 100) / 100 : null;
+        }
+        
+        if (anyP.images === undefined) {
+          patchData.images = [anyP.image];
+        }
+        
+        if (Object.keys(patchData).length > 0) {
+          await ctx.db.patch(p._id, patchData);
         }
       }
       return "Already seeded/migrated";
@@ -145,6 +152,7 @@ export const seed = mutation({
         model: p.model,
         category: p.category,
         image: p.image,
+        images: [p.image], // initialize images array
         rating: p.rating,
         tag: p.tag,
         description: p.description,

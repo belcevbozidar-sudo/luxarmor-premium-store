@@ -431,6 +431,33 @@ function renderProductPage(productId) {
   document.getElementById("product-page-image").src = p.image;
   document.getElementById("product-page-image").alt = p.name;
   
+  // Render multiple images thumbnails
+  const thumbnailsContainer = document.getElementById("product-page-thumbnails");
+  if (thumbnailsContainer) {
+    thumbnailsContainer.innerHTML = "";
+    const productImages = p.images && p.images.length > 0 ? p.images : [p.image];
+    if (productImages.length > 1) {
+      productImages.forEach((imgUrl, imgIdx) => {
+        const thumb = document.createElement("img");
+        thumb.src = imgUrl;
+        thumb.alt = `${p.name} - ${imgIdx + 1}`;
+        thumb.style.cssText = "width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; transition: border-color 0.2s; flex-shrink: 0;";
+        if (imgUrl === p.image) {
+          thumb.style.borderColor = "var(--gold)";
+        }
+        thumb.addEventListener("click", () => {
+          document.getElementById("product-page-image").src = imgUrl;
+          thumbnailsContainer.querySelectorAll("img").forEach(el => el.style.borderColor = "rgba(255,255,255,0.1)");
+          thumb.style.borderColor = "var(--gold)";
+        });
+        thumbnailsContainer.appendChild(thumb);
+      });
+      thumbnailsContainer.style.display = "flex";
+    } else {
+      thumbnailsContainer.style.display = "none";
+    }
+  }
+  
   document.getElementById("product-page-spec-material").textContent = p.specs.material;
   document.getElementById("product-page-spec-weight").textContent = p.specs.weight;
   document.getElementById("product-page-spec-origin").textContent = p.specs.origin;

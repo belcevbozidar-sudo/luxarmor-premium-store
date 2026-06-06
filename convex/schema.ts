@@ -8,6 +8,7 @@ export default defineSchema({
     model: v.string(),
     category: v.string(),
     image: v.string(),
+    images: v.optional(v.array(v.string())), // multiple images array
     rating: v.number(),
     tag: v.union(v.string(), v.null()),
     description: v.string(),

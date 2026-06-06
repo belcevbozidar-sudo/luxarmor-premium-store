@@ -1,7 +1,8 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-const ADMIN_PASSWORD = "Lpp8892#l";
+// Dynamic password from environment variables (falls back to default for local setup)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Lpp8892#l";
 const LOCKOUT_DURATION = 60 * 60 * 1000; // 60 minutes in ms
 
 export const verifyAdminPassword = mutation({
