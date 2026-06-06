@@ -280,7 +280,17 @@ const BRANDS_WITH_LOGOS = {
   "Xiaomi": "logo_xiaomi.png",
   "Huawei": "logo_huawei.png",
   "Google": "logo_google.png",
-  "MOTO": "logo_moto.png"
+  "MOTO": "logo_moto.png",
+  "Honor": "logo_honor.png",
+  "Nokia": "logo_nokia.png",
+  "OnePlus": "logo_oneplus.png",
+  "Oppo": "logo_oppo.png",
+  "Vivo": "logo_vivo.png",
+  "TCL": "logo_tcl.png",
+  "Realme": "logo_realme.png",
+  "LG": "logo_lg.png",
+  "Lenovo": "logo_lenovo.png",
+  "Infinix": "logo_infinix.png"
 };
 
 // --- DYNAMIC RENDER FUNCTIONS ---
