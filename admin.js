@@ -1037,21 +1037,30 @@ function processCSVData(rows) {
   }
   
   const headers = rows[0].map(h => h.trim().toLowerCase());
-  const nameIdx = headers.indexOf("name");
-  const brandIdx = headers.indexOf("brand");
-  const modelIdx = headers.indexOf("model");
-  const categoryIdx = headers.indexOf("category");
-  const priceB2CIdx = headers.indexOf("priceb2c");
-  const priceB2BIdx = headers.indexOf("priceb2b");
-  const descIdx = headers.indexOf("description");
-  const matIdx = headers.indexOf("material");
-  const weightIdx = headers.indexOf("weight");
-  const originIdx = headers.indexOf("origin");
-  const delIdx = headers.indexOf("delivery");
-  const imgIdx = headers.indexOf("image");
+  
+  const findHeaderIdx = (variants) => {
+    for (const variant of variants) {
+      const idx = headers.indexOf(variant.toLowerCase());
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+
+  const nameIdx = findHeaderIdx(["name", "име"]);
+  const brandIdx = findHeaderIdx(["brand", "марка"]);
+  const modelIdx = findHeaderIdx(["model", "модел"]);
+  const categoryIdx = findHeaderIdx(["category", "категория"]);
+  const priceB2CIdx = findHeaderIdx(["priceb2c", "цена b2c", "цена", "b2c цена"]);
+  const priceB2BIdx = findHeaderIdx(["priceb2b", "цена b2b", "b2b цена"]);
+  const descIdx = findHeaderIdx(["description", "описание"]);
+  const matIdx = findHeaderIdx(["material", "материал"]);
+  const weightIdx = findHeaderIdx(["weight", "тегло", "грама"]);
+  const originIdx = findHeaderIdx(["origin", "произход", "държава"]);
+  const delIdx = findHeaderIdx(["delivery", "доставка"]);
+  const imgIdx = findHeaderIdx(["image", "снимка", "изображение"]);
   
   if (nameIdx === -1 || brandIdx === -1 || categoryIdx === -1 || priceB2CIdx === -1) {
-    alert("Липсват задължителни колони в CSV файла! Задължителни са: Name, Brand, Category, PriceB2C.");
+    alert("Липсват задължителни колони в CSV файла! Задължителни са: Име (Name), Марка (Brand), Категория (Category), Цена B2C (PriceB2C).");
     return;
   }
   
