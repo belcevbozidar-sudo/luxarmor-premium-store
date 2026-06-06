@@ -629,6 +629,88 @@
       font-size: 0.9rem;
     }
     .order-details-row .label { color: var(--text-muted); }
+
+    /* --- ADMIN PANEL MOBILE OPTIMIZATIONS --- */
+    @media (max-width: 768px) {
+      .dashboard-container {
+        flex-direction: column;
+      }
+
+      /* Admin Sidebar Drawer on Mobile */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px;
+        width: 250px;
+        height: 100vh;
+        z-index: 2000;
+        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+        transition: left 0.3s ease;
+        background-color: var(--panel) !important;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .mobile-nav-toggle {
+        display: inline-flex !important;
+      }
+
+      .main-content {
+        padding: 1rem !important;
+      }
+
+      /* Premium top bar adjustments */
+      header {
+        padding: 0.75rem 1.25rem !important;
+        gap: 0.5rem;
+      }
+
+      .logo-img {
+        height: 32px !important;
+      }
+
+      .admin-badge {
+        font-size: 0.65rem !important;
+        padding: 0.15rem 0.4rem !important;
+      }
+
+      .header-actions {
+        gap: 0.75rem !important;
+      }
+
+      /* Table responsiveness */
+      .table-container {
+        overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 0.75rem 1rem !important;
+      }
+
+      .header-actions span {
+        display: none !important;
+      }
+    }
+
+    /* --- DRAG HANDLE FOR IMAGE PREVIEW --- */
+    .drag-handle-rect {
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      transition: background 0.2s;
+    }
+
+    .image-preview-card:hover .drag-handle-rect {
+      background: var(--gold) !important;
+      color: #000 !important;
+    }
+
+    .meta-item.selected {
+      border-color: var(--gold) !important;
+      background: rgba(204, 164, 59, 0.1) !important;
+    }
   </style>
 </head>
 <body>
