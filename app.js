@@ -987,6 +987,9 @@ window.closeSuccessScreen = function() {
 window.openAuthModal = function() {
   const modal = document.getElementById("auth-modal");
   modal.style.display = "flex";
+  setTimeout(() => {
+    modal.classList.add("active");
+  }, 10);
   
   if (currentUser) {
     toggleAuthPanel("profile");
@@ -1010,7 +1013,11 @@ window.openAuthModal = function() {
 };
 
 window.closeAuthModal = function() {
-  document.getElementById("auth-modal").style.display = "none";
+  const modal = document.getElementById("auth-modal");
+  modal.classList.remove("active");
+  setTimeout(() => {
+    modal.style.display = "none";
+  }, 400);
   
   // Reset Google login temporary state and form inputs
   googleRegisterTemp = null;
