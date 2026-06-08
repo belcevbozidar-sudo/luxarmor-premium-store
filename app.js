@@ -1011,12 +1011,41 @@ window.openAuthModal = function() {
 
 window.closeAuthModal = function() {
   document.getElementById("auth-modal").style.display = "none";
+  
+  // Reset Google login temporary state and form inputs
+  googleRegisterTemp = null;
+  const regEmail = document.getElementById("reg-email");
+  if (regEmail) regEmail.disabled = false;
+  const regPassGroup = document.getElementById("reg-pass-group");
+  if (regPassGroup) regPassGroup.style.display = "block";
+  const regPass = document.getElementById("reg-pass");
+  if (regPass) regPass.required = true;
+  
+  const regForm = document.getElementById("reg-form");
+  if (regForm) regForm.reset();
 };
 
 window.toggleAuthPanel = function(panel) {
   document.getElementById("auth-login-panel").style.display = panel === "login" ? "block" : "none";
   document.getElementById("auth-register-panel").style.display = panel === "register" ? "block" : "none";
   document.getElementById("auth-profile-panel").style.display = panel === "profile" ? "block" : "none";
+  
+  if (panel === "login" || (panel === "register" && !googleRegisterTemp)) {
+    // Reset Google registration state
+    googleRegisterTemp = null;
+    const regEmail = document.getElementById("reg-email");
+    if (regEmail) {
+      regEmail.disabled = false;
+      regEmail.value = "";
+    }
+    const regPassGroup = document.getElementById("reg-pass-group");
+    if (regPassGroup) regPassGroup.style.display = "block";
+    const regPass = document.getElementById("reg-pass");
+    if (regPass) {
+      regPass.required = true;
+      regPass.value = "";
+    }
+  }
 };
 
 window.switchRegType = function(type) {
@@ -1061,6 +1090,11 @@ window.handleUserRegister = async function(event) {
   const phone = document.getElementById("reg-phone").value.trim();
   const address = document.getElementById("reg-address").value.trim();
   
+  if (!googleRegisterTemp && !password) {
+    alert("Моля, въведете парола!");
+    return;
+  }
+  
   const regPayload = {
     email,
     password: password || null,
@@ -1090,6 +1124,8 @@ window.handleUserRegister = async function(event) {
         email,
         clientType: res.clientType,
         name: res.name,
+        phone,
+        address,
         companyDetails: regPayload.companyDetails
       };
       
