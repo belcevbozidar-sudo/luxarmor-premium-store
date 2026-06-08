@@ -1453,15 +1453,6 @@ async function applyPromoCode() {
 // Global Exports
 window.openMobileMenu = openMobileMenu;
 window.closeMobileMenu = closeMobileMenu;
-window.openAuthModal = openAuthModal;
-window.closeAuthModal = closeAuthModal;
-window.proceedToCheckout = proceedToCheckout;
-window.switchCheckoutType = switchCheckoutType;
-window.toggleCheckoutVatCheckbox = toggleCheckoutVatCheckbox;
-window.submitCheckout = submitCheckout;
-window.closeSuccessScreen = closeSuccessScreen;
-window.openCartSidebar = openCartSidebar;
-window.closeCartSidebar = closeCartSidebar;
 window.renderCartItems = renderCartItems;
 window.applyPromoCode = applyPromoCode;
 
