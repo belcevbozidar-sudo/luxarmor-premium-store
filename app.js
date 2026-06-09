@@ -6,7 +6,7 @@ const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.co
 window.addEventListener('error', function(e) {
   if (e.target && e.target.tagName === 'IMG') {
     const src = e.target.src;
-    if (src && src.includes('/api/image?url=')) {
+    if (src && src.includes('/api/image') && src.includes('url=')) {
       try {
         const urlObj = new URL(src, window.location.href);
         const originalUrl = urlObj.searchParams.get('url');
@@ -216,7 +216,7 @@ function getProductImageUrl(url, name, model) {
   }
   if (url.includes("cdn.sellavi.com")) {
     const slug = getProductSlug(name + " " + (model || ""));
-    return `/api/image?url=${encodeURIComponent(url)}&name=${encodeURIComponent(slug)}`;
+    return `/api/image/${slug}.jpg?url=${encodeURIComponent(url)}&name=${encodeURIComponent(slug)}`;
   }
   return url;
 }
