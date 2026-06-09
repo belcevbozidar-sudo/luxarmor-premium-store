@@ -169,6 +169,10 @@ let activeRegType = "B2C";
 let activeCheckoutType = "B2C";
 let appliedPromo = null;
 let activeProductPageQty = 1;
+let currentProductImageIndex = 0;
+let currentProductImagesList = [];
+let currentProductImageName = "";
+let currentProductImageModel = "";
 
 // --- MODEL NORMALIZATION UTILITIES ---
 function normalizeModel(name) {
@@ -534,6 +538,29 @@ function renderCatalog() {
   });
 }
 
+// Helper to update active image in details page gallery
+function updateProductPageImage(index) {
+  if (index < 0 || index >= currentProductImagesList.length) return;
+  currentProductImageIndex = index;
+  
+  const mainImgUrl = currentProductImagesList[index];
+  document.getElementById("product-page-image").src = getProductImageUrl(mainImgUrl, currentProductImageName, currentProductImageModel);
+  document.getElementById("product-page-image").alt = currentProductImageName;
+  
+  // Update thumbnail borders
+  const thumbnailsContainer = document.getElementById("product-page-thumbnails");
+  if (thumbnailsContainer) {
+    const thumbs = thumbnailsContainer.querySelectorAll("img");
+    thumbs.forEach((thumb, idx) => {
+      if (idx === index) {
+        thumb.style.borderColor = "var(--gold)";
+      } else {
+        thumb.style.borderColor = "rgba(255,255,255,0.1)";
+      }
+    });
+  }
+}
+
 // --- PRODUCT PAGE ROUTE HANDLER ---
 function renderProductPage(productId) {
   const p = PRODUCTS.find(item => item._id === productId);
@@ -549,33 +576,47 @@ function renderProductPage(productId) {
   document.getElementById("product-page-cat").textContent = p.brand;
   document.getElementById("product-page-title").textContent = p.name;
   document.getElementById("product-page-desc").textContent = p.description;
-  document.getElementById("product-page-image").src = getProductImageUrl(p.image, p.name, p.model);
-  document.getElementById("product-page-image").alt = p.name;
+  
+  // Initialize gallery state
+  currentProductImagesList = p.images && p.images.length > 0 ? p.images : [p.image];
+  currentProductImageIndex = currentProductImagesList.indexOf(p.image);
+  if (currentProductImageIndex === -1) currentProductImageIndex = 0;
+  currentProductImageName = p.name;
+  currentProductImageModel = p.model;
   
   // Render multiple images thumbnails
   const thumbnailsContainer = document.getElementById("product-page-thumbnails");
   if (thumbnailsContainer) {
     thumbnailsContainer.innerHTML = "";
-    const productImages = p.images && p.images.length > 0 ? p.images : [p.image];
-    if (productImages.length > 1) {
-      productImages.forEach((imgUrl, imgIdx) => {
+    if (currentProductImagesList.length > 1) {
+      currentProductImagesList.forEach((imgUrl, imgIdx) => {
         const thumb = document.createElement("img");
         thumb.src = getProductImageUrl(imgUrl, p.name, p.model);
         thumb.alt = `${p.name} - ${imgIdx + 1}`;
         thumb.style.cssText = "width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; transition: border-color 0.2s; flex-shrink: 0;";
-        if (imgUrl === p.image) {
-          thumb.style.borderColor = "var(--gold)";
-        }
         thumb.addEventListener("click", () => {
-          document.getElementById("product-page-image").src = getProductImageUrl(imgUrl, p.name, p.model);
-          thumbnailsContainer.querySelectorAll("img").forEach(el => el.style.borderColor = "rgba(255,255,255,0.1)");
-          thumb.style.borderColor = "var(--gold)";
+          updateProductPageImage(imgIdx);
         });
         thumbnailsContainer.appendChild(thumb);
       });
       thumbnailsContainer.style.display = "flex";
     } else {
       thumbnailsContainer.style.display = "none";
+    }
+  }
+  
+  // Set initial image and show/hide arrows
+  updateProductPageImage(currentProductImageIndex);
+  
+  const prevBtn = document.getElementById("product-page-prev-btn");
+  const nextBtn = document.getElementById("product-page-next-btn");
+  if (prevBtn && nextBtn) {
+    if (currentProductImagesList.length > 1) {
+      prevBtn.style.display = "flex";
+      nextBtn.style.display = "flex";
+    } else {
+      prevBtn.style.display = "none";
+      nextBtn.style.display = "none";
     }
   }
   
@@ -1476,6 +1517,26 @@ async function initApp() {
   
   // Google sign in init
   initGoogleLoginButton();
+  
+  // Gallery navigation button event listeners
+  const prevBtn = document.getElementById("product-page-prev-btn");
+  const nextBtn = document.getElementById("product-page-next-btn");
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      if (currentProductImagesList.length > 1) {
+        const nextIndex = (currentProductImageIndex - 1 + currentProductImagesList.length) % currentProductImagesList.length;
+        updateProductPageImage(nextIndex);
+      }
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      if (currentProductImagesList.length > 1) {
+        const nextIndex = (currentProductImageIndex + 1) % currentProductImagesList.length;
+        updateProductPageImage(nextIndex);
+      }
+    });
+  }
 }
 
 async function applyPromoCode() {
