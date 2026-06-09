@@ -934,12 +934,20 @@
           
           <!-- Models Control -->
           <div class="meta-panel">
-            <div class="meta-panel-title">
+            <div class="meta-panel-title" style="margin-bottom: 0.75rem;">
               <span id="models-panel-title">Всички Модели</span>
               <button class="btn-icon" onclick="openModelModal()" title="Добави Модел"><i class="fas fa-plus"></i></button>
             </div>
-            <div class="meta-list" id="models-list">
+            <!-- Search for Models -->
+            <div style="margin-bottom: 0.75rem; position: relative;">
+              <input type="text" id="admin-model-search" placeholder="Търси модел..." oninput="handleModelSearch()" style="width: 100%; padding: 0.5rem 0.75rem 0.5rem 2rem; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-dark); font-size: 0.85rem; box-sizing: border-box;">
+              <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem;"></i>
+            </div>
+            <div class="meta-list" id="models-list" style="max-height: 400px; overflow-y: auto;">
               <!-- Dynamically loaded -->
+            </div>
+            <div id="models-load-more-container" style="text-align: center; margin-top: 0.75rem; display: none;">
+              <button class="btn-action" onclick="loadMoreModels()" style="padding: 0.4rem 1.2rem; font-size: 0.8rem; border-radius: var(--radius-sm);">Зареди още</button>
             </div>
           </div>
         </div>

@@ -49,6 +49,10 @@ let orderSearchQuery = "";
 let orderFilterStatus = "";
 let orderFilterType = "";
 
+let modelsPage = 1;
+const modelsPerPage = 50;
+let modelSearchQuery = "";
+
 // --- CANVAS BROWSER FINGERPRINT ---
 function getBrowserFingerprint() {
   const canvas = document.createElement("canvas");
@@ -237,28 +241,36 @@ function populateFormSelects() {
   const filterBrandSelect = document.getElementById("admin-product-filter-brand");
   const filterCatSelect = document.getElementById("admin-product-filter-category");
   
-  brandSelect.innerHTML = '<option value="">-- Избери марка --</option>';
-  metaBrandSelect.innerHTML = '<option value="">-- Избери марка --</option>';
-  giftSelect.innerHTML = '<option value="">-- Избери подарък --</option>';
-  categorySelect.innerHTML = '<option value="">-- Избери категория --</option>';
-  
-  if (filterBrandSelect) filterBrandSelect.innerHTML = '<option value="">Всички марки</option>';
-  if (filterCatSelect) filterCatSelect.innerHTML = '<option value="">Всички категории</option>';
+  let brandHtml = '<option value="">-- Избери марка --</option>';
+  let metaBrandHtml = '<option value="">-- Избери марка --</option>';
+  let filterBrandHtml = '<option value="">Всички марки</option>';
   
   allBrands.forEach(b => {
-    brandSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
-    metaBrandSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
-    if (filterBrandSelect) filterBrandSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
+    const opt = `<option value="${b.name}">${b.name}</option>`;
+    brandHtml += opt;
+    metaBrandHtml += opt;
+    filterBrandHtml += opt;
   });
   
+  brandSelect.innerHTML = brandHtml;
+  metaBrandSelect.innerHTML = metaBrandHtml;
+  if (filterBrandSelect) filterBrandSelect.innerHTML = filterBrandHtml;
+  
+  let giftHtml = '<option value="">-- Избери подарък --</option>';
   allProducts.forEach(p => {
-    giftSelect.innerHTML += `<option value="${p._id}">${p.name} (${p.brand})</option>`;
+    giftHtml += `<option value="${p._id}">${p.name} (${p.brand})</option>`;
   });
+  giftSelect.innerHTML = giftHtml;
   
+  let categoryHtml = '<option value="">-- Избери категория --</option>';
+  let filterCatHtml = '<option value="">Всички категории</option>';
   allCategories.forEach(cat => {
-    categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
-    if (filterCatSelect) filterCatSelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+    const opt = `<option value="${cat.id}">${cat.name}</option>`;
+    categoryHtml += opt;
+    filterCatHtml += opt;
   });
+  categorySelect.innerHTML = categoryHtml;
+  if (filterCatSelect) filterCatSelect.innerHTML = filterCatHtml;
 }
 
 // Update model choices based on selected brand
@@ -266,12 +278,14 @@ window.updateProductModelOptions = function() {
   const selectedBrand = document.getElementById("product-brand").value;
   const modelSelect = document.getElementById("product-model");
   
-  modelSelect.innerHTML = '<option value="Всички модели">Всички модели</option>';
+  let html = '<option value="Всички модели">Всички модели</option>';
   
   const filteredModels = allModels.filter(m => m.brand === selectedBrand);
   filteredModels.forEach(m => {
-    modelSelect.innerHTML += `<option value="${m.name}">${m.name}</option>`;
+    html += `<option value="${m.name}">${m.name}</option>`;
   });
+  
+  modelSelect.innerHTML = html;
 };
 
 // Tab Switcher
@@ -623,7 +637,16 @@ function renderBrandsAndModels() {
     `;
     
     div.addEventListener("click", () => {
-      selectedBrandFilter = (selectedBrandFilter === b.name) ? null : b.name;
+      if (selectedBrandFilter === b.name) {
+        selectedBrandFilter = null;
+      } else {
+        selectedBrandFilter = b.name;
+        // Reset search query when brand is clicked to avoid empty list confusion
+        modelSearchQuery = "";
+        const searchInput = document.getElementById("admin-model-search");
+        if (searchInput) searchInput.value = "";
+      }
+      modelsPage = 1;
       renderBrandsAndModels();
     });
     
@@ -637,24 +660,83 @@ function renderBrandsAndModels() {
   const titleSpan = document.getElementById("models-panel-title");
   if (selectedBrandFilter) {
     titleSpan.innerHTML = `Модели за <span style="color:var(--gold); font-weight:700;">${selectedBrandFilter}</span>`;
+  } else if (modelSearchQuery) {
+    titleSpan.innerHTML = `Резултати за <span style="color:var(--gold); font-weight:700;">"${modelSearchQuery}"</span>`;
   } else {
     titleSpan.textContent = "Всички Модели";
   }
   
-  const filteredModels = selectedBrandFilter 
-    ? allModels.filter(m => m.brand === selectedBrandFilter)
-    : allModels;
+  let filteredModels = allModels;
+  if (selectedBrandFilter) {
+    filteredModels = filteredModels.filter(m => m.brand === selectedBrandFilter);
+  }
   
-  filteredModels.forEach(m => {
-    const div = document.createElement("div");
-    div.className = "meta-item";
-    div.innerHTML = `
-      <span><strong>${m.brand}</strong> - ${m.name}</span>
-      <button class="btn-icon delete" onclick="deleteModel('${m._id}')" title="Изтрий модел"><i class="fas fa-trash"></i></button>
+  if (modelSearchQuery) {
+    const query = modelSearchQuery.toLowerCase();
+    filteredModels = filteredModels.filter(m => 
+      m.name.toLowerCase().includes(query) || 
+      m.brand.toLowerCase().includes(query)
+    );
+  }
+  
+  // Avoid freezing by rendering thousands of models on empty load
+  if (!selectedBrandFilter && !modelSearchQuery) {
+    modelsContainer.innerHTML = `
+      <div style="text-align:center; padding:2.5rem 1rem; color:var(--text-muted); font-size:0.9rem; width:100%; box-sizing:border-box;">
+        <i class="fas fa-mobile-alt" style="font-size:2rem; margin-bottom:0.75rem; display:block; color:var(--gold);"></i>
+        Изберете марка отляво или въведете име на модел в търсачката по-горе.
+      </div>
     `;
-    modelsContainer.appendChild(div);
+    const loadMoreContainer = document.getElementById("models-load-more-container");
+    if (loadMoreContainer) loadMoreContainer.style.display = "none";
+    return;
+  }
+  
+  if (filteredModels.length === 0) {
+    modelsContainer.innerHTML = `
+      <div style="text-align:center; padding:2rem 1rem; color:var(--text-muted); font-size:0.9rem; width:100%;">
+        Няма намерени модели.
+      </div>
+    `;
+    const loadMoreContainer = document.getElementById("models-load-more-container");
+    if (loadMoreContainer) loadMoreContainer.style.display = "none";
+    return;
+  }
+  
+  const limit = modelsPage * modelsPerPage;
+  const sliced = filteredModels.slice(0, limit);
+  
+  let html = "";
+  sliced.forEach(m => {
+    html += `
+      <div class="meta-item">
+        <span><strong>${m.brand}</strong> - ${m.name}</span>
+        <button class="btn-icon delete" onclick="deleteModel('${m._id}')" title="Изтрий модел"><i class="fas fa-trash"></i></button>
+      </div>
+    `;
   });
+  modelsContainer.innerHTML = html;
+  
+  const loadMoreContainer = document.getElementById("models-load-more-container");
+  if (loadMoreContainer) {
+    if (filteredModels.length > limit) {
+      loadMoreContainer.style.display = "block";
+    } else {
+      loadMoreContainer.style.display = "none";
+    }
+  }
 }
+
+window.handleModelSearch = function() {
+  modelSearchQuery = document.getElementById("admin-model-search").value || "";
+  modelsPage = 1;
+  renderBrandsAndModels();
+};
+
+window.loadMoreModels = function() {
+  modelsPage++;
+  renderBrandsAndModels();
+};
 
 window.openBrandModal = function() {
   document.getElementById("brand-modal").classList.add("active");
@@ -688,10 +770,11 @@ window.deleteBrand = async function(brandId) {
 
 window.openModelModal = function() {
   const select = document.getElementById("model-brand-select");
-  select.innerHTML = '<option value="">-- Избери марка --</option>';
+  let html = '<option value="">-- Избери марка --</option>';
   allBrands.forEach(b => {
-    select.innerHTML += `<option value="${b.name}">${b.name}</option>`;
+    html += `<option value="${b.name}">${b.name}</option>`;
   });
+  select.innerHTML = html;
   document.getElementById("model-modal").classList.add("active");
 };
 window.closeModelModal = function() {
@@ -1442,7 +1525,10 @@ function renderCSVPreview() {
   
   countSpan.textContent = parsedCSVProducts.length;
   
-  parsedCSVProducts.forEach(p => {
+  const previewLimit = 50;
+  const sliced = parsedCSVProducts.slice(0, previewLimit);
+  
+  sliced.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${p.name}</strong></td>
@@ -1454,6 +1540,16 @@ function renderCSVPreview() {
     `;
     tbody.appendChild(tr);
   });
+  
+  if (parsedCSVProducts.length > previewLimit) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td colspan="6" style="text-align: center; color: var(--text-muted); font-style: italic; padding: 1rem;">
+        Показват се първите ${previewLimit} от общо ${parsedCSVProducts.length} продукта за импортиране...
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
   
   section.style.display = "block";
 }
