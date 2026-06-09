@@ -1525,10 +1525,7 @@ function renderCSVPreview() {
   
   countSpan.textContent = parsedCSVProducts.length;
   
-  const previewLimit = 50;
-  const sliced = parsedCSVProducts.slice(0, previewLimit);
-  
-  sliced.forEach(p => {
+  parsedCSVProducts.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${p.name}</strong></td>
@@ -1540,16 +1537,6 @@ function renderCSVPreview() {
     `;
     tbody.appendChild(tr);
   });
-  
-  if (parsedCSVProducts.length > previewLimit) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td colspan="6" style="text-align: center; color: var(--text-muted); font-style: italic; padding: 1rem;">
-        Показват се първите ${previewLimit} от общо ${parsedCSVProducts.length} продукта за импортиране...
-      </td>
-    `;
-    tbody.appendChild(tr);
-  }
   
   section.style.display = "block";
 }

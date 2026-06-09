@@ -27,6 +27,7 @@ export default defineSchema({
     oldPriceB2C: v.optional(v.union(v.number(), v.null())),
     priceB2B: v.optional(v.number()),
     oldPriceB2B: v.optional(v.union(v.number(), v.null())),
+    isDeleted: v.optional(v.boolean()),
   }),
 
   orders: defineTable({

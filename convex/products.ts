@@ -4,7 +4,15 @@ import { v } from "convex/values";
 export const get = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("products").collect();
+    return await ctx.db
+      .query("products")
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("isDeleted"), undefined),
+          q.eq(q.field("isDeleted"), false)
+        )
+      )
+      .collect();
   },
 });
 
@@ -14,7 +22,9 @@ export const getById = query({
     try {
       const dbId = ctx.db.normalizeId("products", args.id);
       if (!dbId) return null;
-      return await ctx.db.get(dbId);
+      const product = await ctx.db.get(dbId);
+      if (!product || product.isDeleted) return null;
+      return product;
     } catch {
       return null;
     }
@@ -85,7 +95,7 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     const dbId = ctx.db.normalizeId("products", args.id);
     if (!dbId) throw new Error("Invalid product ID");
-    await ctx.db.delete(dbId);
+    await ctx.db.patch(dbId, { isDeleted: true });
     return "Product removed successfully";
   },
 });
@@ -170,9 +180,17 @@ export const seed = mutation({
 export const clearAll = mutation({
   args: {},
   handler: async (ctx) => {
-    const products = await ctx.db.query("products").collect();
+    const products = await ctx.db
+      .query("products")
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("isDeleted"), undefined),
+          q.eq(q.field("isDeleted"), false)
+        )
+      )
+      .collect();
     for (const p of products) {
-      await ctx.db.delete(p._id);
+      await ctx.db.patch(p._id, { isDeleted: true });
     }
     return `Deleted ${products.length} products`;
   },
