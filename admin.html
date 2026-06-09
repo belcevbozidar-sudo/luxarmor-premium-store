@@ -809,12 +809,12 @@
           <div class="meta-panel" style="text-align: center; padding: 2rem;">
             <i class="fas fa-calendar-alt" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
             <h4 id="stat-revenue-label" style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Оборот за този месец</h4>
-            <p id="stat-month-revenue" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0.00 лв.</p>
+            <p id="stat-month-revenue" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0.00 €</p>
           </div>
           <div class="meta-panel" style="text-align: center; padding: 2rem;">
             <i class="fas fa-wallet" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
             <h4 style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">Общ Оборот (Lifetime)</h4>
-            <p id="stat-lifetime-revenue" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0.00 лв.</p>
+            <p id="stat-lifetime-revenue" style="font-size: 1.85rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">0.00 €</p>
           </div>
           <div class="meta-panel" style="text-align: center; padding: 2rem;">
             <i class="fas fa-shopping-cart" style="font-size: 2.5rem; color: var(--gold); margin-bottom: 1rem;"></i>
@@ -857,6 +857,24 @@
           <button class="btn-action" onclick="openProductModal()"><i class="fas fa-plus"></i> Добави Продукт</button>
         </div>
         
+        <!-- Search and Filter Panel -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px; position: relative;">
+            <input type="text" id="admin-product-search" placeholder="Търси по име, марка или модел..." oninput="handleProductSearch()" style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-dark); font-size: 0.95rem; box-sizing: border-box;">
+            <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+          </div>
+          <div style="width: 180px;">
+            <select id="admin-product-filter-brand" onchange="handleProductSearch()" style="width: 100%; padding: 0.75rem; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-dark); font-size: 0.95rem; box-sizing: border-box;">
+              <option value="">Всички марки</option>
+            </select>
+          </div>
+          <div style="width: 180px;">
+            <select id="admin-product-filter-category" onchange="handleProductSearch()" style="width: 100%; padding: 0.75rem; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-dark); font-size: 0.95rem; box-sizing: border-box;">
+              <option value="">Всички категории</option>
+            </select>
+          </div>
+        </div>
+        
         <div class="table-container">
           <table>
             <thead>
@@ -875,6 +893,9 @@
               <!-- Dynamically populated -->
             </tbody>
           </table>
+        </div>
+        <div id="products-load-more-container" style="text-align: center; margin-top: 1.5rem; display: none;">
+          <button class="btn-action" onclick="loadMoreProducts()" style="padding: 0.75rem 2rem;">Зареди още продукти</button>
         </div>
       </div>
       
@@ -956,6 +977,29 @@
           <h2 class="section-title">Поръчки от Клиенти</h2>
         </div>
         
+        <!-- Search and Filter Panel for Orders -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px; position: relative;">
+            <input type="text" id="admin-order-search" placeholder="Търси по име, телефон или номер на поръчка..." oninput="handleOrderSearch()" style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-dark); font-size: 0.95rem; box-sizing: border-box;">
+            <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+          </div>
+          <div style="width: 180px;">
+            <select id="admin-order-filter-status" onchange="handleOrderSearch()" style="width: 100%; padding: 0.75rem; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-dark); font-size: 0.95rem; box-sizing: border-box;">
+              <option value="">Всички статуси</option>
+              <option value="pending">Чакаща</option>
+              <option value="completed">Завършена</option>
+              <option value="cancelled">Анулирана</option>
+            </select>
+          </div>
+          <div style="width: 180px;">
+            <select id="admin-order-filter-type" onchange="handleOrderSearch()" style="width: 100%; padding: 0.75rem; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-dark); font-size: 0.95rem; box-sizing: border-box;">
+              <option value="">Всички клиенти</option>
+              <option value="B2C">B2C (Физически)</option>
+              <option value="B2B">B2B (Фирми)</option>
+            </select>
+          </div>
+        </div>
+        
         <div class="table-container">
           <table>
             <thead>
@@ -974,6 +1018,9 @@
               <!-- Dynamically populated -->
             </tbody>
           </table>
+        </div>
+        <div id="orders-load-more-container" style="text-align: center; margin-top: 1.5rem; display: none;">
+          <button class="btn-action" onclick="loadMoreOrders()" style="padding: 0.75rem 2rem;">Зареди още поръчки</button>
         </div>
       </div>
       
@@ -1147,19 +1194,19 @@
           
           <div class="form-grid" style="border: 1px solid rgba(204,164,59,0.15); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
             <div class="form-group">
-              <label style="color: var(--gold);">Цена B2C (Физически лица):</label>
+              <label style="color: var(--gold);">Цена B2C в EUR (€):</label>
               <input type="number" step="0.01" id="product-price-b2c" required placeholder="0.00">
             </div>
             <div class="form-group">
-              <label>Стара Цена B2C (ако има):</label>
+              <label>Стара Цена B2C в EUR (€) (ако има):</label>
               <input type="number" step="0.01" id="product-old-price-b2c" placeholder="0.00">
             </div>
             <div class="form-group">
-              <label style="color: var(--gold);">Цена B2B (Фирмен акаунт):</label>
+              <label style="color: var(--gold);">Цена B2B в EUR (€):</label>
               <input type="number" step="0.01" id="product-price-b2b" required placeholder="0.00">
             </div>
             <div class="form-group">
-              <label>Стара Цена B2B (ако има):</label>
+              <label>Стара Цена B2B в EUR (€) (ако има):</label>
               <input type="number" step="0.01" id="product-old-price-b2b" placeholder="0.00">
             </div>
           </div>
@@ -1244,7 +1291,7 @@
             <label>Тип отстъпка:</label>
             <select id="promo-code-type" required>
               <option value="percent">Процентна (%)</option>
-              <option value="fixed">Фиксирана сума (лв.)</option>
+              <option value="fixed">Фиксирана сума (€)</option>
             </select>
           </div>
           <div class="form-group">
@@ -1342,7 +1389,7 @@
           </div>
           
           <div class="form-group">
-            <label>Праг на поръчката за активиране (лв.):</label>
+            <label>Праг на поръчката за активиране (€):</label>
             <input type="number" step="0.01" id="promo-threshold" required placeholder="напр. 50.00">
           </div>
           

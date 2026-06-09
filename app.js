@@ -21,6 +21,16 @@ window.addEventListener('error', function(e) {
   }
 }, true);
 
+// Price converter helper (EUR to BGN)
+const BGN_RATE = 1.95583;
+function formatPrice(val) {
+  const eurVal = parseFloat(val);
+  if (isNaN(eurVal)) return "";
+  if (eurVal === 0) return "0.00 € (0.00 лв.)";
+  const bgnVal = eurVal * BGN_RATE;
+  return `${eurVal.toFixed(2)} € (${bgnVal.toFixed(2)} лв.)`;
+}
+
 // --- STATIC FALLBACK DATASETS ---
 const STATIC_PRODUCTS = [
   {
@@ -515,9 +525,9 @@ function renderCatalog() {
     const oldPrice = isB2B ? product.oldPriceB2B : (product.oldPriceB2C ?? product.oldPrice);
     
     const priceHtml = oldPrice 
-      ? `<span class="product-price old-price">${oldPrice.toFixed(2)} лв.</span>
-         <span class="product-price" style="color: var(--accent);">${price.toFixed(2)} лв. ${isB2B ? '<span style="font-size:0.65rem; font-weight:600; color:var(--gold);">B2B</span>' : ''}</span>`
-      : `<span class="product-price">${price.toFixed(2)} лв. ${isB2B ? '<span style="font-size:0.65rem; font-weight:600; color:var(--gold);">B2B</span>' : ''}</span>`;
+      ? `<span class="product-price old-price">${formatPrice(oldPrice)}</span>
+         <span class="product-price" style="color: var(--accent);">${formatPrice(price)} ${isB2B ? '<span style="font-size:0.65rem; font-weight:600; color:var(--gold);">B2B</span>' : ''}</span>`
+      : `<span class="product-price">${formatPrice(price)} ${isB2B ? '<span style="font-size:0.65rem; font-weight:600; color:var(--gold);">B2B</span>' : ''}</span>`;
 
     card.innerHTML = `
       ${tagHtml}
@@ -641,9 +651,9 @@ function renderProductPage(productId) {
   const oldPriceEl = document.getElementById("product-page-old-price");
   const badgeEl = document.getElementById("product-page-client-badge");
   
-  priceEl.textContent = `${price.toFixed(2)} лв.`;
+  priceEl.textContent = formatPrice(price);
   if (oldPrice) {
-    oldPriceEl.textContent = `${oldPrice.toFixed(2)} лв.`;
+    oldPriceEl.textContent = formatPrice(oldPrice);
     oldPriceEl.style.display = "inline";
   } else {
     oldPriceEl.style.display = "none";
@@ -755,7 +765,7 @@ function renderCartItems() {
   
   // 1. Free shipping check
   const shippingPromo = activePromos.find(p => p.type === "free_shipping");
-  let shippingCost = 5.00;
+  let shippingCost = 2.50;
   let shippingPromoText = "";
   
   if (shippingPromo) {
@@ -764,7 +774,7 @@ function renderCartItems() {
       shippingPromoText = "Честито! Получавате БЕЗПЛАТНА доставка! 🚚";
     } else {
       const diff = shippingPromo.threshold - subtotal;
-      shippingPromoText = `Добавете още ${diff.toFixed(2)} лв. за БЕЗПЛАТНА доставка!`;
+      shippingPromoText = `Добавете още ${formatPrice(diff)} за БЕЗПЛАТНА доставка!`;
     }
   }
 
@@ -791,14 +801,14 @@ function renderCartItems() {
       const diff = giftPromo.threshold - subtotal;
       const giftProduct = PRODUCTS.find(p => p._id === giftPromo.giftProductId);
       const giftName = giftProduct ? giftProduct.name : "подарък";
-      giftPromoText = `Добавете още ${diff.toFixed(2)} лв. за ПОДАРЪК: ${giftName}!`;
+      giftPromoText = `Добавете още ${formatPrice(diff)} за ПОДАРЪК: ${giftName}!`;
     }
   }
   
   // Render Cart Item Rows
   if (cart.length === 0) {
     itemsContainer.innerHTML = `<div class="cart-empty-message">Вашата количка е празна.</div>`;
-    subtotalEl.textContent = "0.00 лв.";
+    subtotalEl.textContent = formatPrice(0);
     if (promoBanner) promoBanner.style.display = "none";
     return;
   }
@@ -826,7 +836,7 @@ function renderCartItems() {
       <img class="cart-item-img" src="${getProductImageUrl(item.image, item.name)}" alt="${item.name}">
       <div class="cart-item-details">
         <h4 class="cart-item-name">${item.name}</h4>
-        <span class="cart-item-price">${item.price === 0 ? "0.00 лв." : item.price.toFixed(2) + " лв."}</span>
+        <span class="cart-item-price">${item.price === 0 ? "0.00 € (0.00 лв.)" : formatPrice(item.price)}</span>
         ${qtySelectHtml}
       </div>
       ${removeBtnHtml}
@@ -834,7 +844,7 @@ function renderCartItems() {
     itemsContainer.appendChild(itemRow);
   });
   
-  subtotalEl.textContent = `${subtotal.toFixed(2)} лв.`;
+  subtotalEl.textContent = formatPrice(subtotal);
   
   // Update banner text
   if (promoBanner) {
@@ -919,7 +929,7 @@ function renderCheckoutSummary() {
   
   // Shipping cost promo calculation
   const shippingPromo = activePromos.find(p => p.type === "free_shipping");
-  let shippingCost = 5.00;
+  let shippingCost = 2.50;
   if (shippingPromo && subtotal >= shippingPromo.threshold) {
     shippingCost = 0.00;
   }
@@ -949,7 +959,7 @@ function renderCheckoutSummary() {
     div.style.fontSize = "0.9rem";
     div.innerHTML = `
       <span style="color: var(--text-muted);">${item.name} x ${item.quantity}</span>
-      <span style="color: #fff; font-weight:500;">${item.price === 0 ? "Подарък" : (item.price * item.quantity).toFixed(2) + " лв."}</span>
+      <span style="color: #fff; font-weight:500;">${item.price === 0 ? "Подарък" : formatPrice(item.price * item.quantity)}</span>
     `;
     container.appendChild(div);
   });
@@ -967,7 +977,7 @@ function renderCheckoutSummary() {
   const discountEl = document.getElementById("checkout-sum-discount");
   if (discountRow && discountEl) {
     if (discountAmount > 0) {
-      discountEl.textContent = `-${discountAmount.toFixed(2)} лв.`;
+      discountEl.textContent = `-${formatPrice(discountAmount)}`;
       discountRow.style.display = "flex";
     } else {
       discountRow.style.display = "none";
@@ -976,9 +986,9 @@ function renderCheckoutSummary() {
   
   const total = subtotal + shippingCost - discountAmount;
   
-  subtotalEl.textContent = `${subtotal.toFixed(2)} лв.`;
-  shippingEl.textContent = shippingCost === 0 ? "Безплатна" : `${shippingCost.toFixed(2)} лв.`;
-  totalEl.textContent = `${total.toFixed(2)} лв.`;
+  subtotalEl.textContent = formatPrice(subtotal);
+  shippingEl.textContent = shippingCost === 0 ? "Безплатна" : formatPrice(shippingCost);
+  totalEl.textContent = formatPrice(total);
 }
 
 window.submitCheckout = async function(event) {
@@ -1011,7 +1021,7 @@ window.submitCheckout = async function(event) {
   const clientType = activeCheckoutType;
   const activePromos = PROMOTIONS.filter(p => p.clientType === clientType && p.active);
   const shippingPromo = activePromos.find(p => p.type === "free_shipping");
-  let shippingCost = 5.00;
+  let shippingCost = 2.50;
   if (shippingPromo && subtotal >= shippingPromo.threshold) {
     shippingCost = 0.00;
   }

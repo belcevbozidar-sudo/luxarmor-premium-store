@@ -29,6 +29,26 @@ let allUsers = [];
 let allPromoCodes = [];
 let parsedCSVProducts = [];
 
+// --- PRICE FORMATTING HELPER ---
+function formatAdminPrice(val) {
+  const num = parseFloat(val);
+  if (isNaN(num)) return "0.00 €";
+  return `${num.toFixed(2)} €`;
+}
+
+// --- PAGINATION & FILTER STATE ---
+let productsPage = 1;
+const productsPerPage = 50;
+let searchQuery = "";
+let selectedFilterBrand = "";
+let selectedFilterCategory = "";
+
+let ordersPage = 1;
+const ordersPerPage = 50;
+let orderSearchQuery = "";
+let orderFilterStatus = "";
+let orderFilterType = "";
+
 // --- CANVAS BROWSER FINGERPRINT ---
 function getBrowserFingerprint() {
   const canvas = document.createElement("canvas");
@@ -207,21 +227,28 @@ async function loadDashboardData() {
   }
 }
 
-// Populate dropdown lists in modals
+// Populate dropdown lists in modals and search filters
 function populateFormSelects() {
   const brandSelect = document.getElementById("product-brand");
   const metaBrandSelect = document.getElementById("model-brand-select");
   const giftSelect = document.getElementById("promo-gift-product");
   const categorySelect = document.getElementById("product-category");
   
+  const filterBrandSelect = document.getElementById("admin-product-filter-brand");
+  const filterCatSelect = document.getElementById("admin-product-filter-category");
+  
   brandSelect.innerHTML = '<option value="">-- Избери марка --</option>';
   metaBrandSelect.innerHTML = '<option value="">-- Избери марка --</option>';
   giftSelect.innerHTML = '<option value="">-- Избери подарък --</option>';
   categorySelect.innerHTML = '<option value="">-- Избери категория --</option>';
   
+  if (filterBrandSelect) filterBrandSelect.innerHTML = '<option value="">Всички марки</option>';
+  if (filterCatSelect) filterCatSelect.innerHTML = '<option value="">Всички категории</option>';
+  
   allBrands.forEach(b => {
     brandSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
     metaBrandSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
+    if (filterBrandSelect) filterBrandSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
   });
   
   allProducts.forEach(p => {
@@ -230,6 +257,7 @@ function populateFormSelects() {
   
   allCategories.forEach(cat => {
     categorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+    if (filterCatSelect) filterCatSelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
   });
 }
 
@@ -264,9 +292,31 @@ window.switchTab = function(tabId, btn) {
 // --- TAB 1: PRODUCTS LOGIC ---
 function renderProducts() {
   const tbody = document.getElementById("products-table-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
   
-  allProducts.forEach(p => {
+  // Filter products
+  let filtered = allProducts;
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    filtered = filtered.filter(p => 
+      p.name.toLowerCase().includes(query) || 
+      p.brand.toLowerCase().includes(query) || 
+      p.model.toLowerCase().includes(query)
+    );
+  }
+  if (selectedFilterBrand) {
+    filtered = filtered.filter(p => p.brand === selectedFilterBrand);
+  }
+  if (selectedFilterCategory) {
+    filtered = filtered.filter(p => p.category === selectedFilterCategory);
+  }
+  
+  // Paginate products
+  const limit = productsPage * productsPerPage;
+  const sliced = filtered.slice(0, limit);
+  
+  sliced.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><img src="${p.image}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></td>
@@ -274,8 +324,8 @@ function renderProducts() {
       <td>${p.brand}</td>
       <td>${p.model}</td>
       <td><span class="admin-badge" style="font-size:0.7rem;">${p.category}</span></td>
-      <td>${p.priceB2C?.toFixed(2) || "0.00"} лв.</td>
-      <td>${p.priceB2B?.toFixed(2) || "0.00"} лв.</td>
+      <td>${formatAdminPrice(p.priceB2C)}</td>
+      <td>${formatAdminPrice(p.priceB2B)}</td>
       <td>
         <div class="row-actions">
           <button class="btn-icon" onclick="openProductModal('${p._id}')" title="Редактирай"><i class="fas fa-edit"></i></button>
@@ -285,7 +335,31 @@ function renderProducts() {
     `;
     tbody.appendChild(tr);
   });
+  
+  // Toggle load more button
+  const loadMoreContainer = document.getElementById("products-load-more-container");
+  if (loadMoreContainer) {
+    if (filtered.length > limit) {
+      loadMoreContainer.style.display = "block";
+    } else {
+      loadMoreContainer.style.display = "none";
+    }
+  }
 }
+
+// Search & Filter event handlers for products
+window.handleProductSearch = function() {
+  searchQuery = document.getElementById("admin-product-search").value || "";
+  selectedFilterBrand = document.getElementById("admin-product-filter-brand").value || "";
+  selectedFilterCategory = document.getElementById("admin-product-filter-category").value || "";
+  productsPage = 1; // Reset to page 1 on search filter change
+  renderProducts();
+};
+
+window.loadMoreProducts = function() {
+  productsPage++;
+  renderProducts();
+};
 
 window.openProductModal = function(productId = null) {
   const modal = document.getElementById("product-modal");
@@ -664,7 +738,7 @@ function renderPromotions() {
     tr.innerHTML = `
       <td><strong>${p.clientType}</strong></td>
       <td>${promoTypeStr}</td>
-      <td>над ${p.threshold.toFixed(2)} лв.</td>
+      <td>над ${formatAdminPrice(p.threshold)}</td>
       <td>${giftName}</td>
       <td>
         <span class="badge-status ${p.active ? 'completed' : 'cancelled'}">
@@ -772,9 +846,31 @@ window.deletePromotion = async function(promoId) {
 // --- TAB 4: ORDERS LOGIC ---
 function renderOrders() {
   const tbody = document.getElementById("orders-table-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
   
-  allOrders.forEach(o => {
+  // Filter orders
+  let filtered = allOrders;
+  if (orderSearchQuery) {
+    const query = orderSearchQuery.toLowerCase();
+    filtered = filtered.filter(o => 
+      o.name.toLowerCase().includes(query) || 
+      o.phone.includes(query) || 
+      (o.orderNumber && o.orderNumber.toLowerCase().includes(query))
+    );
+  }
+  if (orderFilterStatus) {
+    filtered = filtered.filter(o => o.status === orderFilterStatus);
+  }
+  if (orderFilterType) {
+    filtered = filtered.filter(o => o.clientType === orderFilterType);
+  }
+  
+  // Paginate orders
+  const limit = ordersPage * ordersPerPage;
+  const sliced = filtered.slice(0, limit);
+  
+  sliced.forEach(o => {
     const dateStr = new Date(o.createdAt).toLocaleDateString("bg-BG", {
       day: "2-digit",
       month: "2-digit",
@@ -788,7 +884,7 @@ function renderOrders() {
       <td><strong>${o.orderNumber}</strong></td>
       <td>${o.name}</td>
       <td>${o.phone}</td>
-      <td><strong>${o.total.toFixed(2)} лв.</strong></td>
+      <td><strong>${formatAdminPrice(o.total)}</strong></td>
       <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(204,164,59,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
       <td>${dateStr}</td>
       <td><span class="badge-status ${o.status}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
@@ -798,7 +894,31 @@ function renderOrders() {
     `;
     tbody.appendChild(tr);
   });
+  
+  // Toggle load more button
+  const loadMoreContainer = document.getElementById("orders-load-more-container");
+  if (loadMoreContainer) {
+    if (filtered.length > limit) {
+      loadMoreContainer.style.display = "block";
+    } else {
+      loadMoreContainer.style.display = "none";
+    }
+  }
 }
+
+// Search & Filter event handlers for orders
+window.handleOrderSearch = function() {
+  orderSearchQuery = document.getElementById("admin-order-search").value || "";
+  orderFilterStatus = document.getElementById("admin-order-filter-status").value || "";
+  orderFilterType = document.getElementById("admin-order-filter-type").value || "";
+  ordersPage = 1; // Reset to page 1 on search/filter change
+  renderOrders();
+};
+
+window.loadMoreOrders = function() {
+  ordersPage++;
+  renderOrders();
+};
 
 let activeOrderId = null;
 window.viewOrderDetails = function(orderId) {
@@ -815,7 +935,7 @@ window.viewOrderDetails = function(orderId) {
   
   const dateStr = new Date(o.createdAt).toLocaleString("bg-BG");
   document.getElementById("order-details-date").textContent = dateStr;
-  document.getElementById("order-details-total").textContent = `${o.total.toFixed(2)} лв.`;
+  document.getElementById("order-details-total").textContent = formatAdminPrice(o.total);
   
   const compBox = document.getElementById("order-details-company-box");
   if (o.clientType === "B2B") {
@@ -835,9 +955,9 @@ window.viewOrderDetails = function(orderId) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${item.name} ${item.isGift ? '<span class="admin-badge" style="background:#2ecc71; color:#000; border-color:#2ecc71; font-size:0.6rem;">ПОДАРЪК</span>' : ''}</td>
-      <td>${item.price.toFixed(2)} лв.</td>
+      <td>${formatAdminPrice(item.price)}</td>
       <td>${item.quantity}</td>
-      <td>${itemTotal.toFixed(2)} лв.</td>
+      <td>${formatAdminPrice(itemTotal)}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1329,8 +1449,8 @@ function renderCSVPreview() {
       <td>${p.brand}</td>
       <td>${p.model}</td>
       <td>${p.category}</td>
-      <td>${p.priceB2C.toFixed(2)} лв.</td>
-      <td>${p.priceB2B.toFixed(2)} лв.</td>
+      <td>${formatAdminPrice(p.priceB2C)}</td>
+      <td>${formatAdminPrice(p.priceB2B)}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1589,14 +1709,14 @@ function renderPromoCodes() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><strong>${code.code}</strong></td>
-      <td>${code.discountType === "percent" ? "Процентна (%)" : "Фиксирана (лв.)"}</td>
-      <td>${code.discountValue}${code.discountType === "percent" ? "%" : " лв."}</td>
+      <td>${code.discountType === "percent" ? "Процентна (%)" : "Фиксирана (€)"}</td>
+      <td>${code.discountValue}${code.discountType === "percent" ? "%" : " €"}</td>
       <td>
         <span class="badge-status ${code.active ? 'completed' : 'cancelled'}">
           ${code.active ? 'Да' : 'Не'}
         </span>
       </td>
-      <td><strong>${revenue.toFixed(2)} лв.</strong></td>
+      <td><strong>${formatAdminPrice(revenue)}</strong></td>
       <td>
         <button class="btn-icon delete" onclick="deletePromoCode('${code._id}')" title="Изтрий промо код"><i class="fas fa-trash"></i></button>
       </td>
@@ -1738,8 +1858,8 @@ window.renderDashboardStats = function() {
   const periodB2bUsers = b2bUsers.filter(u => isDateInPeriod(u.createdAt, period));
   
   // Render stats
-  monthRevenueEl.textContent = `${periodRevenue.toFixed(2)} лв.`;
-  lifetimeRevenueEl.textContent = `${lifetimeRevenue.toFixed(2)} лв.`;
+  monthRevenueEl.textContent = formatAdminPrice(periodRevenue);
+  lifetimeRevenueEl.textContent = formatAdminPrice(lifetimeRevenue);
   ordersCountEl.textContent = periodOrders.length;
   b2bCountEl.textContent = period === "always" ? b2bUsers.length : periodB2bUsers.length;
   
@@ -1757,7 +1877,7 @@ window.renderDashboardStats = function() {
         tr.innerHTML = `
           <td><strong>${o.orderNumber}</strong></td>
           <td>${o.name}</td>
-          <td>${o.total.toFixed(2)} лв.</td>
+          <td>${formatAdminPrice(o.total)}</td>
           <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(204,164,59,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
           <td><span class="badge-status ${o.status}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
         `;
