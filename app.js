@@ -188,6 +188,16 @@ function getProductSlug(name) {
     .replace(/-+/g, '-');
 }
 
+// Image proxy URL helper
+function getProductImageUrl(url, name, model) {
+  if (!url) return "";
+  if (url.includes("cdn.sellavi.com")) {
+    const slug = getProductSlug(name + " " + (model || ""));
+    return `/api/image?url=${encodeURIComponent(url)}&name=${encodeURIComponent(slug)}`;
+  }
+  return url;
+}
+
 // --- PASS HASH UTILITY ---
 async function hashPassword(password) {
   const msgBuffer = new TextEncoder().encode(password);
@@ -485,7 +495,7 @@ function renderCatalog() {
     card.innerHTML = `
       ${tagHtml}
       <div class="product-image-container">
-        <img class="product-img" src="${product.image}" alt="${product.name}" loading="lazy">
+        <img class="product-img" src="${getProductImageUrl(product.image, product.name, product.model)}" alt="${product.name}" loading="lazy">
       </div>
       <div class="product-details">
         <span class="product-category">${product.brand}</span>
@@ -516,7 +526,7 @@ function renderProductPage(productId) {
   document.getElementById("product-page-cat").textContent = p.brand;
   document.getElementById("product-page-title").textContent = p.name;
   document.getElementById("product-page-desc").textContent = p.description;
-  document.getElementById("product-page-image").src = p.image;
+  document.getElementById("product-page-image").src = getProductImageUrl(p.image, p.name, p.model);
   document.getElementById("product-page-image").alt = p.name;
   
   // Render multiple images thumbnails
@@ -527,14 +537,14 @@ function renderProductPage(productId) {
     if (productImages.length > 1) {
       productImages.forEach((imgUrl, imgIdx) => {
         const thumb = document.createElement("img");
-        thumb.src = imgUrl;
+        thumb.src = getProductImageUrl(imgUrl, p.name, p.model);
         thumb.alt = `${p.name} - ${imgIdx + 1}`;
         thumb.style.cssText = "width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; transition: border-color 0.2s; flex-shrink: 0;";
         if (imgUrl === p.image) {
           thumb.style.borderColor = "var(--gold)";
         }
         thumb.addEventListener("click", () => {
-          document.getElementById("product-page-image").src = imgUrl;
+          document.getElementById("product-page-image").src = getProductImageUrl(imgUrl, p.name, p.model);
           thumbnailsContainer.querySelectorAll("img").forEach(el => el.style.borderColor = "rgba(255,255,255,0.1)");
           thumb.style.borderColor = "var(--gold)";
         });
@@ -749,7 +759,7 @@ function renderCartItems() {
         </button>`;
 
     itemRow.innerHTML = `
-      <img class="cart-item-img" src="${item.image}" alt="${item.name}">
+      <img class="cart-item-img" src="${getProductImageUrl(item.image, item.name)}" alt="${item.name}">
       <div class="cart-item-details">
         <h4 class="cart-item-name">${item.name}</h4>
         <span class="cart-item-price">${item.price === 0 ? "0.00 лв." : item.price.toFixed(2) + " лв."}</span>

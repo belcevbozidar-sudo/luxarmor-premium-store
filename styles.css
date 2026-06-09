@@ -1881,12 +1881,15 @@ footer {
 
 /* --- AUTH MODAL OVERLAY --- */
 #auth-modal .modal-wrapper {
+  display: block !important; /* Override two-column grid layout */
   background: var(--bg-white) !important;
   color: var(--text-dark) !important;
   border: 1px solid rgba(15, 23, 42, 0.08) !important;
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15) !important;
   border-radius: var(--radius-lg) !important;
   padding: 2.5rem !important;
+  width: 100% !important;
+  max-width: 450px !important;
 }
 
 #auth-modal label {
@@ -1897,7 +1900,8 @@ footer {
   letter-spacing: 0.5px !important;
 }
 
-#auth-modal input {
+#auth-modal input:not([type="checkbox"]) {
+  width: 100% !important;
   background: var(--bg-light) !important;
   border: 1px solid rgba(15, 23, 42, 0.08) !important;
   color: var(--text-dark) !important;
@@ -1907,7 +1911,7 @@ footer {
   transition: var(--transition-fast) !important;
 }
 
-#auth-modal input:focus {
+#auth-modal input:not([type="checkbox"]):focus {
   border-color: var(--accent) !important;
   background: #fff !important;
   box-shadow: 0 0 0 3px rgba(204, 164, 59, 0.1) !important;
