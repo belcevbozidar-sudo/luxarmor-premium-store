@@ -178,6 +178,16 @@ function getCleanModelName(name) {
   return clean;
 }
 
+// Slugify helper for SEO-friendly product URLs
+function getProductSlug(name) {
+  if (!name) return "";
+  return name.toString().toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9а-яяуоиеъющшчцж\s-]/g, '') // Keep alphanumeric, spaces and Cyrillic
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
 // --- PASS HASH UTILITY ---
 async function hashPassword(password) {
   const msgBuffer = new TextEncoder().encode(password);
@@ -405,6 +415,7 @@ function renderCatalog() {
   grid.innerHTML = "";
   
   let filteredProducts = PRODUCTS;
+  const isFiltered = !!(selectedBrand || selectedCategory);
 
   if (selectedBrand) {
     if (selectedModel) {
@@ -420,7 +431,18 @@ function renderCatalog() {
     const catObj = CATEGORIES.find(c => c.id === selectedCategory);
     if (catalogTitle && catObj) catalogTitle.textContent = catObj.name;
   } else {
-    if (catalogTitle) catalogTitle.textContent = "Всички Продукти";
+    if (catalogTitle) catalogTitle.textContent = "Препоръчани продукти";
+    filteredProducts = PRODUCTS.slice(0, 8);
+  }
+
+  // Update section subtitle dynamically
+  const subtitle = document.querySelector(".catalog .section-subtitle");
+  if (subtitle) {
+    if (isFiltered) {
+      subtitle.textContent = "CaseKing Premium Selection";
+    } else {
+      subtitle.textContent = "Изберете марка и модел от филтрите по-горе, за да видите пълния каталог";
+    }
   }
   
   if (filteredProducts.length === 0) {
@@ -439,7 +461,8 @@ function renderCatalog() {
       if (e.target.classList.contains("btn-card-buy") || e.target.closest(".btn-card-buy")) {
         return;
       }
-      window.location.hash = `#product/${product._id}`;
+      const slug = getProductSlug(product.name + " " + product.model);
+      window.location.hash = `#product/${product._id}/${slug}`;
     };
     
     let ratingStars = "";
@@ -1234,7 +1257,7 @@ function initGoogleLoginButton() {
   }
   
   google.accounts.id.initialize({
-    client_id: "103685477580-placeholder.apps.googleusercontent.com", // Client ID placeholder
+    client_id: "25806833456-m8f2h90vm7r0dfbujef1s3pdr3hesqhr.apps.googleusercontent.com",
     callback: handleGoogleCredentialResponse
   });
   
@@ -1313,7 +1336,8 @@ function handleRouting() {
     checkoutView.style.display = "none";
     productView.style.display = "block";
     
-    const productId = hash.substring(9);
+    const pathParts = hash.substring(9).split("/");
+    const productId = pathParts[0];
     renderProductPage(productId);
     window.scrollTo(0, 0);
   } else if (hash === "#checkout") {
