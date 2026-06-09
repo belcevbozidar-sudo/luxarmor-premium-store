@@ -1412,14 +1412,17 @@ function processCSVData(rows) {
   }
   
   const headers = rows[0].map(h => h.toString().trim().toLowerCase());
-  const isSellaviFormat = headers.includes("име на продукта") && headers.includes("цена") && headers.includes("категория");
+  const isSellaviFormat = headers.includes("име на продукта") && (headers.includes("цена") || headers.includes("цена b2c")) && headers.includes("категория");
   
-  let nameIdx, brandIdx, modelIdx, categoryIdx, priceB2CIdx, priceB2BIdx, descIdx, matIdx, weightIdx, originIdx, delIdx, imgIdx;
+  let nameIdx, brandIdx, modelIdx, categoryIdx, priceB2CIdx, priceB2BIdx, oldPriceB2CIdx, oldPriceB2BIdx, descIdx, matIdx, weightIdx, originIdx, delIdx, imgIdx;
   
   if (isSellaviFormat) {
     nameIdx = headers.indexOf("име на продукта");
     categoryIdx = headers.indexOf("категория");
-    priceB2CIdx = headers.indexOf("цена");
+    priceB2CIdx = headers.indexOf("цена b2c") !== -1 ? headers.indexOf("цена b2c") : headers.indexOf("цена");
+    priceB2BIdx = headers.indexOf("цена b2b");
+    oldPriceB2CIdx = headers.indexOf("стара цена b2c") !== -1 ? headers.indexOf("стара цена b2c") : headers.indexOf("стара цена");
+    oldPriceB2BIdx = headers.indexOf("стара цена b2b");
     imgIdx = headers.indexOf("снимка на продукт");
     modelIdx = headers.indexOf("модел");
     descIdx = headers.indexOf("описание");
@@ -1439,6 +1442,8 @@ function processCSVData(rows) {
     categoryIdx = findHeaderIdx(["category", "категория"]);
     priceB2CIdx = findHeaderIdx(["priceb2c", "цена b2c", "цена", "b2c цена"]);
     priceB2BIdx = findHeaderIdx(["priceb2b", "цена b2b", "b2b цена"]);
+    oldPriceB2CIdx = findHeaderIdx(["oldpriceb2c", "стара цена b2c", "стара цена", "old price b2c"]);
+    oldPriceB2BIdx = findHeaderIdx(["oldpriceb2b", "стара цена b2b", "old price b2b"]);
     descIdx = findHeaderIdx(["description", "описание"]);
     matIdx = findHeaderIdx(["material", "материал"]);
     weightIdx = findHeaderIdx(["weight", "тегло", "грама"]);
@@ -1465,6 +1470,11 @@ function processCSVData(rows) {
     let category = "pop_socket";
     let priceB2C = parseFloat(row[priceB2CIdx]) || 0;
     let priceB2B = 0;
+    let oldPriceB2C = oldPriceB2CIdx !== -1 && row[oldPriceB2CIdx] ? parseFloat(row[oldPriceB2CIdx]) : null;
+    if (isNaN(oldPriceB2C)) oldPriceB2C = null;
+    let oldPriceB2B = oldPriceB2BIdx !== -1 && row[oldPriceB2BIdx] ? parseFloat(row[oldPriceB2BIdx]) : null;
+    if (isNaN(oldPriceB2B)) oldPriceB2B = null;
+    
     let image = imgIdx !== -1 && row[imgIdx] ? row[imgIdx].toString().trim() : "assets/logo.png";
     let description = descIdx !== -1 && row[descIdx] ? row[descIdx].toString().trim() : "";
     let material = matIdx !== -1 && row[matIdx] ? row[matIdx].toString().trim() : "Премиум силикон / TPU / Кожа";
@@ -1480,13 +1490,16 @@ function processCSVData(rows) {
       const catMeta = getCategoryIdAndName(catVal, name);
       category = catMeta.id;
       
-      priceB2B = Math.round(priceB2C * 0.8 * 100) / 100;
+      priceB2B = priceB2BIdx !== -1 && row[priceB2BIdx] ? parseFloat(row[priceB2BIdx]) : Math.round(priceB2C * 0.8 * 100) / 100;
+      if (isNaN(priceB2B)) priceB2B = Math.round(priceB2C * 0.8 * 100) / 100;
+      
       if (!description) description = `${name}. Премиум телефонен аксесоар от най-висок клас.`;
     } else {
       brand = brandIdx !== -1 && row[brandIdx] ? row[brandIdx].toString().trim() : "Всички марки";
       model = modelIdx !== -1 && row[modelIdx] ? row[modelIdx].toString().trim() : "Всички модели";
       category = row[categoryIdx] ? row[categoryIdx].toString().trim() : "pop_socket";
       priceB2B = priceB2BIdx !== -1 ? (parseFloat(row[priceB2BIdx]) || Math.round(priceB2C * 0.8 * 100) / 100) : (Math.round(priceB2C * 0.8 * 100) / 100);
+      if (isNaN(priceB2B)) priceB2B = Math.round(priceB2C * 0.8 * 100) / 100;
       if (!description) description = "Премиум аксесоар за телефон";
     }
     
@@ -1496,7 +1509,9 @@ function processCSVData(rows) {
       model,
       category,
       priceB2C,
+      oldPriceB2C,
       priceB2B,
+      oldPriceB2B,
       rating: 5,
       tag: null,
       description,
@@ -1527,13 +1542,15 @@ function renderCSVPreview() {
   
   parsedCSVProducts.forEach(p => {
     const tr = document.createElement("tr");
+    const oldB2CStr = p.oldPriceB2C ? ` <del style="font-size:0.8rem; color:var(--text-muted);">${formatAdminPrice(p.oldPriceB2C)}</del>` : "";
+    const oldB2BStr = p.oldPriceB2B ? ` <del style="font-size:0.8rem; color:var(--text-muted);">${formatAdminPrice(p.oldPriceB2B)}</del>` : "";
     tr.innerHTML = `
       <td><strong>${p.name}</strong></td>
       <td>${p.brand}</td>
       <td>${p.model}</td>
       <td>${p.category}</td>
-      <td>${formatAdminPrice(p.priceB2C)}</td>
-      <td>${formatAdminPrice(p.priceB2B)}</td>
+      <td>${formatAdminPrice(p.priceB2C)}${oldB2CStr}</td>
+      <td>${formatAdminPrice(p.priceB2B)}${oldB2BStr}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1668,6 +1685,10 @@ window.exportProductsToExcel = async function() {
         "Модел": p.specs.material || "RT-11",
         "SKU": p._id,
         "Цена": p.priceB2C,
+        "Цена B2C": p.priceB2C,
+        "Стара цена B2C": p.oldPriceB2C || "",
+        "Цена B2B": p.priceB2B,
+        "Стара цена B2B": p.oldPriceB2B || "",
         "Мярка за размер": "сантиметър",
         "Дължина": 10,
         "Широчина": 10,
