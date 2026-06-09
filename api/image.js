@@ -18,10 +18,11 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     
     if (name) {
-      // RFC 5987 standard for Cyrillic / UTF-8 filenames in HTTP headers
+      // RFC 5987 standard for Cyrillic / UTF-8 filenames in HTTP headers.
+      // The standard 'filename' attribute must be ASCII-only to prevent Node.js header validation errors.
       const cleanName = name.replace(/["\\]/g, ''); // strip quotes & backslashes
       const encodedName = encodeURIComponent(cleanName);
-      res.setHeader('Content-Disposition', `inline; filename="${cleanName}.jpg"; filename*=UTF-8''${encodedName}.jpg`);
+      res.setHeader('Content-Disposition', `inline; filename="image.jpg"; filename*=UTF-8''${encodedName}.jpg`);
     } else {
       res.setHeader('Content-Disposition', 'inline');
     }

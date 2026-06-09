@@ -2,6 +2,25 @@ import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/bro
 
 const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
 
+// Global image error fallback for proxy URL failure
+window.addEventListener('error', function(e) {
+  if (e.target && e.target.tagName === 'IMG') {
+    const src = e.target.src;
+    if (src && src.includes('/api/image?url=')) {
+      try {
+        const urlObj = new URL(src, window.location.href);
+        const originalUrl = urlObj.searchParams.get('url');
+        if (originalUrl) {
+          console.warn('Proxy image failed to load, falling back to original URL:', originalUrl);
+          e.target.src = originalUrl;
+        }
+      } catch (err) {
+        console.error('Failed to parse fallback URL:', err);
+      }
+    }
+  }
+}, true);
+
 // --- STATIC FALLBACK DATASETS ---
 const STATIC_PRODUCTS = [
   {
@@ -191,6 +210,10 @@ function getProductSlug(name) {
 // Image proxy URL helper
 function getProductImageUrl(url, name, model) {
   if (!url) return "";
+  // If running locally via file protocol, serverless functions are unavailable
+  if (window.location.protocol === "file:") {
+    return url;
+  }
   if (url.includes("cdn.sellavi.com")) {
     const slug = getProductSlug(name + " " + (model || ""));
     return `/api/image?url=${encodeURIComponent(url)}&name=${encodeURIComponent(slug)}`;
