@@ -530,7 +530,7 @@ function renderCatalog() {
       if (e.target.classList.contains("btn-card-buy") || e.target.closest(".btn-card-buy")) {
         return;
       }
-      const slug = getProductSlug(product.name + " " + product.model);
+      const slug = getProductSlug(product.name + " " + (product.model || ""));
       history.pushState(null, "", "/produkt/" + slug);
       handleRouting();
     };
