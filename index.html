@@ -49,13 +49,15 @@
   <!-- --- PREMIUM NAVIGATION HEADER --- -->
   <header>
     <div class="container header-container">
-      <a href="#" class="logo">
+      <a href="/" class="logo" onclick="event.preventDefault(); history.pushState(null, '', '/'); handleRouting();">
         <img src="assets/logo.webp" alt="CaseKing Logo" class="logo-img">
       </a>
       
       <nav class="nav-menu">
-        <a href="#" class="nav-link">Начало</a>
+        <a href="#" class="nav-link" onclick="event.preventDefault(); history.pushState(null, '', '/'); handleRouting();">Начало</a>
+        <a href="/kategorii" class="nav-link" onclick="event.preventDefault(); history.pushState(null, '', '/kategorii'); handleRouting();">Категории</a>
         <a href="#catalog" class="nav-link">Каталог</a>
+        <a href="/blog" class="nav-link">Блог</a>
         <a href="#footer" class="nav-link">Контакти</a>
       </nav>
       
@@ -242,7 +244,14 @@
   <!-- === STOREFRONT CHECKOUT PAGE VIEW === -->
   <section class="checkout-page-section" id="checkout-page-view" style="display: none; padding: 3rem 0; min-height: 80vh;">
     <div class="container" style="max-width: 950px;">
-      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--primary); padding: 0.5rem 1rem; border-radius: 6px;           <div class="checkout-type-selectors" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--primary); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: var(--transition-fast);">
+        <i class="fas fa-arrow-left"></i> Назад към каталога
+      </button>
+      
+      <div class="checkout-grid">
+        <!-- Form Panel -->
+        <div class="checkout-form-panel" style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+          <div class="checkout-type-selectors" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
             <button type="button" class="btn-secondary active" id="btn-checkout-b2c" onclick="switchCheckoutType('B2C')" style="flex: 1; padding: 0.75rem;">Физическо лице</button>
             <button type="button" class="btn-secondary" id="btn-checkout-b2b" onclick="switchCheckoutType('B2B')" style="flex: 1; padding: 0.75rem;">Фирмена поръчка (B2B)</button>
           </div>
@@ -250,15 +259,15 @@
           <form id="checkout-form-main" onsubmit="submitCheckout(event)">
             <div class="form-group">
               <label>Име и Фамилия / Получател *</label>
-              <input type="text" id="checkout-main-name" required placeholder="напр. Иван Иванов">
+              <input type="text" id="checkout-main-name" class="form-input" required placeholder="напр. Иван Иванов">
             </div>
             <div class="form-group">
               <label>Телефон за връзка *</label>
-              <input type="text" id="checkout-main-phone" required placeholder="напр. 0889XXXXXX">
+              <input type="text" id="checkout-main-phone" class="form-input" required placeholder="напр. 0889XXXXXX">
             </div>
             <div class="form-group">
               <label>Адрес за доставка *</label>
-              <input type="text" id="checkout-main-address" required placeholder="Град, улица, офис на Еконт/Спиди">
+              <input type="text" id="checkout-main-address" class="form-input" required placeholder="Град, улица, офис на Еконт/Спиди">
             </div>
             
             <!-- Company B2B Fields (Conditional) -->
@@ -266,19 +275,19 @@
               <h3 style="font-size: 1.15rem; color: var(--gold); margin-bottom: 1.2rem; font-weight:600;">Фирмени Данни за фактура</h3>
               <div class="form-group">
                 <label>Име на фирмата *</label>
-                <input type="text" id="checkout-comp-name" placeholder="напр. Фирма ООД">
+                <input type="text" id="checkout-comp-name" class="form-input" placeholder="напр. Фирма ООД">
               </div>
               <div class="form-group">
                 <label>ЕИК / БУЛСТАТ *</label>
-                <input type="text" id="checkout-comp-bulstat" placeholder="напр. 123456789">
+                <input type="text" id="checkout-comp-bulstat" class="form-input" placeholder="напр. 123456789">
               </div>
               <div class="form-group">
                 <label>Адрес на регистрация *</label>
-                <input type="text" id="checkout-comp-address" placeholder="гр. София, ул. Примерна 1">
+                <input type="text" id="checkout-comp-address" class="form-input" placeholder="гр. София, ул. Примерна 1">
               </div>
               <div class="form-group">
                 <label>МОЛ (Материално отговорно лице) *</label>
-                <input type="text" id="checkout-comp-mol" placeholder="напр. Георги Георгиев">
+                <input type="text" id="checkout-comp-mol" class="form-input" placeholder="напр. Георги Георгиев">
               </div>
               <div class="remember-me-container" onclick="toggleCheckoutVatCheckbox()" style="margin-top: 1rem; color: var(--text-muted); cursor:pointer;">
                 <input type="checkbox" id="checkout-comp-vat" style="accent-color:var(--gold);">
@@ -319,18 +328,55 @@
     </div>
   </section>
 
+  <!-- === CATEGORIES LIST PAGE VIEW === -->
+  <section class="categories-page-section" id="categories-page-view" style="display: none; min-height: 80vh;">
+    <div class="categories-hero-banner">
+      <div class="container">
+        <h1>Нашите <span style="color: var(--gold);">Категории</span></h1>
+        <p>Разгледайте пълната ни гама от премиум аксесоари за мобилни телефони. Намерете перфектния кейс, бързо зарядно или качествен протектор.</p>
+      </div>
+    </div>
+    <div class="container" style="padding: 2rem 1.5rem 5rem 1.5rem;">
+      <div class="categories-list-grid" id="categories-list-page-grid">
+        <!-- Dynamically populated category cards -->
+      </div>
+    </div>
+  </section>
+
+  <!-- === CATEGORY DETAIL PAGE VIEW === -->
+  <section class="category-detail-section" id="category-detail-view" style="display: none; min-height: 80vh;">
+    <div class="category-detail-hero">
+      <div class="container">
+        <button class="btn-secondary" onclick="backToCategories()" style="margin-bottom: 1.5rem; display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; transition: var(--transition-fast); font-size: 0.9rem;">
+          <i class="fas fa-arrow-left"></i> Всички категории
+        </button>
+        <h1 style="text-transform: capitalize; margin: 0; color: #fff;">
+          Категория: <span style="color: var(--gold);" id="category-detail-name"></span>
+        </h1>
+        <p id="category-detail-product-count" style="margin-top: 0.5rem; font-size: 1.05rem; color: rgba(255,255,255,0.7); font-weight: 500;"></p>
+      </div>
+    </div>
+    <div class="container" style="padding: 2rem 1.5rem 5rem 1.5rem;">
+      <div class="product-grid" id="category-detail-product-grid">
+        <!-- Dynamically populated products -->
+      </div>
+    </div>
+  </section>
+
   <!-- --- BRAND FOOTER --- -->
   <footer id="footer">
     <div class="container footer-grid">
       <div class="footer-column-logo">
-        <img src="assets/logo.webp" alt="CaseKing Logo" class="logo-img-footer">
+        <a href="/" onclick="event.preventDefault(); history.pushState(null, '', '/'); handleRouting();" style="display: inline-block; margin-bottom: 1rem;">
+          <img src="assets/logo.webp" alt="CaseKing Logo" class="logo-img-footer" style="margin-bottom: 0;">
+        </a>
         <p class="footer-desc">Най-добрите аксесоари за мобилни телефони на едно място. Професионално обслужване, качество и бърза доставка с опция за преглед и тест.</p>
       </div>
       <div>
         <h4 class="footer-title">Информация</h4>
         <ul class="footer-links">
-          <li><a href="#" class="footer-link">За нас</a></li>
-          <li><a href="#" class="footer-link">Доставка и плащане</a></li>
+          <li><a href="/" class="footer-link">Начало</a></li>
+          <li><a href="/blog" class="footer-link">Блог</a></li>
           <li><a href="#" class="footer-link">Условия за ползване</a></li>
           <li><a href="#" class="footer-link">Политика за поверителност</a></li>
         </ul>
@@ -549,8 +595,10 @@
         </button>
       </div>
       <div class="menu-nav-links">
-        <a href="#" class="menu-nav-link" onclick="closeMobileMenu()">Начало</a>
+        <a href="#" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); history.pushState(null, '', '/'); handleRouting();">Начало</a>
+        <a href="/kategorii" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); history.pushState(null, '', '/kategorii'); handleRouting();">Категории</a>
         <a href="#catalog" class="menu-nav-link" onclick="closeMobileMenu()">Каталог</a>
+        <a href="/blog" class="menu-nav-link">Блог</a>
         <a href="#footer" class="menu-nav-link" onclick="closeMobileMenu()">Контакти</a>
       </div>
       <div class="menu-brands-section">

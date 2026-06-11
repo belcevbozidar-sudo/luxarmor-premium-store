@@ -776,6 +776,7 @@
       <button class="nav-tab-btn" onclick="switchTab('orders-tab', this)"><i class="fas fa-shopping-bag"></i> Поръчки</button>
       <button class="nav-tab-btn" onclick="switchTab('promocodes-tab', this)"><i class="fas fa-percent"></i> Промо Кодове</button>
       <button class="nav-tab-btn" onclick="switchTab('b2b-clients-tab', this)"><i class="fas fa-user-friends"></i> B2B Клиенти</button>
+      <button class="nav-tab-btn" onclick="switchTab('blog-tab', this)"><i class="fas fa-blog"></i> Блог</button>
       <button class="nav-tab-btn" onclick="switchTab('import-tab', this)"><i class="fas fa-file-import"></i> Импорт Excel</button>
     </div>
     
@@ -1137,6 +1138,49 @@
           </div>
         </div>
       </div>
+
+      <!-- === TAB: BLOG POSTS === -->
+      <div class="tab-panel" id="blog-tab">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <h2 class="section-title">Управление на Блог Статии</h2>
+          <button class="btn-action" onclick="openBlogModal()"><i class="fas fa-plus"></i> Нова Статия</button>
+        </div>
+        
+        <!-- Filters & Search -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center; flex-wrap: wrap; background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03);">
+          <div style="flex: 1; min-width: 200px;">
+            <label style="margin-bottom: 0.25rem;">Търсене:</label>
+            <input type="text" id="admin-blog-search" oninput="handleAdminBlogSearch()" placeholder="Търсене по заглавие...">
+          </div>
+          <div style="min-width: 180px;">
+            <label style="margin-bottom: 0.25rem;">Категория:</label>
+            <select id="admin-blog-filter-category" onchange="handleAdminBlogSearch()">
+              <option value="">Всички категории</option>
+              <option value="guides">Ръководства</option>
+              <option value="news">Новини</option>
+              <option value="reviews">Ревюта</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Снимка</th>
+                <th>Заглавие</th>
+                <th>Категория</th>
+                <th>Статус</th>
+                <th>Дата на създаване</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody id="blog-table-body">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
       
     </div>
   </div>
@@ -1476,6 +1520,83 @@
           </select>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- === MODAL: ADD/EDIT BLOG POST === -->
+  <div class="modal" id="blog-post-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="blog-post-modal-title">Добавяне на Нова Статия</h3>
+        <button class="modal-close" onclick="closeBlogModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="blog-post-form" onsubmit="saveBlogPost(event)">
+          <input type="hidden" id="blog-post-id">
+          
+          <!-- Cover Image File Drag & Drop Zone -->
+          <div class="form-group full-width" style="border: 2px dashed var(--gold); border-radius: 8px; padding: 1.5rem; text-align: center; background: rgba(0,0,0,0.2); position: relative; cursor: pointer; margin-bottom: 1rem;">
+            <i class="fas fa-image" style="font-size: 2rem; color: var(--gold); margin-bottom: 0.5rem;"></i>
+            <p style="font-weight: 500; font-size: 0.95rem; margin-bottom: 0.25rem; color: #fff;">Корица на статията</p>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Изберете снимка или я издърпайте тук</span>
+            <input type="file" id="blog-post-image-input" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+          </div>
+          
+          <div class="form-group full-width" id="blog-post-image-preview-box" style="display: none; text-align: center; margin-bottom: 1rem;">
+            <label>Преглед на избраната корица:</label>
+            <img id="blog-post-image-preview" src="" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--panel-border); object-fit: cover; margin-top: 0.5rem;">
+          </div>
+          
+          <div class="form-group full-width">
+            <label>Заглавие на статията:</label>
+            <input type="text" id="blog-post-title" required placeholder="напр. Ръководство за избор на кейсове">
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Категория:</label>
+              <select id="blog-post-category" required>
+                <option value="guides">Ръководства</option>
+                <option value="news">Новини</option>
+                <option value="reviews">Ревюта</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Автор (незадължително):</label>
+              <input type="text" id="blog-post-author" placeholder="напр. LuxArmor Team">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Кратко резюме (показва се в списъка):</label>
+            <textarea id="blog-post-summary" rows="2" required placeholder="Кратко обобщение на статията..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Съдържание на статията (поддържа HTML форматиране за параграфи &lt;p&gt;, подзаглавия &lt;h2&gt;, списъци &lt;ul&gt;, и т.н.):</label>
+            <textarea id="blog-post-content" rows="10" required placeholder="Напишете съдържанието на статията тук..."></textarea>
+          </div>
+          
+          <!-- Related Products Multiselect list -->
+          <div class="form-group">
+            <label>Свързани продукти (изберете с натиснат Ctrl / Cmd за избор на няколко):</label>
+            <select id="blog-post-related-products" multiple style="height: 120px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 0.5rem; width: 100%; outline: none;">
+              <!-- Populated dynamically with all products -->
+            </select>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Потребителят ще види тези продукти препоръчани в края на статията.</span>
+          </div>
+
+          <div class="remember-me-container" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; color: var(--text-muted); user-select: none;">
+            <input type="checkbox" id="blog-post-published" style="accent-color: var(--gold); cursor: pointer;">
+            <label for="blog-post-published" style="cursor: pointer; margin-left: 0.5rem;">Публикувана статия (направи видима на сайта)</label>
+          </div>
+          
+          <div class="modal-footer" style="padding: 1.5rem 0 0 0; border-top: none; display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+            <button type="button" class="btn-secondary" onclick="closeBlogModal()">Отказ</button>
+            <button type="submit" class="btn-action">Запази статията</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

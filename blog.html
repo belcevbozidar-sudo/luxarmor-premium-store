@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Блог | CaseKing - Премиум Ръководства и Новини за Аксесоари</title>
+  <meta name="description" content="Полезни съвети, ревюта на продукти и ръководства за избор на най-добрите кейсове и аксесоари за мобилни телефони от CaseKing.">
+  
+  <!-- Preconnect to external resources -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://trustworthy-possum-230.eu-west-1.convex.cloud">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Non-render-blocking FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Google Sign-In SDK client -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+  <!-- --- ANNOUNCEMENT BAR --- -->
+  <div class="announcement-bar">
+    <span>🔥 ПРОЛЕТНА РАЗПРОДАЖБА ДО -50% 🔥</span>
+    <span>📞 Поръчайте бързо на: <a href="tel:0889650060">0889 65 00 60</a></span>
+  </div>
+
+  <!-- --- PREMIUM NAVIGATION HEADER --- -->
+  <header>
+    <div class="container header-container">
+      <a href="/" class="logo">
+        <img src="assets/logo.webp" alt="CaseKing Logo" class="logo-img">
+      </a>
+      
+      <nav class="nav-menu">
+        <a href="/" class="nav-link">Начало</a>
+        <a href="/#catalog" class="nav-link">Каталог</a>
+        <a href="/blog" class="nav-link active">Блог</a>
+        <a href="#footer" class="nav-link">Контакти</a>
+      </nav>
+      
+      <div class="header-actions">
+        <a href="tel:0889650060" class="header-btn" title="Обадете се сега">
+          <i class="fas fa-phone" style="font-size: 1rem;"></i>
+        </a>
+        <button class="header-btn" onclick="openCartSidebar()" title="Преглед на количката">
+          <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          <span class="cart-count">0</span>
+        </button>
+        <button class="header-btn" onclick="openAuthModal()" id="header-profile-btn" title="Профил / Вход">
+          <i class="fas fa-user"></i>
+        </button>
+        <span id="header-user-name" style="font-size:0.8rem; color:var(--gold); font-weight:600; display:none;"></span>
+        <button class="header-btn mobile-menu-toggle" onclick="openMobileMenu()" title="Меню">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- === BLOG LIST VIEW === -->
+  <div id="blog-list-view">
+    <!-- Hero / SEO Intro Section -->
+    <section class="hero-seo-section" style="padding: 4rem 0 2rem; text-align: center; background: radial-gradient(circle at center, rgba(204,164,59,0.08) 0%, transparent 70%); border-bottom: 1px solid rgba(15,23,42,0.04); margin-bottom: 2rem;">
+      <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 1.5rem;">
+        <h1 style="font-size: 2.75rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem; letter-spacing: -0.5px; line-height: 1.2;">
+          Блогът на <span style="color: var(--gold);">CaseKing</span>
+        </h1>
+        <p style="font-size: 1.15rem; color: var(--text-muted); line-height: 1.6;">
+          Полезни съвети, задълбочени ревюта и професионални ръководства за избор на кейсове, протектори и аксесоари за мобилни телефони.
+        </p>
+      </div>
+    </section>
+
+    <!-- Search & Filter Controls -->
+    <section style="padding: 1rem 0; margin-bottom: 2rem;">
+      <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+        
+        <!-- Category Filter Pills -->
+        <div class="blog-filters" style="display: flex; gap: 0.75rem; flex-wrap: wrap;" id="blog-categories-pills">
+          <button class="blog-filter-pill active" onclick="filterBlogCategory('all')">Всички</button>
+          <button class="blog-filter-pill" onclick="filterBlogCategory('guides')">Ръководства</button>
+          <button class="blog-filter-pill" onclick="filterBlogCategory('news')">Новини</button>
+          <button class="blog-filter-pill" onclick="filterBlogCategory('reviews')">Ревюта</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="blog-search-box" style="position: relative; width: 100%; max-width: 320px;">
+          <input type="text" id="blog-search-input" placeholder="Търсене на статии..." oninput="handleBlogSearch()" style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; color: var(--primary); outline: none; transition: border-color 0.2s;">
+          <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Blog Posts Grid -->
+    <section style="padding-bottom: 4rem;">
+      <div class="container">
+        <div class="blog-grid" id="blog-grid">
+          <!-- Dynamically loaded articles -->
+          <div style="text-align: center; grid-column: span 3; padding: 3rem; color: var(--text-muted);">
+            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gold); margin-bottom: 1rem;"></i>
+            <p>Зареждане на статии...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- === BLOG POST READING VIEW === -->
+  <div id="blog-post-view" style="display: none; padding: 3rem 0; min-height: 80vh;">
+    <div class="container" style="max-width: 850px; margin: 0 auto;">
+      
+      <!-- Back button and Breadcrumbs -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <button class="btn-secondary" onclick="backToBlogList()" style="display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--primary); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
+          <i class="fas fa-arrow-left"></i> Обратно към блога
+        </button>
+        <div class="breadcrumbs" style="font-size: 0.85rem; color: var(--text-muted);">
+          <a href="/" style="color: var(--text-muted); text-decoration: none;">Начало</a> &gt; 
+          <a href="/blog" onclick="event.preventDefault(); backToBlogList();" style="color: var(--text-muted); text-decoration: none;">Блог</a> &gt; 
+          <span id="post-breadcrumb-title" style="color: var(--gold); font-weight: 500;"></span>
+        </div>
+      </div>
+
+      <!-- Post Header Info -->
+      <article>
+        <header style="margin-bottom: 2.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <span id="post-category-badge" class="badge-tag sale" style="position: static; font-size: 0.75rem; padding: 0.25rem 0.75rem;"></span>
+            <span style="font-size: 0.85rem; color: var(--text-muted);" id="post-date"></span>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">•</span>
+            <span style="font-size: 0.85rem; color: var(--text-muted);" id="post-readtime"></span>
+          </div>
+          <h1 id="post-title" style="font-size: 3rem; font-weight: 800; color: var(--primary); line-height: 1.15; margin-bottom: 1.5rem; letter-spacing: -1px;"></h1>
+          <p id="post-summary" style="font-size: 1.25rem; line-height: 1.6; color: var(--text-dark); border-left: 3px solid var(--gold); padding-left: 1rem; font-style: italic; margin-bottom: 2rem;"></p>
+          
+          <!-- Cover Image -->
+          <div style="width: 100%; border-radius: 16px; overflow: hidden; margin-bottom: 2.5rem; box-shadow: var(--shadow-md); aspect-ratio: 16/9; background: #000;">
+            <img id="post-cover-image" src="" alt="Cover Image" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+        </header>
+
+        <!-- Dynamic Post Content HTML -->
+        <div class="blog-post-content" id="post-content" style="font-size: 1.125rem; line-height: 1.8; color: var(--text-dark); margin-bottom: 4rem;">
+          <!-- Content populated via Javascript -->
+        </div>
+
+        <!-- Author box and Share actions -->
+        <footer style="border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 1.5rem 0; margin-bottom: 4rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--gold-glow); display: flex; align-items: center; justify-content: center; color: var(--gold); border: 1px solid var(--gold);">
+              <i class="fas fa-pen-nib"></i>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Автор</span>
+              <strong id="post-author" style="color: var(--primary); font-size: 0.95rem;">LuxArmor Team</strong>
+            </div>
+          </div>
+          
+          <!-- Share options -->
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">Сподели:</span>
+            <button class="btn-icon" onclick="shareOnFacebook()" title="Сподели във Facebook" style="background: #1877f2; border: none; color: #fff;"><i class="fab fa-facebook-f"></i></button>
+            <button class="btn-icon" onclick="shareOnViber()" title="Сподели във Viber" style="background: #7360f2; border: none; color: #fff;"><i class="fab fa-viber"></i></button>
+            <button class="btn-icon" onclick="copyPostLink()" id="btn-copy-link" title="Копирай линк" style="background: rgba(15,23,42,0.05); border: 1px solid var(--border-color); color: var(--primary);"><i class="fas fa-link"></i></button>
+          </div>
+        </footer>
+      </article>
+
+      <!-- Recommended/Related Products Section -->
+      <section id="post-related-products-section" style="display: none; margin-top: 3rem; border-top: 1px solid var(--border-color); padding-top: 3rem;">
+        <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; text-align: center;">Препоръчани продукти към статията</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; margin-bottom: 2rem;">Премиум аксесоари от каталога на CaseKing, споменати в статията</p>
+        
+        <!-- Recommended product grid -->
+        <div class="product-grid" id="post-related-products-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- --- BRAND FOOTER --- -->
+  <footer id="footer">
+    <div class="container footer-grid">
+      <div class="footer-column-logo">
+        <img src="assets/logo.webp" alt="CaseKing Logo" class="logo-img-footer">
+        <p class="footer-desc">Най-добрите аксесоари за мобилни телефони на едно място. Професионално обслужване, качество и бърза доставка с опция за преглед и тест.</p>
+      </div>
+      <div>
+        <h4 class="footer-title">Информация</h4>
+        <ul class="footer-links">
+          <li><a href="/" class="footer-link">Начало</a></li>
+          <li><a href="/blog" class="footer-link">Блог</a></li>
+          <li><a href="#" class="footer-link">Условия за ползване</a></li>
+          <li><a href="#" class="footer-link">Политика за поверителност</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="footer-title">За контакти</h4>
+        <div class="footer-contact-row">
+          <a href="mailto:caseking23@gmail.com" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">caseking23@gmail.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p class="footer-copy">© 2026 CaseKing. Всички права запазени.</p>
+      <div class="footer-developer">
+        <a href="https://www.premium-studio.bg/home" target="_blank" class="footer-dev-link">
+          Сайта е разработен от <img src="assets/logo_premium_studio.webp" alt="Premium Studio" class="footer-dev-logo">
+        </a>
+      </div>
+      <div class="footer-trust-logos">
+        <span>📦 Преглед и Тест</span>
+        <span onclick="window.location.href='/admin'" style="cursor: pointer;" title="Админ">🚚 Бърза доставка</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- --- SLIDING CART SIDEBAR --- -->
+  <div class="cart-sidebar-overlay" id="cart-overlay">
+    <div class="cart-sidebar">
+      <div class="cart-header">
+        <h3 class="cart-header-title">Вашата Количка</h3>
+        <button class="cart-close-btn" onclick="closeCartSidebar()" title="Затвори">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <!-- Loaded dynamically -->
+      <div class="cart-items-container" id="cart-items">
+        <div class="cart-empty-message">Вашата количка е празна.</div>
+      </div>
+      
+      <!-- Cart summary & dynamic form -->
+      <div class="cart-footer">
+        <div class="cart-summary-row">
+          <span class="cart-summary-label">Обща сума:</span>
+          <span class="cart-summary-total" id="cart-subtotal">0.00 € (0.00 лв.)</span>
+        </div>
+        <div class="cart-promo-banner" id="cart-promo-banner" style="display:none; font-size: 0.85rem; padding: 0.75rem; background: rgba(204,164,59,0.1); border: 1px dashed var(--gold); border-radius: 6px; margin-top: 1rem; color: var(--primary); text-align: center;"></div>
+        <button class="btn-premium" onclick="window.location.href='/#checkout'" style="width: 100%; margin-top: 1rem; padding: 0.85rem;">Напред към поръчка</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- AUTHENTICATION MODAL OVERLAY --- -->
+  <div class="modal-overlay" id="auth-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); justify-content: center; align-items: center; z-index: 1000;">
+    <div class="modal-wrapper" style="max-width: 450px; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.5); backdrop-filter: blur(10px); position: relative; width: 100%;">
+      <button class="modal-close-btn" onclick="closeAuthModal()" title="Затвори" style="position: absolute; top: 1.5rem; right: 1.5rem; background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">
+        <i class="fas fa-times"></i>
+      </button>
+      
+      <!-- LOGIN PANEL -->
+      <div id="auth-login-panel">
+        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--primary); text-align: center;">Вход в акаунт</h3>
+        <form onsubmit="handleUserLogin(event)">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label>Имейл адрес *</label>
+            <input type="email" id="auth-login-email" required placeholder="your@email.com">
+          </div>
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label>Парола *</label>
+            <input type="password" id="auth-login-pass" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn-premium" style="width: 100%; padding: 0.85rem; margin-bottom: 1rem;">Вход</button>
+        </form>
+        
+        <!-- Google Sign-in Slot -->
+        <div style="margin: 1.5rem 0; display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+          <span style="flex: 1; height: 1px; background: rgba(15,23,42,0.08);"></span>
+          <span style="color: var(--text-muted); font-weight: 500;">или влезте с</span>
+          <span style="flex: 1; height: 1px; background: rgba(15,23,42,0.08);"></span>
+        </div>
+        <div id="google-login-btn-container" style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+          <!-- Managed by Google Identity Services SDK -->
+        </div>
+        <p style="font-size: 0.9rem; text-align: center; color: var(--text-muted);">Нямате акаунт? <a href="#" onclick="toggleAuthPanel('register')" style="color: var(--gold); text-decoration: none; font-weight: 500;">Регистрирайте се тук</a></p>
+      </div>
+      
+      <!-- REGISTRATION PANEL -->
+      <div id="auth-register-panel" style="display: none;">
+        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--primary); text-align: center;">Създаване на профил</h3>
+        <div class="checkout-type-selectors" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: var(--bg-light); padding: 0.35rem; border-radius: 12px; border: 1px solid rgba(15, 23, 42, 0.08);">
+          <button type="button" class="btn-secondary active" id="btn-reg-b2c" onclick="switchRegType('B2C')" style="flex: 1; padding: 0.6rem; font-size: 0.85rem; font-weight: 600; border-radius: 8px;">Физически</button>
+          <button type="button" class="btn-secondary" id="btn-reg-b2b" onclick="switchRegType('B2B')" style="flex: 1; padding: 0.6rem; font-size: 0.85rem; font-weight: 600; border-radius: 8px;">Фирмен (B2B)</button>
+        </div>
+        
+        <form id="reg-form" onsubmit="handleUserRegister(event)" style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Имейл адрес *</label>
+            <input type="email" id="reg-email" required placeholder="your@email.com">
+          </div>
+          <div class="form-group" id="reg-pass-group" style="margin-bottom: 0.75rem;">
+            <label>Парола *</label>
+            <input type="password" id="reg-pass" required placeholder="••••••••">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Име и Фамилия / Лице за контакти *</label>
+            <input type="text" id="reg-name" required placeholder="Иван Иванов">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Телефон *</label>
+            <input type="text" id="reg-phone" required placeholder="0889XXXXXX">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label>Адрес за доставка *</label>
+            <input type="text" id="reg-address" required placeholder="Град, улица, офис">
+          </div>
+          
+          <div id="reg-b2b-fields" style="display: none; border-top: 1px dashed rgba(255,255,255,0.05); padding-top: 0.75rem; margin-top: 0.75rem;">
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label>Фирма (Име) *</label>
+              <input type="text" id="reg-comp-name" placeholder="Фирма ООД">
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label>ЕИК / БУЛСТАТ *</label>
+              <input type="text" id="reg-comp-bulstat" placeholder="123456789">
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label>Адрес на регистрация *</label>
+              <input type="text" id="reg-comp-address" placeholder="гр. София, ул. Примерна 1">
+            </div>
+            <div class="form-group" style="margin-bottom: 0.75rem;">
+              <label>МОЛ *</label>
+              <input type="text" id="reg-comp-mol" placeholder="МОЛ на фирмата">
+            </div>
+            <div class="remember-me-container" onclick="toggleRegVatCheckbox()" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); cursor:pointer;">
+              <input type="checkbox" id="reg-comp-vat" style="accent-color:var(--gold);">
+              <span style="margin-left:0.5rem;">Регистрирана по ДДС</span>
+            </div>
+          </div>
+          <button type="submit" class="btn-premium" style="width: 100%; padding: 0.85rem; margin-top: 1.5rem;">Регистрация</button>
+        </form>
+        <p style="font-size: 0.9rem; text-align: center; color: var(--text-muted); margin-top: 1rem;">Вече имате акаунт? <a href="#" onclick="toggleAuthPanel('login')" style="color: var(--gold); text-decoration: none; font-weight: 500;">Влезте оттук</a></p>
+      </div>
+      
+      <!-- PROFILE PANEL -->
+      <div id="auth-profile-panel" style="display: none; text-align: center;">
+        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--primary);">Вашият Профил</h3>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; text-align: left; font-size: 0.95rem; border: 1px solid rgba(204,164,59,0.15);">
+          <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">Име:</span> <strong id="profile-display-name" style="color: #fff;"></strong></div>
+          <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">Имейл:</span> <span id="profile-display-email" style="color: #fff;"></span></div>
+          <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">Тип профил:</span> <span id="profile-display-type" class="admin-badge" style="display:inline-block; font-size:0.65rem; border-color:var(--gold); color:var(--gold); background:rgba(204,164,59,0.15);"></span></div>
+          <div id="profile-display-comp-box" style="display: none; margin-top: 0.5rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 0.5rem;">
+            <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">Фирма:</span> <span id="profile-display-comp-name" style="color: #fff;"></span></div>
+            <div style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">ЕИК:</span> <span id="profile-display-comp-bulstat" style="color: #fff;"></span></div>
+          </div>
+        </div>
+        <button class="btn-premium" onclick="handleUserLogout()" style="width: 100%; padding: 0.85rem; background: transparent; border: 1px solid var(--danger); color: var(--danger); cursor:pointer;">Изход от профила</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- MOBILE SLIDING MENU OVERLAY --- -->
+  <div class="mobile-menu-overlay" id="mobile-menu-overlay">
+    <div class="mobile-menu-sidebar">
+      <div class="menu-header">
+        <span class="menu-logo-text">CaseKing</span>
+        <button class="menu-close-btn" onclick="closeMobileMenu()" title="Затвори">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="menu-nav-links">
+        <a href="/" class="menu-nav-link">Начало</a>
+        <a href="/#catalog" class="menu-nav-link" onclick="closeMobileMenu()">Каталог</a>
+        <a href="/blog" class="menu-nav-link active">Блог</a>
+        <a href="#footer" class="menu-nav-link" onclick="closeMobileMenu()">Контакти</a>
+      </div>
+      <!-- List brands for compatibility, will populate from app.js dynamically -->
+      <div class="menu-brands-section">
+        <h4 class="menu-section-title">Марки Телефони</h4>
+        <div class="menu-brands-grid" id="menu-brands-list">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+      <div class="menu-models-section" id="menu-models-section" style="display: none;">
+        <h4 class="menu-section-title" id="menu-models-title">Модели</h4>
+        <div class="menu-models-grid" id="menu-models-list">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="app.js"></script>
+  <script type="module" src="blog.js"></script>
+</body>
+</html>

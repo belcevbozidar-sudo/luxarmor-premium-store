@@ -8,6 +8,8 @@ let allBrands = [];
 let allModels = [];
 let allPromotions = [];
 let allOrders = [];
+let allBlogPosts = [];
+let blogPostCoverImage = "";
 
 const STATIC_CATEGORIES = [
   { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
@@ -217,6 +219,12 @@ async function loadDashboardData() {
       console.warn("Could not load promo codes from db:", promoErr);
     }
     
+    try {
+      allBlogPosts = await convex.query("blog:getAll");
+    } catch (blogErr) {
+      console.warn("Could not load blog posts from db:", blogErr);
+    }
+    
     renderProducts();
     renderBrandsAndModels();
     renderPromotions();
@@ -224,6 +232,7 @@ async function loadDashboardData() {
     renderDashboardStats();
     renderPromoCodes();
     renderB2BUsers();
+    renderBlogPosts();
     populateFormSelects();
   } catch (err) {
     console.error("Error loading dashboard data:", err);
@@ -1141,6 +1150,33 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // Blog Post Cover Image Uploader
+  const blogImageInput = document.getElementById("blog-post-image-input");
+  if (blogImageInput) {
+    blogImageInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        handleBlogImageFile(e.target.files[0]);
+      }
+    });
+    const blogDragZone = blogImageInput.parentElement;
+    if (blogDragZone) {
+      blogDragZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        blogDragZone.style.borderColor = "#fff";
+      });
+      blogDragZone.addEventListener("dragleave", () => {
+        blogDragZone.style.borderColor = "var(--gold)";
+      });
+      blogDragZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        blogDragZone.style.borderColor = "var(--gold)";
+        if (e.dataTransfer.files.length > 0) {
+          handleBlogImageFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+  }
 });
 
 function compressImage(base64Str, maxWidth, maxHeight, quality = 0.8) {
@@ -2056,3 +2092,227 @@ window.renderDashboardStats = function() {
     }
   }
 }
+
+// --- BLOG MANAGEMENT LOGIC ---
+function handleBlogImageFile(file) {
+  if (!file.type.startsWith("image/")) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    compressImage(e.target.result, 1200, 675, 0.85).then((compressed) => {
+      blogPostCoverImage = compressed;
+      const previewBox = document.getElementById("blog-post-image-preview-box");
+      const previewImg = document.getElementById("blog-post-image-preview");
+      if (previewBox && previewImg) {
+        previewImg.src = compressed;
+        previewBox.style.display = "block";
+      }
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+const BLOG_CATEGORY_MAP = {
+  guides: "Ръководства",
+  news: "Новини",
+  reviews: "Ревюта"
+};
+
+function renderBlogPosts() {
+  const tbody = document.getElementById("blog-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const query = (document.getElementById("admin-blog-search").value || "").toLowerCase();
+  const filterCat = document.getElementById("admin-blog-filter-category").value;
+
+  let filtered = allBlogPosts;
+  if (query) {
+    filtered = filtered.filter(post => 
+      post.title.toLowerCase().includes(query) || 
+      post.summary.toLowerCase().includes(query)
+    );
+  }
+  if (filterCat) {
+    filtered = filtered.filter(post => post.category === filterCat);
+  }
+
+  // Sort by createdAt desc
+  filtered.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">Няма намерени статии</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(post => {
+    const tr = document.createElement("tr");
+    const formattedDate = new Date(post.createdAt).toLocaleDateString("bg-BG", {
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+    const statusBadge = post.isPublished
+      ? `<span class="badge-status completed">Публикувана</span>`
+      : `<span class="badge-status pending">Чернова</span>`;
+
+    tr.innerHTML = `
+      <td><img src="${post.coverImage}" style="width:60px; height:34px; object-fit:cover; border-radius:4px;"></td>
+      <td><strong>${post.title}</strong></td>
+      <td><span class="admin-badge" style="font-size:0.7rem;">${BLOG_CATEGORY_MAP[post.category] || post.category}</span></td>
+      <td>${statusBadge}</td>
+      <td>${formattedDate}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-icon" onclick="openBlogModal('${post._id}')" title="Редактирай"><i class="fas fa-edit"></i></button>
+          <button class="btn-icon delete" onclick="deleteBlogPost('${post._id}')" title="Изтрий"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.handleAdminBlogSearch = function() {
+  renderBlogPosts();
+};
+
+window.openBlogModal = function(postId = null) {
+  const modal = document.getElementById("blog-post-modal");
+  const form = document.getElementById("blog-post-form");
+  form.reset();
+
+  // Populate related products dropdown
+  const relatedSelect = document.getElementById("blog-post-related-products");
+  relatedSelect.innerHTML = "";
+  allProducts.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p._id;
+    opt.textContent = `${p.brand} (${p.model}) - ${p.name}`;
+    relatedSelect.appendChild(opt);
+  });
+
+  const previewBox = document.getElementById("blog-post-image-preview-box");
+  const previewImg = document.getElementById("blog-post-image-preview");
+
+  if (postId) {
+    document.getElementById("blog-post-modal-title").textContent = "Редактиране на Статия";
+    const post = allBlogPosts.find(item => item._id === postId);
+    if (post) {
+      document.getElementById("blog-post-id").value = post._id;
+      document.getElementById("blog-post-title").value = post.title;
+      document.getElementById("blog-post-category").value = post.category;
+      document.getElementById("blog-post-author").value = post.author || "";
+      document.getElementById("blog-post-summary").value = post.summary;
+      document.getElementById("blog-post-content").value = post.content;
+      document.getElementById("blog-post-published").checked = post.isPublished;
+
+      // Select related products
+      if (post.relatedProducts) {
+        Array.from(relatedSelect.options).forEach(opt => {
+          opt.selected = post.relatedProducts.includes(opt.value);
+        });
+      }
+
+      blogPostCoverImage = post.coverImage;
+      if (previewBox && previewImg) {
+        previewImg.src = post.coverImage;
+        previewBox.style.display = "block";
+      }
+    }
+  } else {
+    document.getElementById("blog-post-modal-title").textContent = "Добавяне на Нова Статия";
+    document.getElementById("blog-post-id").value = "";
+    blogPostCoverImage = "";
+    if (previewBox) previewBox.style.display = "none";
+  }
+
+  modal.classList.add("active");
+};
+
+window.closeBlogModal = function() {
+  document.getElementById("blog-post-modal").classList.remove("active");
+};
+
+// Helper to transliterate and slugify
+function getBlogSlug(text) {
+  const map = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ж': 'zh',
+    'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n',
+    'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f',
+    'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sht', 'ъ': 'a', 'ь': 'y',
+    'ю': 'yu', 'я': 'ya',
+    'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ж': 'Zh',
+    'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N',
+    'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F',
+    'Х': 'H', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Sht', 'Ъ': 'A', 'Ь': 'Y',
+    'Ю': 'Yu', 'Я': 'Ya'
+  };
+  const transliterated = text.split('').map(char => map[char] || char).join('');
+  return transliterated
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+window.saveBlogPost = async function(event) {
+  event.preventDefault();
+
+  const id = document.getElementById("blog-post-id").value;
+  const title = document.getElementById("blog-post-title").value.trim();
+  const content = document.getElementById("blog-post-content").value;
+  
+  if (!blogPostCoverImage) {
+    alert("Моля, изберете корица за статията!");
+    return;
+  }
+
+  // Calculate read time: average of 200 words per minute
+  const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+  const readTime = Math.max(1, Math.round(wordCount / 200));
+
+  // Related products selection
+  const relatedSelect = document.getElementById("blog-post-related-products");
+  const relatedProducts = Array.from(relatedSelect.selectedOptions).map(opt => opt.value);
+
+  const postData = {
+    title,
+    slug: getBlogSlug(title),
+    summary: document.getElementById("blog-post-summary").value.trim(),
+    content,
+    coverImage: blogPostCoverImage,
+    readTime,
+    category: document.getElementById("blog-post-category").value,
+    author: document.getElementById("blog-post-author").value.trim() || "LuxArmor Team",
+    relatedProducts,
+    isPublished: document.getElementById("blog-post-published").checked,
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    if (id) {
+      // Fetch existing post to preserve original creation date
+      const existing = allBlogPosts.find(p => p._id === id);
+      if (existing) {
+        postData.createdAt = existing.createdAt;
+      }
+      await convex.mutation("blog:update", { id, ...postData });
+    } else {
+      await convex.mutation("blog:create", postData);
+    }
+    closeBlogModal();
+    loadDashboardData();
+  } catch (err) {
+    alert("Грешка при запис на статията: " + err.message);
+  }
+};
+
+window.deleteBlogPost = async function(postId) {
+  if (confirm("Наистина ли искате да изтриете тази статия?")) {
+    try {
+      await convex.mutation("blog:remove", { id: postId });
+      loadDashboardData();
+    } catch (err) {
+      alert("Грешка при изтриване: " + err.message);
+    }
+  }
+};

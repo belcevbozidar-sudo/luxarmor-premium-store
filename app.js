@@ -171,6 +171,7 @@ try {
 
 let cart = JSON.parse(localStorage.getItem('caseking_cart')) || [];
 let freeShippingThresholdReached = false;
+let giftThresholdReached = false;
 let isInitialLoad = true;
 let selectedBrand = null;
 let selectedModel = null;
@@ -835,8 +836,22 @@ function renderCartItems() {
           isGift: true
         });
         giftPromoText = `Вземате безплатен подарък: ${giftProduct.name}! 🎁`;
+        
+        // Trigger confetti for gift!
+        if (!giftThresholdReached && subtotal > 0) {
+          giftThresholdReached = true;
+          if (!isInitialLoad && typeof confetti === "function") {
+            confetti({
+              particleCount: 150,
+              spread: 85,
+              origin: { y: 0.6 },
+              colors: ['#cca43b', '#0f172a', '#2ecc71', '#ffffff'] // added green for gift celebration
+            });
+          }
+        }
       }
     } else {
+      giftThresholdReached = false;
       const diff = giftPromo.threshold - subtotal;
       const giftProduct = PRODUCTS.find(p => p._id === giftPromo.giftProductId);
       const giftName = giftProduct ? giftProduct.name : "подарък";
@@ -1494,8 +1509,9 @@ function handleRouting() {
   let path = window.location.pathname;
   let hash = window.location.hash;
   
-  // Normalize path if we clicked a root link or hash link (e.g. #catalog, #checkout) from a /produkt/ page
-  if (path !== "/" && (hash === "#checkout" || hash === "#catalog" || hash === "#footer" || hash === "#" || hash === "")) {
+  // Normalize path if we clicked a root link or hash link (e.g. #catalog, #checkout) from a /produkt/ or /kategoria/ page
+  const isSpecialPath = path.startsWith("/produkt/") || path.startsWith("/kategoria/") || path === "/kategorii";
+  if (isSpecialPath && (hash === "#checkout" || hash === "#catalog" || hash === "#footer" || hash === "#" || hash === "")) {
     history.replaceState(null, "", "/" + hash);
     path = window.location.pathname;
     hash = window.location.hash;
@@ -1504,6 +1520,9 @@ function handleRouting() {
   const homeView = document.getElementById("storefront-home-view");
   const productView = document.getElementById("product-page-view");
   const checkoutView = document.getElementById("checkout-page-view");
+  const categoriesListView = document.getElementById("categories-page-view");
+  const categoryDetailView = document.getElementById("category-detail-view");
+  if (!homeView || !productView || !checkoutView || !categoriesListView || !categoryDetailView) return;
   
   // Check if the route is a product detail path
   let product = null;
@@ -1517,11 +1536,28 @@ function handleRouting() {
     }
   }
   
+  // Check if route is /kategorii or /kategoria/[id]
+  let activeCategoryDetailId = null;
+  if (path === "/kategorii") {
+    // handled below
+  } else if (path.startsWith("/kategoria/")) {
+    const catId = path.substring("/kategoria/".length);
+    const category = CATEGORIES.find(c => c.id === catId);
+    if (category) {
+      activeCategoryDetailId = catId;
+    } else {
+      history.replaceState(null, "", "/");
+      path = "/";
+    }
+  }
+  
   if (product) {
     // Show Product Details View
     homeView.style.display = "none";
     checkoutView.style.display = "none";
     productView.style.display = "block";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "none";
     
     renderProductPage(product._id);
     window.scrollTo(0, 0);
@@ -1530,13 +1566,37 @@ function handleRouting() {
     homeView.style.display = "none";
     productView.style.display = "none";
     checkoutView.style.display = "block";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "none";
     
     renderCheckoutSummary();
+    window.scrollTo(0, 0);
+  } else if (path === "/kategorii") {
+    // Show Categories List View
+    homeView.style.display = "none";
+    productView.style.display = "none";
+    checkoutView.style.display = "none";
+    categoriesListView.style.display = "block";
+    categoryDetailView.style.display = "none";
+    
+    renderCategoriesListPage();
+    window.scrollTo(0, 0);
+  } else if (activeCategoryDetailId) {
+    // Show Category Detail View
+    homeView.style.display = "none";
+    productView.style.display = "none";
+    checkoutView.style.display = "none";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "block";
+    
+    renderCategoryDetailPage(activeCategoryDetailId);
     window.scrollTo(0, 0);
   } else {
     // Show Standard Home/Catalog view
     productView.style.display = "none";
     checkoutView.style.display = "none";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "none";
     homeView.style.display = "block";
     
     renderCatalog();
@@ -1545,6 +1605,114 @@ function handleRouting() {
 
 window.backToCatalog = function() {
   history.pushState("", document.title, "/" + window.location.search);
+  handleRouting();
+};
+
+function renderCategoriesListPage() {
+  const container = document.getElementById("categories-list-page-grid");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  CATEGORIES.forEach(cat => {
+    const card = document.createElement("div");
+    card.className = "category-card";
+    card.style.cursor = "pointer";
+    card.onclick = () => {
+      history.pushState(null, "", "/kategoria/" + cat.id);
+      handleRouting();
+    };
+    
+    // Count active products in this category
+    const count = PRODUCTS.filter(p => p.category === cat.id && !p.isDeleted).length;
+    const countText = count === 1 ? "1 продукт" : `${count} продукта`;
+    
+    card.innerHTML = `
+      <img src="${cat.image}" alt="${cat.name}" class="category-card-img" loading="lazy">
+      <div class="category-card-overlay">
+        <div class="category-card-info">
+          <span class="category-card-title">${cat.name}</span>
+          <span class="category-card-count" style="display: block; font-size: 0.85rem; color: var(--gold); margin-top: 0.35rem; font-weight: 500; opacity: 0.9;">${countText}</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderCategoryDetailPage(catId) {
+  const category = CATEGORIES.find(c => c.id === catId);
+  const nameEl = document.getElementById("category-detail-name");
+  if (nameEl && category) {
+    nameEl.textContent = category.name;
+  }
+  
+  const grid = document.getElementById("category-detail-product-grid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  
+  const filteredProducts = PRODUCTS.filter(p => p.category === catId && !p.isDeleted);
+  
+  // Update count in detail header
+  const countEl = document.getElementById("category-detail-product-count");
+  if (countEl) {
+    const count = filteredProducts.length;
+    countEl.textContent = count === 1 ? "1 продукт" : `${count} продукта`;
+  }
+  
+  if (filteredProducts.length === 0) {
+    grid.innerHTML = `<div class="no-products-message" style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">Няма намерени продукти в тази категория.</div>`;
+    return;
+  }
+  
+  filteredProducts.forEach(product => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.style.cursor = "pointer";
+    card.onclick = (e) => {
+      if (e.target.classList.contains("btn-card-buy") || e.target.closest(".btn-card-buy")) {
+        return;
+      }
+      const slug = getProductSlug(product.name + " " + (product.model || ""));
+      history.pushState(null, "", "/produkt/" + slug);
+      handleRouting();
+    };
+    
+    let ratingStars = "";
+    for (let i = 1; i <= 5; i++) {
+      ratingStars += `<i class="${i <= product.rating ? 'fas' : 'far'} fa-star"></i>`;
+    }
+    
+    const tagHtml = product.tag ? `<span class="badge-tag sale">${product.tag}</span>` : "";
+    const isB2B = currentUser && currentUser.clientType === "B2B";
+    const price = isB2B ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
+    const oldPrice = isB2B ? product.oldPriceB2B : (product.oldPriceB2C ?? product.oldPrice);
+    
+    const priceHtml = oldPrice 
+      ? `<span class="product-price old-price">${formatPrice(oldPrice)}</span>
+         <span class="product-price" style="color: var(--accent);">${formatPrice(price)} ${isB2B ? '<span style="font-size:0.65rem; font-weight:600; color:var(--gold);">B2B</span>' : ''}</span>`
+      : `<span class="product-price">${formatPrice(price)} ${isB2B ? '<span style="font-size:0.65rem; font-weight:600; color:var(--gold);">B2B</span>' : ''}</span>`;
+      
+    card.innerHTML = `
+      ${tagHtml}
+      <div class="product-image-container" style="padding: 0.75rem;">
+        <img class="product-img" style="object-fit: contain; width: 100%; height: 100%;" src="${getProductImageUrl(product.image, product.name, product.model)}" alt="${product.name}" loading="lazy">
+      </div>
+      <div class="product-details">
+        <span class="product-category">${product.brand}</span>
+        <h3 class="product-name">${product.name}</h3>
+        <div class="product-rating">${ratingStars}</div>
+        <div class="product-price-box">
+          ${priceHtml}
+        </div>
+        <button class="btn-card-buy" onclick="addToCart('${product._id}', 1)">Добави в количката</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+window.backToCategories = function() {
+  history.pushState(null, "", "/kategorii");
   handleRouting();
 };
 

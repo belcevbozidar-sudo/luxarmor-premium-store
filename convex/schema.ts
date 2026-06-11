@@ -113,4 +113,20 @@ export default defineSchema({
     discountValue: v.number(),
     active: v.boolean(),
   }).index("by_code", ["code"]),
+
+  blogPosts: defineTable({
+    title: v.string(),
+    slug: v.string(),
+    summary: v.string(),
+    content: v.string(),
+    coverImage: v.string(),
+    readTime: v.number(),
+    category: v.string(),
+    author: v.optional(v.string()),
+    createdAt: v.string(),
+    relatedProducts: v.optional(v.array(v.string())),
+    isPublished: v.boolean(),
+  }).index("by_slug", ["slug"])
+    .index("by_published", ["isPublished"]),
 });
+
