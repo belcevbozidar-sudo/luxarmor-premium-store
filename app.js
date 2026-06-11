@@ -107,7 +107,7 @@ const STATIC_PRODUCTS = [
     oldPriceB2C: 89.00,
     priceB2B: 47.00,
     oldPriceB2B: 71.00,
-    image: "assets/cat_power_bank.png",
+    image: "assets/cat_power_bank.webp",
     rating: 5,
     tag: "БЕСТСЕЛЪР",
     description: "Ултратънък магнитен външен акумулатор. Бързо безжично зареждане и перфектно сцепление с MagSafe.",
@@ -116,25 +116,25 @@ const STATIC_PRODUCTS = [
 ];
 
 const STATIC_CATEGORIES = [
-  { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.png" },
-  { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.png" },
-  { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.png" },
-  { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.png" },
-  { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.png" },
-  { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.png" },
-  { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.png" },
-  { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.png" },
-  { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.png" },
-  { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.png" }
+  { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
+  { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
+  { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
+  { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
+  { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
+  { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
+  { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
+  { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
+  { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
+  { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
 ];
 
 const STATIC_BRANDS = [
-  { name: "Apple", logo: "logo_apple.png" },
-  { name: "Samsung", logo: "logo_samsung.png" },
-  { name: "Xiaomi", logo: "logo_xiaomi.png" },
-  { name: "Huawei", logo: "logo_huawei.png" },
-  { name: "Google", logo: "logo_google.png" },
-  { name: "MOTO", logo: "logo_moto.png" }
+  { name: "Apple", logo: "logo_apple.webp" },
+  { name: "Samsung", logo: "logo_samsung.webp" },
+  { name: "Xiaomi", logo: "logo_xiaomi.webp" },
+  { name: "Huawei", logo: "logo_huawei.webp" },
+  { name: "Google", logo: "logo_google.webp" },
+  { name: "MOTO", logo: "logo_moto.webp" }
 ];
 
 const STATIC_MODELS = [
@@ -230,7 +230,7 @@ function getProductImageUrl(url, name, model) {
   }
   if (url.includes("cdn.sellavi.com")) {
     const slug = getProductSlug(name + " " + (model || ""));
-    return `/api/image/${slug}.jpg?url=${encodeURIComponent(url)}&name=${encodeURIComponent(slug)}`;
+    return `/api/image/${slug}.webp?url=${encodeURIComponent(url)}&name=${encodeURIComponent(slug)}`;
   }
   return url;
 }

@@ -99,16 +99,16 @@ export const seedMetadata = mutation({
     const existingCats = await ctx.db.query("categories").collect();
     if (existingCats.length === 0) {
       const CATEGORIES = [
-        { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.png" },
-        { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.png" },
-        { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.png" },
-        { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.png" },
-        { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.png" },
-        { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.png" },
-        { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.png" },
-        { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.png" },
-        { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.png" },
-        { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.png" }
+        { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
+        { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
+        { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
+        { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
+        { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
+        { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
+        { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
+        { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
+        { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
+        { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
       ];
       for (const cat of CATEGORIES) {
         await ctx.db.insert("categories", cat);
@@ -119,22 +119,22 @@ export const seedMetadata = mutation({
     const existingBrands = await ctx.db.query("brands").collect();
     if (existingBrands.length === 0) {
       const BRANDS = [
-        { name: "Apple", logo: "logo_apple.png" },
-        { name: "Samsung", logo: "logo_samsung.png" },
-        { name: "Xiaomi", logo: "logo_xiaomi.png" },
-        { name: "Huawei", logo: "logo_huawei.png" },
-        { name: "Google", logo: "logo_google.png" },
-        { name: "MOTO", logo: "logo_moto.png" },
-        { name: "Honor", logo: "logo_honor.png" },
-        { name: "Nokia", logo: "logo_nokia.png" },
-        { name: "OnePlus", logo: "logo_oneplus.png" },
-        { name: "Oppo", logo: "logo_oppo.png" },
-        { name: "Vivo", logo: "logo_vivo.png" },
-        { name: "TCL", logo: "logo_tcl.png" },
-        { name: "Realme", logo: "logo_realme.png" },
-        { name: "LG", logo: "logo_lg.png" },
-        { name: "Lenovo", logo: "logo_lenovo.png" },
-        { name: "Infinix", logo: "logo_infinix.png" }
+        { name: "Apple", logo: "logo_apple.webp" },
+        { name: "Samsung", logo: "logo_samsung.webp" },
+        { name: "Xiaomi", logo: "logo_xiaomi.webp" },
+        { name: "Huawei", logo: "logo_huawei.webp" },
+        { name: "Google", logo: "logo_google.webp" },
+        { name: "MOTO", logo: "logo_moto.webp" },
+        { name: "Honor", logo: "logo_honor.webp" },
+        { name: "Nokia", logo: "logo_nokia.webp" },
+        { name: "OnePlus", logo: "logo_oneplus.webp" },
+        { name: "Oppo", logo: "logo_oppo.webp" },
+        { name: "Vivo", logo: "logo_vivo.webp" },
+        { name: "TCL", logo: "logo_tcl.webp" },
+        { name: "Realme", logo: "logo_realme.webp" },
+        { name: "LG", logo: "logo_lg.webp" },
+        { name: "Lenovo", logo: "logo_lenovo.webp" },
+        { name: "Infinix", logo: "logo_infinix.webp" }
       ];
       for (const brand of BRANDS) {
         await ctx.db.insert("brands", brand);
@@ -172,3 +172,33 @@ export const seedMetadata = mutation({
     return "Metadata seeded successfully";
   },
 });
+
+export const migrateToWebp = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // 1. Migrate Categories
+    const categories = await ctx.db.query("categories").collect();
+    let catCount = 0;
+    for (const cat of categories) {
+      if (cat.image.endsWith(".png")) {
+        const newImage = cat.image.substring(0, cat.image.length - 4) + ".webp";
+        await ctx.db.patch(cat._id, { image: newImage });
+        catCount++;
+      }
+    }
+
+    // 2. Migrate Brands
+    const brands = await ctx.db.query("brands").collect();
+    let brandCount = 0;
+    for (const brand of brands) {
+      if (brand.logo.endsWith(".png")) {
+        const newLogo = brand.logo.substring(0, brand.logo.length - 4) + ".webp";
+        await ctx.db.patch(brand._id, { logo: newLogo });
+        brandCount++;
+      }
+    }
+
+    return { categoriesUpdated: catCount, brandsUpdated: brandCount };
+  },
+});
+

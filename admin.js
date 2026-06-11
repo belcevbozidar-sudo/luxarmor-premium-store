@@ -10,16 +10,16 @@ let allPromotions = [];
 let allOrders = [];
 
 const STATIC_CATEGORIES = [
-  { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.png" },
-  { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.png" },
-  { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.png" },
-  { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.png" },
-  { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.png" },
-  { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.png" },
-  { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.png" },
-  { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.png" },
-  { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.png" },
-  { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.png" }
+  { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
+  { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
+  { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
+  { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
+  { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
+  { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
+  { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
+  { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
+  { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
+  { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
 ];
 
 let allCategories = [...STATIC_CATEGORIES];
@@ -1143,6 +1143,43 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+function compressImage(base64Str, maxWidth, maxHeight, quality = 0.8) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Convert to webp with specified quality
+      const compressedDataUrl = canvas.toDataURL("image/webp", quality);
+      resolve(compressedDataUrl);
+    };
+    img.onerror = () => {
+      resolve(base64Str); // Fallback to original on error
+    };
+  });
+}
+
 function handleFiles(files) {
   const readers = [];
   for (let i = 0; i < files.length; i++) {
@@ -1150,7 +1187,9 @@ function handleFiles(files) {
     if (!file.type.startsWith("image/")) continue;
     readers.push(new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
+      reader.onload = (e) => {
+        compressImage(e.target.result, 800, 800, 0.8).then(resolve);
+      };
       reader.readAsDataURL(file);
     }));
   }
@@ -1475,7 +1514,7 @@ function processCSVData(rows) {
     let oldPriceB2B = oldPriceB2BIdx !== -1 && row[oldPriceB2BIdx] ? parseFloat(row[oldPriceB2BIdx]) : null;
     if (isNaN(oldPriceB2B)) oldPriceB2B = null;
     
-    let image = imgIdx !== -1 && row[imgIdx] ? row[imgIdx].toString().trim() : "assets/logo.png";
+    let image = imgIdx !== -1 && row[imgIdx] ? row[imgIdx].toString().trim() : "assets/logo.webp";
     let description = descIdx !== -1 && row[descIdx] ? row[descIdx].toString().trim() : "";
     let material = matIdx !== -1 && row[matIdx] ? row[matIdx].toString().trim() : "Премиум силикон / TPU / Кожа";
     let weight = weightIdx !== -1 && row[weightIdx] ? row[weightIdx].toString().trim() : "30г";
@@ -1595,7 +1634,7 @@ window.confirmCSVImport = async function() {
         await convex.mutation("meta:addCategory", {
           id: p.category,
           name: catName,
-          image: `assets/cat_${p.category}.png`
+          image: `assets/cat_${p.category}.webp`
         });
         catsCache.add(p.category);
       }
@@ -1603,7 +1642,7 @@ window.confirmCSVImport = async function() {
       // Create brand if missing
       const brandLower = p.brand.toLowerCase();
       if (p.brand !== "Всички марки" && !brandsCache.has(brandLower)) {
-        const logoName = `logo_${brandLower}_clean.png`;
+        const logoName = `logo_${brandLower}_clean.webp`;
         await convex.mutation("meta:addBrand", {
           name: p.brand,
           logo: logoName
