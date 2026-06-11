@@ -1511,7 +1511,7 @@ function handleRouting() {
   
   // Normalize path if we clicked a root link or hash link (e.g. #catalog, #checkout) from a /produkt/ or /kategoria/ page
   const isSpecialPath = path.startsWith("/produkt/") || path.startsWith("/kategoria/") || path === "/kategorii";
-  if (isSpecialPath && (hash === "#checkout" || hash === "#catalog" || hash === "#footer" || hash === "#" || hash === "")) {
+  if (isSpecialPath && (hash === "#checkout" || hash === "#catalog" || hash === "#footer" || hash === "#")) {
     history.replaceState(null, "", "/" + hash);
     path = window.location.pathname;
     hash = window.location.hash;
