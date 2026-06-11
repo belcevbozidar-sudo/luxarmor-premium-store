@@ -245,7 +245,10 @@ function getProductImageUrl(url, name, model) {
   if (window.location.protocol === "file:") {
     return url;
   }
-  if (url.includes("cdn.sellavi.com")) {
+  if (url.startsWith("data:")) {
+    return url;
+  }
+  if (url.startsWith("http://") || url.startsWith("https://")) {
     const slug = getProductSlug(name + " " + (model || ""));
     return `/api/image/${slug}.webp?url=${encodeURIComponent(url)}&name=${encodeURIComponent(slug)}`;
   }
@@ -526,7 +529,7 @@ function renderCatalog() {
         return;
       }
       const slug = getProductSlug(product.name + " " + product.model);
-      window.location.hash = `#product/${product._id}/${slug}`;
+      window.location.hash = `#${slug}`;
     };
     
     let ratingStars = "";
@@ -1431,15 +1434,20 @@ function handleRouting() {
   const productView = document.getElementById("product-page-view");
   const checkoutView = document.getElementById("checkout-page-view");
   
-  if (hash.startsWith("#product/")) {
+  // Check if the hash matches a product slug
+  let product = null;
+  if (hash && hash !== "#" && hash !== "#checkout") {
+    const slug = hash.substring(1);
+    product = PRODUCTS.find(p => getProductSlug(p.name + " " + (p.model || "")) === slug);
+  }
+  
+  if (product) {
     // Show Product Details View
     homeView.style.display = "none";
     checkoutView.style.display = "none";
     productView.style.display = "block";
     
-    const pathParts = hash.substring(9).split("/");
-    const productId = pathParts[0];
-    renderProductPage(productId);
+    renderProductPage(product._id);
     window.scrollTo(0, 0);
   } else if (hash === "#checkout") {
     // Show Checkout funnel
@@ -1521,12 +1529,12 @@ async function initApp() {
   handleRouting();
   window.addEventListener("hashchange", handleRouting);
   
-  // Load dynamic database variables in background
   loadData().then(() => {
     // Re-render views with fresh database values once loaded
     renderBrands();
     renderCategories();
     renderCatalog();
+    handleRouting();
   });
   
   // Verify session login in background
