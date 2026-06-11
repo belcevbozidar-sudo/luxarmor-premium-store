@@ -38,6 +38,11 @@
   box-sizing: border-box;
 }
 
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 html {
   scroll-behavior: smooth;
   font-size: 16px;
@@ -48,7 +53,6 @@ body {
   background-color: var(--bg-light);
   color: var(--text-dark);
   line-height: 1.6;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -1275,6 +1279,13 @@ header.scrolled {
   line-height: 1.7;
 }
 
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
 /* --- BRAND FOOTER --- */
 footer {
   background-color: var(--primary);
@@ -1518,6 +1529,11 @@ footer {
   
   .container {
     padding: 0 1.2rem;
+  }
+  
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
   
   .header-container {
