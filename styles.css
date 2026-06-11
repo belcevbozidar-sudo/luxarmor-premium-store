@@ -1378,6 +1378,36 @@ footer {
   color: #64748b;
 }
 
+.footer-developer {
+  display: flex;
+  align-items: center;
+}
+
+.footer-dev-link {
+  color: #64748b;
+  text-decoration: underline;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.footer-dev-link:hover {
+  color: var(--gold);
+}
+
+.footer-dev-logo {
+  height: 18px;
+  vertical-align: middle;
+  filter: brightness(0) invert(1) opacity(0.5);
+  transition: filter 0.2s;
+}
+
+.footer-dev-link:hover .footer-dev-logo {
+  filter: none;
+}
+
 .footer-trust-logos {
   display: flex;
   gap: 1.5rem;
