@@ -2222,6 +2222,32 @@ footer {
   }
 }
 
+/* --- SHIPPING UPSELL MODAL --- */
+#shipping-upsell-modal .modal-wrapper {
+  background-color: var(--bg-white) !important;
+  display: block;
+}
 
+#shipping-upsell-modal .btn-secondary {
+  background-color: var(--bg-light);
+  border: 1px solid var(--border-color);
+  color: var(--text-dark);
+  font-weight: 600;
+  padding: 0.85rem;
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+  cursor: pointer;
+  width: 100%;
+}
 
+#shipping-upsell-modal .btn-secondary:hover {
+  background-color: var(--border-light);
+  color: var(--primary);
+}
 
+.cart-item-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}

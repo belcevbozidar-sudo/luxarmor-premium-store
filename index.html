@@ -379,9 +379,29 @@
           <span class="cart-summary-total" id="cart-subtotal">0.00 € (0.00 лв.)</span>
         </div>
         
-        <div class="cart-promo-banner" id="cart-promo-banner" style="display:none; font-size: 0.85rem; padding: 0.75rem; background: rgba(204,164,59,0.1); border: 1px dashed var(--gold); border-radius: 6px; margin-top: 1rem; color: #fff; text-align: center;"></div>
+        <div class="cart-promo-banner" id="cart-promo-banner" style="display:none; font-size: 0.85rem; padding: 0.75rem; background: rgba(204,164,59,0.1); border: 1px dashed var(--gold); border-radius: 6px; margin-top: 1rem; color: var(--primary); text-align: center;"></div>
         
         <button class="btn-premium" onclick="proceedToCheckout()" style="width: 100%; margin-top: 1rem; padding: 0.85rem;">Напред към поръчка</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- --- SHIPPING UPSELL MODAL OVERLAY --- -->
+  <div class="modal-overlay" id="shipping-upsell-modal" style="display: none; z-index: 2000;">
+    <div class="modal-wrapper" style="max-width: 450px; border-radius: 16px; padding: 2.5rem; text-align: center; display: block; position: relative;">
+      <button class="modal-close-btn" onclick="closeShippingUpsell(true)" title="Затвори" style="position: absolute; top: 1.5rem; right: 1.5rem; background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">
+        <i class="fas fa-times"></i>
+      </button>
+      <div style="font-size: 3.5rem; color: var(--gold); margin-bottom: 1.5rem;">
+        <i class="fas fa-truck-moving"></i>
+      </div>
+      <h3 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">Безплатна доставка?</h3>
+      <p id="shipping-upsell-message" style="color: var(--text-dark); font-size: 1.1rem; line-height: 1.6; margin-bottom: 2.2rem;">
+        Остават ви още само **X.XX €** за безплатна доставка!
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+        <button class="btn-premium" onclick="closeShippingUpsell(true)" style="width: 100%; padding: 0.85rem;">Добави още нещо</button>
+        <button class="btn-secondary" onclick="closeShippingUpsell(false)" style="width: 100%; padding: 0.85rem;">Не, благодаря</button>
       </div>
     </div>
   </div>
@@ -549,6 +569,7 @@
   </div>
 
   <!-- Javascript -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -170,6 +170,8 @@ try {
 }
 
 let cart = JSON.parse(localStorage.getItem('caseking_cart')) || [];
+let freeShippingThresholdReached = false;
+let isInitialLoad = true;
 let selectedBrand = null;
 let selectedModel = null;
 let selectedCategory = null;
@@ -761,8 +763,11 @@ window.updateCartItemQty = function(productId, newQty) {
 };
 
 window.removeFromCart = function(productId) {
-  cart = cart.filter(item => item.id !== productId || item.isGift);
-  saveCart();
+  const index = cart.findIndex(item => item.id === productId && !item.isGift);
+  if (index > -1) {
+    cart.splice(index, 1);
+    saveCart();
+  }
 };
 
 function renderCartItems() {
@@ -793,7 +798,19 @@ function renderCartItems() {
     if (subtotal >= shippingPromo.threshold) {
       shippingCost = 0.00;
       shippingPromoText = "Честито! Получавате БЕЗПЛАТНА доставка! 🚚";
+      if (!freeShippingThresholdReached && subtotal > 0) {
+        freeShippingThresholdReached = true;
+        if (!isInitialLoad && typeof confetti === "function") {
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#cca43b', '#0f172a', '#ffffff', '#faf5e6']
+          });
+        }
+      }
     } else {
+      freeShippingThresholdReached = false;
       const diff = shippingPromo.threshold - subtotal;
       shippingPromoText = `Добавете още ${formatPrice(diff)} за БЕЗПЛАТНА доставка!`;
     }
@@ -850,7 +867,7 @@ function renderCartItems() {
     const removeBtnHtml = item.isGift
       ? ""
       : `<button class="cart-item-remove-btn" onclick="removeFromCart('${item.id}')" title="Премахни">
-          <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <svg style="width: 18px; height: 18px; pointer-events: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </button>`;
 
     itemRow.innerHTML = `
@@ -889,8 +906,48 @@ window.closeCartSidebar = function() {
 
 // --- CHECKOUT FUNNEL ---
 window.proceedToCheckout = function() {
-  closeCartSidebar();
-  window.location.hash = "#checkout";
+  const regularItems = cart.filter(item => !item.isGift);
+  let subtotal = 0;
+  regularItems.forEach(item => {
+    subtotal += item.price * item.quantity;
+  });
+  
+  const clientType = currentUser ? currentUser.clientType : "B2C";
+  const activePromos = PROMOTIONS.filter(p => p.clientType === clientType && p.active);
+  const shippingPromo = activePromos.find(p => p.type === "free_shipping");
+  
+  if (shippingPromo && subtotal < shippingPromo.threshold && subtotal > 0) {
+    const diff = shippingPromo.threshold - subtotal;
+    const upsellMsg = document.getElementById("shipping-upsell-message");
+    if (upsellMsg) {
+      upsellMsg.innerHTML = `Остават ви още само **${formatPrice(diff)}** за безплатна доставка!`;
+    }
+    const upsellModal = document.getElementById("shipping-upsell-modal");
+    if (upsellModal) {
+      upsellModal.style.display = "flex";
+      setTimeout(() => {
+        upsellModal.classList.add("active");
+      }, 10);
+    }
+  } else {
+    closeCartSidebar();
+    window.location.hash = "#checkout";
+  }
+};
+
+window.closeShippingUpsell = function(addMore) {
+  const upsellModal = document.getElementById("shipping-upsell-modal");
+  if (upsellModal) {
+    upsellModal.classList.remove("active");
+    setTimeout(() => {
+      upsellModal.style.display = "none";
+    }, 300);
+  }
+  
+  if (!addMore) {
+    closeCartSidebar();
+    window.location.hash = "#checkout";
+  }
 };
 
 window.switchCheckoutType = function(type) {
@@ -1528,6 +1585,7 @@ async function initApp() {
   renderCatalog();
   updateCartCount();
   renderCartItems();
+  isInitialLoad = false;
   
   // Trigger router routing checks
   handleRouting();
