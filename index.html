@@ -55,7 +55,7 @@
       
       <nav class="nav-menu">
         <a href="/" class="nav-link" onclick="event.preventDefault(); goToHome();">Начало</a>
-        <a href="/kategorii" class="nav-link" onclick="event.preventDefault(); history.pushState(null, '', '/kategorii'); handleRouting();">Категории</a>
+        <a href="/category" class="nav-link" onclick="event.preventDefault(); history.pushState(null, '', '/category'); handleRouting();">Категории</a>
         <a href="#catalog" class="nav-link">Каталог</a>
         <a href="/blog" class="nav-link">Блог</a>
         <a href="#footer" class="nav-link">Контакти</a>
@@ -406,7 +406,9 @@
 
   <!-- --- SLIDING CART SIDEBAR --- -->
   <div class="cart-sidebar-overlay" id="cart-overlay">
-    <div class="cart-sidebar">
+    <div class="cart-sidebar" style="position: relative;">
+      <!-- Canvas for local confetti celebration inside the cart -->
+      <canvas id="cart-confetti-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100;"></canvas>
       <div class="cart-header">
         <h3 class="cart-header-title">Вашата Количка</h3>
         <button class="cart-close-btn" onclick="closeCartSidebar()" title="Затвори">
@@ -597,7 +599,7 @@
       </div>
       <div class="menu-nav-links">
         <a href="/" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); goToHome();">Начало</a>
-        <a href="/kategorii" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); history.pushState(null, '', '/kategorii'); handleRouting();">Категории</a>
+        <a href="/category" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); history.pushState(null, '', '/category'); handleRouting();">Категории</a>
         <a href="#catalog" class="menu-nav-link" onclick="closeMobileMenu()">Каталог</a>
         <a href="/blog" class="menu-nav-link">Блог</a>
         <a href="#footer" class="menu-nav-link" onclick="closeMobileMenu()">Контакти</a>

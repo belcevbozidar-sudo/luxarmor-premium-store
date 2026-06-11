@@ -437,30 +437,6 @@ function selectModel(modelName) {
   }
 }
 
-function selectCategoryFilter(catId, element) {
-  selectedCategory = catId;
-  selectedBrand = null;
-  selectedModel = null;
-
-  document.querySelectorAll(".brand-pill-btn, .model-pill-btn").forEach(p => p.classList.remove("active"));
-  const step2Title = document.getElementById("step2-title");
-  const modelList = document.getElementById("models-list");
-  if (step2Title && modelList) {
-    step2Title.style.display = "none";
-    modelList.style.display = "none";
-  }
-
-  document.querySelectorAll(".category-card").forEach(card => card.classList.remove("active"));
-  if (element) element.classList.add("active");
-
-  renderCatalog();
-  
-  const catalogSection = document.getElementById("catalog");
-  if (catalogSection) {
-    catalogSection.scrollIntoView({ behavior: "smooth" });
-  }
-}
-
 function renderCategories() {
   const container = document.getElementById("categories-grid");
   if (!container) return;
@@ -469,7 +445,11 @@ function renderCategories() {
   CATEGORIES.forEach(cat => {
     const card = document.createElement("div");
     card.className = "category-card";
-    card.onclick = () => selectCategoryFilter(cat.id, card);
+    card.style.cursor = "pointer";
+    card.onclick = () => {
+      history.pushState(null, "", "/category/" + cat.id);
+      handleRouting();
+    };
     card.innerHTML = `
       <img src="${cat.image}" alt="${cat.name}" class="category-card-img" loading="lazy">
       <div class="category-card-overlay">
@@ -789,6 +769,25 @@ window.removeFromCart = function(indexOrId) {
   }
 };
 
+function triggerCartConfetti(colors = ['#cca43b', '#0f172a', '#ffffff', '#faf5e6'], particleCount = 100) {
+  setTimeout(() => {
+    const canvas = document.getElementById("cart-confetti-canvas");
+    const overlay = document.getElementById("cart-overlay");
+    if (canvas && overlay && overlay.classList.contains("active")) {
+      // Set canvas size dynamically to match sidebar dimensions
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      const localConfetti = confetti.create(canvas, { resize: true });
+      localConfetti({
+        particleCount: particleCount,
+        spread: 60,
+        origin: { y: 0.4 },
+        colors: colors
+      });
+    }
+  }, 400);
+}
+
 function renderCartItems() {
   const itemsContainer = document.getElementById("cart-items");
   const subtotalEl = document.getElementById("cart-subtotal");
@@ -820,12 +819,7 @@ function renderCartItems() {
       if (!freeShippingThresholdReached && subtotal > 0) {
         freeShippingThresholdReached = true;
         if (!isInitialLoad && typeof confetti === "function") {
-          confetti({
-            particleCount: 120,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: ['#cca43b', '#0f172a', '#ffffff', '#faf5e6']
-          });
+          triggerCartConfetti(['#cca43b', '#0f172a', '#ffffff', '#faf5e6'], 100);
         }
       }
     } else {
@@ -858,12 +852,7 @@ function renderCartItems() {
         if (!giftThresholdReached && subtotal > 0) {
           giftThresholdReached = true;
           if (!isInitialLoad && typeof confetti === "function") {
-            confetti({
-              particleCount: 150,
-              spread: 85,
-              origin: { y: 0.6 },
-              colors: ['#cca43b', '#0f172a', '#2ecc71', '#ffffff'] // added green for gift celebration
-            });
+            triggerCartConfetti(['#cca43b', '#0f172a', '#2ecc71', '#ffffff'], 120);
           }
         }
       }
@@ -1551,8 +1540,8 @@ function handleRouting() {
   let path = window.location.pathname;
   let hash = window.location.hash;
   
-  // Normalize path if we clicked a root link or hash link (e.g. #catalog, #checkout) from a /produkt/ or /kategoria/ page
-  const isSpecialPath = path.startsWith("/produkt/") || path.startsWith("/kategoria/") || path === "/kategorii";
+  // Normalize path if we clicked a root link or hash link (e.g. #catalog, #checkout) from a /produkt/ or /category/ page
+  const isSpecialPath = path.startsWith("/produkt/") || path.startsWith("/category/") || path === "/category";
   if (isSpecialPath && (hash === "#checkout" || hash === "#catalog" || hash === "#footer" || hash === "#")) {
     history.replaceState(null, "", "/" + hash);
     path = window.location.pathname;
@@ -1578,12 +1567,12 @@ function handleRouting() {
     }
   }
   
-  // Check if route is /kategorii or /kategoria/[id]
+  // Check if route is /category or /category/[id]
   let activeCategoryDetailId = null;
-  if (path === "/kategorii") {
+  if (path === "/category") {
     // handled below
-  } else if (path.startsWith("/kategoria/")) {
-    const catId = path.substring("/kategoria/".length);
+  } else if (path.startsWith("/category/")) {
+    const catId = path.substring("/category/".length);
     const category = CATEGORIES.find(c => c.id === catId);
     if (category) {
       activeCategoryDetailId = catId;
@@ -1613,7 +1602,7 @@ function handleRouting() {
     
     renderCheckoutSummary();
     window.scrollTo(0, 0);
-  } else if (path === "/kategorii") {
+  } else if (path === "/category") {
     // Show Categories List View
     homeView.style.display = "none";
     productView.style.display = "none";
@@ -1660,7 +1649,7 @@ function renderCategoriesListPage() {
     card.className = "category-card";
     card.style.cursor = "pointer";
     card.onclick = () => {
-      history.pushState(null, "", "/kategoria/" + cat.id);
+      history.pushState(null, "", "/category/" + cat.id);
       handleRouting();
     };
     
@@ -1702,7 +1691,7 @@ function renderCategoryDetailPage(catId) {
       pop_socket: "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон.",
       power_banks: "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение.",
       headphones: "Премиум безжични и жични слушалки с изключително качество на звука, дълбок бас и ергономичен дизайн за максимален комфорт.",
-      memory_cards: "Бързи и надеждни карти памет и флаш памети с голям капацитет за сигурно съхранение на вашите снимки, видеоклипове и важни файлове.",
+      memory_cards: "Бързи и надеждни карти памет и флаш памети за сигурно съхранение на вашите снимки, видеоклипове и важни файлове.",
       hydrogel_film: "Високотехнологично самовъзстановяващо се хидрогел фолио за пълна 360-градусова защита на екрана и гърба на вашето мобилно устройство."
     };
     descEl.textContent = categoryDescriptions[catId] || "Премиум телефонни аксесоари от най-висок клас, подбрани специално за вашите нужди и изисквания.";
@@ -1774,7 +1763,7 @@ function renderCategoryDetailPage(catId) {
 }
 
 window.backToCategories = function() {
-  history.pushState(null, "", "/kategorii");
+  history.pushState(null, "", "/category");
   handleRouting();
 };
 
