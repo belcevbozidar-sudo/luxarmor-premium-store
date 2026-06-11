@@ -1,6 +1,7 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/api/image/:slug*", "destination": "/api/image" }
+    { "source": "/api/image/:slug*", "destination": "/api/image" },
+    { "source": "/produkt/:slug*", "destination": "/index.html" }
   ]
 }

@@ -531,7 +531,8 @@ function renderCatalog() {
         return;
       }
       const slug = getProductSlug(product.name + " " + product.model);
-      window.location.hash = `#${slug}`;
+      history.pushState(null, "", "/produkt/" + slug);
+      handleRouting();
     };
     
     let ratingStars = "";
@@ -1490,17 +1491,30 @@ async function handleGoogleCredentialResponse(response) {
 
 // --- CLIENT-SIDE ROUTER ---
 function handleRouting() {
-  const hash = window.location.hash;
+  let path = window.location.pathname;
+  let hash = window.location.hash;
+  
+  // Normalize path if we clicked a root link or hash link (e.g. #catalog, #checkout) from a /produkt/ page
+  if (path !== "/" && (hash === "#checkout" || hash === "#catalog" || hash === "#footer" || hash === "#" || hash === "")) {
+    history.replaceState(null, "", "/" + hash);
+    path = window.location.pathname;
+    hash = window.location.hash;
+  }
   
   const homeView = document.getElementById("storefront-home-view");
   const productView = document.getElementById("product-page-view");
   const checkoutView = document.getElementById("checkout-page-view");
   
-  // Check if the hash matches a product slug
+  // Check if the route is a product detail path
   let product = null;
-  if (hash && hash !== "#" && hash !== "#checkout") {
-    const slug = hash.substring(1);
+  if (path.startsWith("/produkt/")) {
+    const slug = path.substring("/produkt/".length);
     product = PRODUCTS.find(p => getProductSlug(p.name + " " + (p.model || "")) === slug);
+    if (!product) {
+      // Clean up invalid product URL
+      history.replaceState(null, "", "/");
+      path = "/";
+    }
   }
   
   if (product) {
@@ -1530,7 +1544,7 @@ function handleRouting() {
 }
 
 window.backToCatalog = function() {
-  history.pushState("", document.title, window.location.pathname + window.location.search);
+  history.pushState("", document.title, "/" + window.location.search);
   handleRouting();
 };
 
@@ -1592,6 +1606,7 @@ async function initApp() {
   // Trigger router routing checks
   handleRouting();
   window.addEventListener("hashchange", handleRouting);
+  window.addEventListener("popstate", handleRouting);
   
   loadData().then(() => {
     // Re-render views with fresh database values once loaded
