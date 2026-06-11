@@ -177,6 +177,9 @@ let isInitialLoad = true;
 let selectedBrand = null;
 let selectedModel = null;
 let selectedCategory = null;
+let categoryDetailSelectedBrand = null;
+let categoryDetailSelectedModel = null;
+let searchQuery = "";
 let currentUser = null;
 let googleRegisterTemp = null;
 let activeRegType = "B2C";
@@ -437,6 +440,170 @@ function selectModel(modelName) {
   }
 }
 
+// --- SMART SEARCH BAR LOGIC ---
+window.handleSearchInput = function(val) {
+  searchQuery = val.trim();
+  const clearBtn = document.getElementById("search-clear-btn");
+  if (clearBtn) {
+    clearBtn.style.display = searchQuery ? "block" : "none";
+  }
+  
+  renderSearchSuggestions();
+  
+  // If we are on homepage, update catalog instantly
+  const path = window.location.pathname;
+  if (path === "/" || path === "/index.html") {
+    renderCatalog();
+  }
+};
+
+window.handleSearchKeyDown = function(e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    hideSearchSuggestions();
+    
+    // Redirect to home if not on it
+    const path = window.location.pathname;
+    if (path !== "/" && path !== "/index.html") {
+      history.pushState(null, "", "/");
+      handleRouting();
+    }
+    
+    const catalogSection = document.getElementById("catalog");
+    if (catalogSection) {
+      catalogSection.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+};
+
+window.clearSearch = function() {
+  const input = document.getElementById("smart-search-input");
+  if (input) {
+    input.value = "";
+  }
+  searchQuery = "";
+  const clearBtn = document.getElementById("search-clear-btn");
+  if (clearBtn) {
+    clearBtn.style.display = "none";
+  }
+  hideSearchSuggestions();
+  
+  const path = window.location.pathname;
+  if (path === "/" || path === "/index.html") {
+    renderCatalog();
+  }
+};
+
+function hideSearchSuggestions() {
+  const box = document.getElementById("search-suggestions");
+  if (box) {
+    box.style.display = "none";
+  }
+}
+
+function renderSearchSuggestions() {
+  const box = document.getElementById("search-suggestions");
+  if (!box) return;
+  
+  if (!searchQuery || searchQuery.length < 2) {
+    box.style.display = "none";
+    return;
+  }
+  
+  box.innerHTML = "";
+  const query = searchQuery.toLowerCase();
+  let matchesHtml = "";
+  let matchCount = 0;
+  
+  // 1. Matches in Categories
+  const matchedCats = CATEGORIES.filter(c => c.name.toLowerCase().includes(query));
+  matchedCats.forEach(cat => {
+    if (matchCount >= 4) return;
+    matchCount++;
+    matchesHtml += `
+      <div class="search-suggestion-item" onclick="selectSuggestion('category', '${cat.id}')" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1.2rem; cursor: pointer; transition: background 0.2s;">
+        <i class="fas fa-th-large" style="color: var(--gold); width: 16px;"></i>
+        <div>
+          <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary);">Категория: ${cat.name}</span>
+        </div>
+      </div>
+    `;
+  });
+  
+  // 2. Matches in Models
+  const cleanQuery = getCleanModelName(query);
+  const matchedModels = MODELS.filter(m => getCleanModelName(m.name).toLowerCase().includes(cleanQuery));
+  const seenModels = new Set();
+  matchedModels.forEach(m => {
+    const cleanName = getCleanModelName(m.name);
+    if (seenModels.has(cleanName) || matchCount >= 8) return;
+    seenModels.add(cleanName);
+    matchCount++;
+    matchesHtml += `
+      <div class="search-suggestion-item" onclick="selectSuggestion('model', '${cleanName}')" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1.2rem; cursor: pointer; transition: background 0.2s;">
+        <i class="fas fa-mobile-alt" style="color: var(--gold); width: 16px;"></i>
+        <div>
+          <span style="font-weight: 600; font-size: 0.9rem; color: var(--primary);">Модел: ${cleanName}</span>
+        </div>
+      </div>
+    `;
+  });
+  
+  // 3. Matches in Products
+  const matchedProducts = PRODUCTS.filter(p => !p.isDeleted && (p.name.toLowerCase().includes(query) || (p.model && p.model.toLowerCase().includes(query))));
+  matchedProducts.slice(0, 5).forEach(product => {
+    if (matchCount >= 12) return;
+    matchCount++;
+    const slug = getProductSlug(product.name + " " + (product.model || ""));
+    const price = currentUser && currentUser.clientType === "B2B" ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
+    
+    matchesHtml += `
+      <div class="search-suggestion-item" onclick="selectSuggestion('product', '${slug}')" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1.2rem; cursor: pointer; transition: background 0.2s; border-top: 1px solid rgba(15,23,42,0.04);">
+        <img src="${getProductImageUrl(product.image, product.name, product.model)}" style="width: 35px; height: 35px; object-fit: contain; border-radius: 4px; background: var(--bg-light);" onerror="this.src='/assets/logo.webp'">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 600; font-size: 0.85rem; color: var(--primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${product.name}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">${product.brand} ${product.model || ""}</div>
+        </div>
+        <div style="font-weight: 700; font-size: 0.85rem; color: var(--gold);">${formatPrice(price)}</div>
+      </div>
+    `;
+  });
+  
+  if (matchCount === 0) {
+    box.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Няма намерени резултати</div>`;
+  } else {
+    box.innerHTML = matchesHtml;
+  }
+  box.style.display = "block";
+}
+
+window.selectSuggestion = function(type, id) {
+  hideSearchSuggestions();
+  if (type === "category") {
+    history.pushState(null, "", "/category/" + id);
+    handleRouting();
+  } else if (type === "model") {
+    history.pushState(null, "", "/");
+    handleRouting();
+    const modelObj = MODELS.find(m => getCleanModelName(m.name) === id);
+    if (modelObj) {
+      selectBrand(modelObj.brand);
+      selectModel(id);
+    }
+  } else if (type === "product") {
+    history.pushState(null, "", "/produkt/" + id);
+    handleRouting();
+  }
+};
+
+// Close suggestions on outside click
+document.addEventListener("click", (e) => {
+  const wrapper = document.querySelector(".search-bar-section");
+  if (wrapper && !wrapper.contains(e.target)) {
+    hideSearchSuggestions();
+  }
+});
+
 function renderCategories() {
   const container = document.getElementById("categories-grid");
   if (!container) return;
@@ -467,25 +634,47 @@ function renderCatalog() {
   
   grid.innerHTML = "";
   
-  let filteredProducts = PRODUCTS;
-  const isFiltered = !!(selectedBrand || selectedCategory);
+  let filteredProducts = PRODUCTS.filter(p => !p.isDeleted);
+  const isFiltered = !!(selectedBrand || selectedCategory || searchQuery);
 
   if (selectedBrand) {
     if (selectedModel) {
       const normSelected = normalizeModel(selectedModel);
-      filteredProducts = PRODUCTS.filter(p => normalizeModel(p.model) === normSelected || p.brand === "Всички");
+      filteredProducts = filteredProducts.filter(p => normalizeModel(p.model) === normSelected || p.brand === "Всички");
       if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedModel}`;
     } else {
-      filteredProducts = PRODUCTS.filter(p => p.brand === selectedBrand || p.brand === "Всички");
+      filteredProducts = filteredProducts.filter(p => p.brand === selectedBrand || p.brand === "Всички");
       if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedBrand}`;
     }
   } else if (selectedCategory) {
-    filteredProducts = PRODUCTS.filter(p => p.category === selectedCategory);
+    filteredProducts = filteredProducts.filter(p => p.category === selectedCategory);
     const catObj = CATEGORIES.find(c => c.id === selectedCategory);
     if (catalogTitle && catObj) catalogTitle.textContent = catObj.name;
+  } else if (searchQuery) {
+    // handled below
   } else {
     if (catalogTitle) catalogTitle.textContent = "Препоръчани продукти";
-    filteredProducts = PRODUCTS.slice(0, 8);
+    filteredProducts = filteredProducts.filter(p => !p.isDeleted).slice(0, 8);
+  }
+
+  // Filter by search query if set
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filteredProducts = filteredProducts.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      p.brand.toLowerCase().includes(q) || 
+      (p.model && p.model.toLowerCase().includes(q)) ||
+      p.category.toLowerCase().includes(q)
+    );
+    if (catalogTitle) {
+      if (selectedModel) {
+        catalogTitle.textContent = `Резултати за "${searchQuery}" за ${selectedModel}`;
+      } else if (selectedBrand) {
+        catalogTitle.textContent = `Резултати за "${searchQuery}" за ${selectedBrand}`;
+      } else {
+        catalogTitle.textContent = `Резултати от търсенето за: "${searchQuery}"`;
+      }
+    }
   }
 
   // Update section subtitle dynamically
@@ -1582,6 +1771,11 @@ function handleRouting() {
     }
   }
   
+  if (!activeCategoryDetailId) {
+    categoryDetailSelectedBrand = null;
+    categoryDetailSelectedModel = null;
+  }
+  
   if (product) {
     // Show Product Details View
     homeView.style.display = "none";
@@ -1679,6 +1873,82 @@ function renderCategoriesListPage() {
   });
 }
 
+function renderCategoryDetailBrands(catId) {
+  const container = document.getElementById("cat-detail-brands-list");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  BRANDS.forEach(brand => {
+    const btn = document.createElement("button");
+    btn.className = "brand-pill-btn";
+    if (categoryDetailSelectedBrand === brand.name) btn.classList.add("active");
+    btn.onclick = () => {
+      if (categoryDetailSelectedBrand === brand.name) {
+        categoryDetailSelectedBrand = null;
+        categoryDetailSelectedModel = null;
+      } else {
+        categoryDetailSelectedBrand = brand.name;
+        categoryDetailSelectedModel = null;
+      }
+      renderCategoryDetailPage(catId);
+    };
+    btn.innerHTML = `
+      <img src="/assets/${brand.logo}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
+      <span class="brand-card-text">${brand.name}</span>
+    `;
+    container.appendChild(btn);
+  });
+  
+  const step2Title = document.getElementById("cat-detail-step2-title");
+  const modelList = document.getElementById("cat-detail-models-list");
+  if (step2Title && modelList) {
+    if (categoryDetailSelectedBrand) {
+      step2Title.style.display = "block";
+      step2Title.textContent = `Избери модел за ${categoryDetailSelectedBrand.toUpperCase()}:`;
+      modelList.style.display = "grid";
+      modelList.innerHTML = "";
+      
+      const brandModels = MODELS.filter(m => m.brand === categoryDetailSelectedBrand);
+      const seen = new Set();
+      const uniqueModels = [];
+      
+      brandModels.forEach(model => {
+        const cleanName = getCleanModelName(model.name);
+        const norm = normalizeModel(cleanName);
+        if (!seen.has(norm)) {
+          seen.add(norm);
+          uniqueModels.push({
+            displayName: cleanName,
+            original: model
+          });
+        }
+      });
+      
+      uniqueModels.forEach(model => {
+        const btn = document.createElement("button");
+        btn.className = "model-pill-btn";
+        if (categoryDetailSelectedModel === model.displayName) btn.classList.add("active");
+        btn.onclick = () => {
+          if (categoryDetailSelectedModel === model.displayName) {
+            categoryDetailSelectedModel = null;
+          } else {
+            categoryDetailSelectedModel = model.displayName;
+          }
+          renderCategoryDetailPage(catId);
+        };
+        btn.innerHTML = `
+          <div class="model-icon-box"><i class="fas fa-mobile-alt"></i></div>
+          <span class="model-card-text">${model.displayName}</span>
+        `;
+        modelList.appendChild(btn);
+      });
+    } else {
+      step2Title.style.display = "none";
+      modelList.style.display = "none";
+    }
+  }
+}
+
 function renderCategoryDetailPage(catId) {
   const category = CATEGORIES.find(c => c.id === catId);
   const nameEl = document.getElementById("category-detail-name");
@@ -1706,11 +1976,38 @@ function renderCategoryDetailPage(catId) {
     descEl.textContent = categoryDescriptions[catId] || "Премиум телефонни аксесоари от най-висок клас, подбрани специално за вашите нужди и изисквания.";
   }
   
+  // Handle Category Filtering Panel
+  const isModelSpecific = ["cases", "protectors", "hydrogel_film"].includes(catId);
+  const filterPanel = document.getElementById("category-detail-filter-panel");
+  if (filterPanel) {
+    if (isModelSpecific) {
+      filterPanel.style.display = "block";
+      renderCategoryDetailBrands(catId);
+    } else {
+      filterPanel.style.display = "none";
+      categoryDetailSelectedBrand = null;
+      categoryDetailSelectedModel = null;
+    }
+  }
+
   const grid = document.getElementById("category-detail-product-grid");
   if (!grid) return;
   grid.innerHTML = "";
   
-  const filteredProducts = PRODUCTS.filter(p => p.category === catId && !p.isDeleted);
+  let filteredProducts = PRODUCTS.filter(p => p.category === catId && !p.isDeleted);
+  
+  // Apply phone model filtering if specific and active
+  if (isModelSpecific) {
+    if (categoryDetailSelectedBrand) {
+      filteredProducts = filteredProducts.filter(p => p.brand === categoryDetailSelectedBrand);
+    }
+    if (categoryDetailSelectedModel) {
+      filteredProducts = filteredProducts.filter(p => {
+        const pModelClean = getCleanModelName(p.model || "");
+        return normalizeModel(pModelClean) === normalizeModel(categoryDetailSelectedModel);
+      });
+    }
+  }
   
   // Update count in detail header
   const countEl = document.getElementById("category-detail-product-count");
@@ -1772,6 +2069,8 @@ function renderCategoryDetailPage(catId) {
 }
 
 window.backToCategories = function() {
+  categoryDetailSelectedBrand = null;
+  categoryDetailSelectedModel = null;
   history.pushState(null, "", "/category");
   handleRouting();
 };
@@ -1922,6 +2221,7 @@ window.openMobileMenu = openMobileMenu;
 window.closeMobileMenu = closeMobileMenu;
 window.renderCartItems = renderCartItems;
 window.applyPromoCode = applyPromoCode;
+window.handleRouting = handleRouting;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);

@@ -82,6 +82,19 @@
     </div>
   </header>
 
+  <!-- --- SMART SEARCH BAR SECTION --- -->
+  <div class="search-bar-section" style="background: var(--bg-white); border-bottom: 1px solid var(--border-color); padding: 0.75rem 0; position: sticky; top: 80px; z-index: 90; box-shadow: var(--shadow-sm);">
+    <div class="container" style="position: relative; max-width: 800px; margin: 0 auto; padding: 0 1.5rem;">
+      <div class="search-input-wrapper" style="position: relative; display: flex; align-items: center;">
+        <i class="fas fa-search" style="position: absolute; left: 1rem; color: var(--text-muted); font-size: 1rem;"></i>
+        <input type="text" id="smart-search-input" placeholder="Търсете кейс, модел телефон (напр. iPhone 15 Pro)..." style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem; border: 1.5px solid var(--border-color); border-radius: 30px; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; font-family: var(--font-sans);" oninput="handleSearchInput(this.value)" onkeydown="handleSearchKeyDown(event)">
+        <button id="search-clear-btn" onclick="clearSearch()" style="display: none; position: absolute; right: 1rem; background: none; border: none; cursor: pointer; color: var(--text-muted);"><i class="fas fa-times"></i></button>
+      </div>
+      <!-- Search Suggestions Box -->
+      <div id="search-suggestions" style="display: none; position: absolute; top: 100%; left: 1.5rem; right: 1.5rem; background: var(--bg-white); border: 1.5px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 300; max-height: 350px; overflow-y: auto; margin-top: 0.5rem; padding: 0.5rem 0;"></div>
+    </div>
+  </div>
+
   <!-- === STOREFRONT HOME VIEW === -->
   <div id="storefront-home-view">
     <!-- --- HERO / SEO INTRO SECTION --- -->
@@ -358,6 +371,14 @@
       </div>
     </div>
     <div class="container" style="padding: 2rem 1.5rem 5rem 1.5rem;">
+      <!-- Brand & Model Filter Panel inside Category Detail View -->
+      <div id="category-detail-filter-panel" style="display: none; margin-bottom: 2rem; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow-sm);">
+        <h3 style="font-size: 1.1rem; color: var(--primary); font-weight: 700; margin-bottom: 1rem; font-family: var(--font-sans);">Филтрирай по марка и модел телефон:</h3>
+        <div class="brands-list-container" id="cat-detail-brands-list" style="margin-bottom: 1rem;"></div>
+        <h4 id="cat-detail-step2-title" style="display: none; font-size: 0.95rem; color: var(--primary); font-weight: 600; margin-bottom: 0.75rem; font-family: var(--font-sans);">Избери модел:</h4>
+        <div class="models-list-container" id="cat-detail-models-list" style="display: none; margin-bottom: 0.5rem;"></div>
+      </div>
+      
       <div class="product-grid" id="category-detail-product-grid">
         <!-- Dynamically populated products -->
       </div>
