@@ -730,7 +730,7 @@ window.addToCart = function(productId, quantity = 1) {
   const isB2B = currentUser && currentUser.clientType === "B2B";
   const activePrice = isB2B ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
   
-  const existingItemIndex = cart.findIndex(item => item.id === productId && !item.isGift);
+  const existingItemIndex = cart.findIndex(item => (item.id || item._id) === productId && !item.isGift);
   if (existingItemIndex > -1) {
     cart[existingItemIndex].quantity += quantity;
     cart[existingItemIndex].price = activePrice; // update to latest login type rate
@@ -751,7 +751,7 @@ window.addToCart = function(productId, quantity = 1) {
 };
 
 window.updateCartItemQty = function(productId, newQty) {
-  const index = cart.findIndex(item => item.id === productId && !item.isGift);
+  const index = cart.findIndex(item => (item.id || item._id) === productId && !item.isGift);
   if (index === -1) return;
   
   if (newQty <= 0) {
@@ -763,7 +763,7 @@ window.updateCartItemQty = function(productId, newQty) {
 };
 
 window.removeFromCart = function(productId) {
-  const index = cart.findIndex(item => item.id === productId && !item.isGift);
+  const index = cart.findIndex(item => (item.id || item._id) === productId && !item.isGift);
   if (index > -1) {
     cart.splice(index, 1);
     saveCart();
@@ -856,17 +856,19 @@ function renderCartItems() {
     const itemRow = document.createElement("div");
     itemRow.className = "cart-item";
     
+    const itemId = item.id || item._id;
+    
     const qtySelectHtml = item.isGift 
       ? `<span class="cart-qty-val" style="color:var(--success); font-weight:600;">Подарък</span>`
       : `<div class="cart-item-qty-row">
-          <button class="cart-qty-btn" onclick="updateCartItemQty('${item.id}', ${item.quantity - 1})">-</button>
+          <button class="cart-qty-btn" onclick="updateCartItemQty('${itemId}', ${item.quantity - 1})">-</button>
           <span class="cart-qty-val">${item.quantity}</span>
-          <button class="cart-qty-btn" onclick="updateCartItemQty('${item.id}', ${item.quantity + 1})">+</button>
+          <button class="cart-qty-btn" onclick="updateCartItemQty('${itemId}', ${item.quantity + 1})">+</button>
         </div>`;
 
     const removeBtnHtml = item.isGift
       ? ""
-      : `<button class="cart-item-remove-btn" onclick="removeFromCart('${item.id}')" title="Премахни">
+      : `<button class="cart-item-remove-btn" onclick="removeFromCart('${itemId}')" title="Премахни">
           <svg style="width: 18px; height: 18px; pointer-events: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </button>`;
 
@@ -1083,7 +1085,7 @@ window.submitCheckout = async function(event) {
   
   // Prepare items payload
   const orderItems = cart.map(item => ({
-    id: item.id,
+    id: item.id || item._id,
     name: item.name,
     price: item.price,
     quantity: item.quantity,
