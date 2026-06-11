@@ -1611,7 +1611,18 @@ function handleRouting() {
     categoryDetailView.style.display = "none";
     
     renderCategoriesListPage();
-    window.scrollTo(0, 0);
+    
+    // Scroll down to the categories grid smoothly
+    setTimeout(() => {
+      const gridEl = document.getElementById("categories-list-page-grid");
+      if (gridEl) {
+        const yOffset = -120;
+        const y = gridEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      } else {
+        window.scrollTo(0, 0);
+      }
+    }, 100);
   } else if (activeCategoryDetailId) {
     // Show Category Detail View
     homeView.style.display = "none";
