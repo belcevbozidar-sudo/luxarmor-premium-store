@@ -152,6 +152,7 @@ let CATEGORIES = [...STATIC_CATEGORIES];
 let BRANDS = [...STATIC_BRANDS];
 let MODELS = [...STATIC_MODELS];
 let PROMOTIONS = [];
+let isDataLoaded = false;
 
 try {
   const cachedProducts = localStorage.getItem("caseking_cached_products");
@@ -301,6 +302,8 @@ async function loadData() {
     console.log("Storefront data successfully loaded dynamically from Convex.");
   } catch (err) {
     console.warn("Could not load dynamic data from Convex, falling back to static dataset.", err);
+  } finally {
+    isDataLoaded = true;
   }
 }
 
@@ -752,8 +755,15 @@ window.addToCart = function(productId, quantity = 1) {
   openCartSidebar();
 };
 
-window.updateCartItemQty = function(productId, newQty) {
-  const index = cart.findIndex(item => (item.id || item._id) === productId && !item.isGift);
+window.updateCartItemQty = function(indexOrId, newQty) {
+  let index = -1;
+  const parsedIndex = parseInt(indexOrId);
+  if (!isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < cart.length) {
+    index = parsedIndex;
+  } else {
+    index = cart.findIndex(item => (item.id || item._id) === indexOrId && !item.isGift);
+  }
+  
   if (index === -1) return;
   
   if (newQty <= 0) {
@@ -764,8 +774,15 @@ window.updateCartItemQty = function(productId, newQty) {
   saveCart();
 };
 
-window.removeFromCart = function(productId) {
-  const index = cart.findIndex(item => (item.id || item._id) === productId && !item.isGift);
+window.removeFromCart = function(indexOrId) {
+  let index = -1;
+  const parsedIndex = parseInt(indexOrId);
+  if (!isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < cart.length) {
+    index = parsedIndex;
+  } else {
+    index = cart.findIndex(item => (item.id || item._id) === indexOrId && !item.isGift);
+  }
+  
   if (index > -1) {
     cart.splice(index, 1);
     saveCart();
@@ -868,23 +885,21 @@ function renderCartItems() {
   }
   
   itemsContainer.innerHTML = "";
-  cart.forEach(item => {
+  cart.forEach((item, idx) => {
     const itemRow = document.createElement("div");
     itemRow.className = "cart-item";
-    
-    const itemId = item.id || item._id;
     
     const qtySelectHtml = item.isGift 
       ? `<span class="cart-qty-val" style="color:var(--success); font-weight:600;">Подарък</span>`
       : `<div class="cart-item-qty-row">
-          <button class="cart-qty-btn" onclick="updateCartItemQty('${itemId}', ${item.quantity - 1})">-</button>
+          <button class="cart-qty-btn" onclick="updateCartItemQty(${idx}, ${item.quantity - 1})">-</button>
           <span class="cart-qty-val">${item.quantity}</span>
-          <button class="cart-qty-btn" onclick="updateCartItemQty('${itemId}', ${item.quantity + 1})">+</button>
+          <button class="cart-qty-btn" onclick="updateCartItemQty(${idx}, ${item.quantity + 1})">+</button>
         </div>`;
 
     const removeBtnHtml = item.isGift
       ? ""
-      : `<button class="cart-item-remove-btn" onclick="removeFromCart('${itemId}')" title="Премахни">
+      : `<button class="cart-item-remove-btn" onclick="removeFromCart(${idx})" title="Премахни">
           <svg style="width: 18px; height: 18px; pointer-events: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </button>`;
 
@@ -1504,6 +1519,33 @@ async function handleGoogleCredentialResponse(response) {
   }
 }
 
+window.goToHome = function() {
+  selectedBrand = null;
+  selectedModel = null;
+  selectedCategory = null;
+  
+  // Clear active classes in filters
+  document.querySelectorAll(".brand-card").forEach(c => c.classList.remove("active"));
+  document.querySelectorAll(".category-card").forEach(c => c.classList.remove("active"));
+  document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+  
+  // Reset Step 2 model list
+  const modelsContainer = document.getElementById("models-list");
+  if (modelsContainer) {
+    modelsContainer.innerHTML = "";
+    modelsContainer.style.display = "none";
+  }
+  const step2Title = document.getElementById("step2-title");
+  if (step2Title) step2Title.style.display = "none";
+  
+  // Reset catalog title
+  const catalogTitle = document.getElementById("catalog-main-title");
+  if (catalogTitle) catalogTitle.textContent = "Препоръчани продукти";
+  
+  history.pushState(null, "", "/");
+  handleRouting();
+};
+
 // --- CLIENT-SIDE ROUTER ---
 function handleRouting() {
   let path = window.location.pathname;
@@ -1529,7 +1571,7 @@ function handleRouting() {
   if (path.startsWith("/produkt/")) {
     const slug = path.substring("/produkt/".length);
     product = PRODUCTS.find(p => getProductSlug(p.name + " " + (p.model || "")) === slug);
-    if (!product) {
+    if (!product && isDataLoaded) {
       // Clean up invalid product URL
       history.replaceState(null, "", "/");
       path = "/";
@@ -1545,7 +1587,7 @@ function handleRouting() {
     const category = CATEGORIES.find(c => c.id === catId);
     if (category) {
       activeCategoryDetailId = catId;
-    } else {
+    } else if (isDataLoaded) {
       history.replaceState(null, "", "/");
       path = "/";
     }
@@ -1644,6 +1686,26 @@ function renderCategoryDetailPage(catId) {
   const nameEl = document.getElementById("category-detail-name");
   if (nameEl && category) {
     nameEl.textContent = category.name;
+  }
+  
+  const descEl = document.getElementById("category-detail-desc");
+  if (descEl) {
+    const categoryDescriptions = {
+      cases: "Открийте нашата богата гама от висококачествени кейсове и калъфи, осигуряващи максимална защита и неповторим стил за вашия телефон.",
+      protectors: "Изключително здрави закалени стъклени протектори за екран, предпазващи дисплея от надраскване, пукнатини и силни удари без загуба на чувствителност.",
+      car_acc: "Удобни магнитни и механични поставки, безжични зарядни и други важни аксесоари за безопасно и комфортно пътуване във вашия автомобил.",
+      wireless_chargers: "Модерни и бързи безжични зарядни устройства, съвместими с MagSafe и Qi стандарти за максимално улеснение в ежедневието ви.",
+      all_chargers: "Висококачествени адаптери за стена и кола с технологии за бързо зареждане Power Delivery и Quick Charge за всички ваши устройства.",
+      original_cables: "Издръжливи кабелни решения с текстилна оплетка и подсилени краища за бърз трансфер на данни и сигурно захранване без прекъсване.",
+      desk_holder: "Ергономични метални и пластмасови поставки за бюро, подходящи за видео разговори, гледане на съдържание и удобна ежедневна работа.",
+      selfie_stick: "Стабилни и леки селфи стикове с вграден трипод и Bluetooth дистанционно управление за заснемане на перфектните моменти навсякъде.",
+      pop_socket: "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон.",
+      power_banks: "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение.",
+      headphones: "Премиум безжични и жични слушалки с изключително качество на звука, дълбок бас и ергономичен дизайн за максимален комфорт.",
+      memory_cards: "Бързи и надеждни карти памет и флаш памети с голям капацитет за сигурно съхранение на вашите снимки, видеоклипове и важни файлове.",
+      hydrogel_film: "Високотехнологично самовъзстановяващо се хидрогел фолио за пълна 360-градусова защита на екрана и гърба на вашето мобилно устройство."
+    };
+    descEl.textContent = categoryDescriptions[catId] || "Премиум телефонни аксесоари от най-висок клас, подбрани специално за вашите нужди и изисквания.";
   }
   
   const grid = document.getElementById("category-detail-product-grid");
