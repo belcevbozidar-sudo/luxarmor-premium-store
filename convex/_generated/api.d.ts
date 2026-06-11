@@ -9,6 +9,7 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as blog from "../blog.js";
 import type * as meta from "../meta.js";
 import type * as orders from "../orders.js";
 import type * as products from "../products.js";
@@ -24,6 +25,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  blog: typeof blog;
   meta: typeof meta;
   orders: typeof orders;
   products: typeof products;
