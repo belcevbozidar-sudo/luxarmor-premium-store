@@ -1616,13 +1616,11 @@ function handleRouting() {
     setTimeout(() => {
       const gridEl = document.getElementById("categories-list-page-grid");
       if (gridEl) {
-        const yOffset = -120;
-        const y = gridEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
+        gridEl.scrollIntoView({ behavior: "smooth", block: "start" });
       } else {
         window.scrollTo(0, 0);
       }
-    }, 100);
+    }, 200);
   } else if (activeCategoryDetailId) {
     // Show Category Detail View
     homeView.style.display = "none";
