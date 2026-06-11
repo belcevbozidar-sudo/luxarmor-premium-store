@@ -232,3 +232,54 @@ export const createBatch = mutation({
   },
 });
 
+export const migrateSemicolonImages = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    let updatedCount = 0;
+    
+    for (const p of products) {
+      const anyP = p as any;
+      let needsPatch = false;
+      const patchData: any = {};
+      
+      // Check if p.image has semicolons
+      if (anyP.image && anyP.image.includes(";")) {
+        const parts = anyP.image.split(";").map((img: string) => img.trim()).filter(Boolean);
+        if (parts.length > 0) {
+          patchData.image = parts[0];
+          needsPatch = true;
+        }
+      }
+      
+      // Check if p.images array contains elements with semicolons
+      if (anyP.images && anyP.images.length > 0) {
+        let newImages: string[] = [];
+        let hasSemicolons = false;
+        
+        for (const img of anyP.images) {
+          if (img.includes(";")) {
+            hasSemicolons = true;
+            const parts = img.split(";").map((i: string) => i.trim()).filter(Boolean);
+            newImages = [...newImages, ...parts];
+          } else {
+            newImages.push(img);
+          }
+        }
+        
+        if (hasSemicolons) {
+          patchData.images = newImages;
+          needsPatch = true;
+        }
+      }
+      
+      if (needsPatch) {
+        await ctx.db.patch(p._id, patchData);
+        updatedCount++;
+      }
+    }
+    
+    return `Cleaned up semicolon-separated images in ${updatedCount} products`;
+  },
+});
+

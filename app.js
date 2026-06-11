@@ -595,7 +595,8 @@ function updateProductPageImage(index) {
 function renderProductPage(productId) {
   const p = PRODUCTS.find(item => item._id === productId);
   if (!p) {
-    window.location.hash = "#";
+    history.replaceState("", document.title, window.location.pathname + window.location.search);
+    handleRouting();
     return;
   }
   
@@ -1098,7 +1099,8 @@ window.submitCheckout = async function(event) {
     }
     
     // Redirect to home
-    window.location.hash = "#";
+    history.pushState("", document.title, window.location.pathname + window.location.search);
+    handleRouting();
   } catch (err) {
     alert("Грешка при изпращане на поръчката: " + err.message);
   }
@@ -1107,7 +1109,8 @@ window.submitCheckout = async function(event) {
 window.closeSuccessScreen = function() {
   document.getElementById("success-screen").classList.remove("active");
   document.getElementById("checkout-form-main").reset();
-  window.location.hash = "#";
+  history.pushState("", document.title, window.location.pathname + window.location.search);
+  handleRouting();
 };
 
 // --- AUTH / PROFILE PORTAL ---
@@ -1468,7 +1471,8 @@ function handleRouting() {
 }
 
 window.backToCatalog = function() {
-  window.location.hash = "#";
+  history.pushState("", document.title, window.location.pathname + window.location.search);
+  handleRouting();
 };
 
 // --- MOBILE HAMBURGER MENU ACTIONS ---

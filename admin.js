@@ -1514,7 +1514,16 @@ function processCSVData(rows) {
     let oldPriceB2B = oldPriceB2BIdx !== -1 && row[oldPriceB2BIdx] ? parseFloat(row[oldPriceB2BIdx]) : null;
     if (isNaN(oldPriceB2B)) oldPriceB2B = null;
     
-    let image = imgIdx !== -1 && row[imgIdx] ? row[imgIdx].toString().trim() : "assets/logo.webp";
+    let rawImage = imgIdx !== -1 && row[imgIdx] ? row[imgIdx].toString().trim() : "assets/logo.webp";
+    let image = "assets/logo.webp";
+    let images = [];
+    if (rawImage && rawImage !== "assets/logo.webp") {
+      const parts = rawImage.split(";").map(img => img.trim()).filter(Boolean);
+      if (parts.length > 0) {
+        image = parts[0];
+        images = parts;
+      }
+    }
     let description = descIdx !== -1 && row[descIdx] ? row[descIdx].toString().trim() : "";
     let material = matIdx !== -1 && row[matIdx] ? row[matIdx].toString().trim() : "Премиум силикон / TPU / Кожа";
     let weight = weightIdx !== -1 && row[weightIdx] ? row[weightIdx].toString().trim() : "30г";
@@ -1560,7 +1569,8 @@ function processCSVData(rows) {
         origin: originIdx !== -1 && row[originIdx] ? row[originIdx].toString().trim() : "Германия",
         delivery: delIdx !== -1 && row[delIdx] ? row[delIdx].toString().trim() : "Бърза доставка до 24 часа"
       },
-      image
+      image,
+      images
     };
     
     parsedCSVProducts.push(product);
