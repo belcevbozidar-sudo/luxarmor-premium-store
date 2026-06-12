@@ -4,6 +4,8 @@
     { "source": "/api/image/:slug*", "destination": "/api/image" },
     { "source": "/produkt/:slug*", "destination": "/index" },
     { "source": "/category", "destination": "/index" },
-    { "source": "/category/:slug*", "destination": "/index" }
+    { "source": "/category/:slug*", "destination": "/index" },
+    { "source": "/privacy", "destination": "/index" },
+    { "source": "/terms", "destination": "/index" }
   ]
 }

@@ -1460,6 +1460,12 @@ window.submitCheckout = async function(event) {
     alert("Моля попълнете всички задължителни полета!");
     return;
   }
+
+  const gdprConsent = document.getElementById("checkout-gdpr-consent");
+  if (gdprConsent && !gdprConsent.checked) {
+    alert("Моля, съгласете се с Условията за ползване и Политиката за поверителност, за да завършите поръчката!");
+    return;
+  }
   
   // Prepare items payload
   const orderItems = cart.map(item => ({
@@ -1925,7 +1931,12 @@ function handleRouting() {
   const checkoutView = document.getElementById("checkout-page-view");
   const categoriesListView = document.getElementById("categories-page-view");
   const categoryDetailView = document.getElementById("category-detail-view");
+  const privacyView = document.getElementById("privacy-page-view");
+  const termsView = document.getElementById("terms-page-view");
   if (!homeView || !productView || !checkoutView || !categoriesListView || !categoryDetailView) return;
+
+  if (privacyView) privacyView.style.display = "none";
+  if (termsView) termsView.style.display = "none";
   
   // Check if the route is a product detail path
   let product = null;
@@ -2007,6 +2018,24 @@ function handleRouting() {
     categoryDetailView.style.display = "block";
     
     renderCategoryDetailPage(activeCategoryDetailId);
+    window.scrollTo(0, 0);
+  } else if (path === "/privacy") {
+    // Show Privacy Policy
+    homeView.style.display = "none";
+    productView.style.display = "none";
+    checkoutView.style.display = "none";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "none";
+    if (privacyView) privacyView.style.display = "block";
+    window.scrollTo(0, 0);
+  } else if (path === "/terms") {
+    // Show Terms of Use
+    homeView.style.display = "none";
+    productView.style.display = "none";
+    checkoutView.style.display = "none";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "none";
+    if (termsView) termsView.style.display = "block";
     window.scrollTo(0, 0);
   } else {
     // Show Standard Home/Catalog view
@@ -2313,6 +2342,9 @@ async function initApp() {
   updateCartCount();
   renderCartItems();
   isInitialLoad = false;
+
+  // Check cookie consent banner
+  checkCookieConsent();
   
   // Trigger router routing checks
   handleRouting();
@@ -2400,12 +2432,40 @@ async function applyPromoCode() {
   }
 }
 
+// --- COOKIE CONSENT BANNER LOGIC ---
+function checkCookieConsent() {
+  const consent = localStorage.getItem("caseking_cookie_consent");
+  if (!consent) {
+    const banner = document.getElementById("cookie-consent-banner");
+    if (banner) {
+      setTimeout(() => {
+        banner.style.display = "block";
+        // Force reflow
+        banner.offsetHeight;
+        banner.classList.add("show");
+      }, 1000);
+    }
+  }
+}
+
+function acceptCookies() {
+  localStorage.setItem("caseking_cookie_consent", "accepted");
+  const banner = document.getElementById("cookie-consent-banner");
+  if (banner) {
+    banner.classList.remove("show");
+    setTimeout(() => {
+      banner.style.display = "none";
+    }, 400);
+  }
+}
+
 // Global Exports
 window.openMobileMenu = openMobileMenu;
 window.closeMobileMenu = closeMobileMenu;
 window.renderCartItems = renderCartItems;
 window.applyPromoCode = applyPromoCode;
 window.handleRouting = handleRouting;
+window.acceptCookies = acceptCookies;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);

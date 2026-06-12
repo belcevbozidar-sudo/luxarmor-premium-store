@@ -186,7 +186,7 @@
               <i class="fas fa-handshake" style="color: var(--gold);"></i> B2B Партньорска Програма
             </h3>
             <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.9rem; margin-bottom: 1.25rem;">
-              Вие сте търговец или имате физически магазин? CaseKing предлага специални B2B цени на едро с точно **20% партньорска отстъпка** от крайните цени за всички регистрирани партньори, както и облекчени условия за доставка и гаранция.
+              Вие сте търговец или имате физически магазин? CaseKing предлага специални B2B цени на едро с <strong>голяма партньорска отстъпка</strong> от крайните цени за всички регистрирани партньори, както и облекчени условия за доставка и гаранция.
             </p>
             <a href="#" onclick="openAuthModal(); toggleAuthPanel('register'); switchRegType('B2B'); return false;" style="display: inline-flex; align-items: center; justify-content: center; color: #fff; background: var(--accent); padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: background 0.2s; box-shadow: 0 4px 12px rgba(204, 164, 59, 0.25);">
               Регистрирайте B2B профил
@@ -307,7 +307,14 @@
               </div>
             </div>
             
-            <button type="submit" class="btn-premium" style="width: 100%; margin-top: 2rem; padding: 1rem;">Завърши поръчката</button>
+            <div style="margin-top: 1.5rem; display: flex; align-items: flex-start; gap: 0.5rem; color: var(--text-muted);">
+              <input type="checkbox" id="checkout-gdpr-consent" required style="accent-color: var(--gold); margin-top: 0.2rem; cursor: pointer;">
+              <label for="checkout-gdpr-consent" style="font-size: 0.85rem; line-height: 1.4; cursor: pointer;">
+                Съгласявам се с <a href="/terms" onclick="event.preventDefault(); history.pushState(null, '', '/terms'); handleRouting();" style="color: var(--gold); text-decoration: underline;">Условията за ползване</a> и <a href="/privacy" onclick="event.preventDefault(); history.pushState(null, '', '/privacy'); handleRouting();" style="color: var(--gold); text-decoration: underline;">Политиката за поверителност</a> на сайта. *
+              </label>
+            </div>
+
+            <button type="submit" class="btn-premium" style="width: 100%; margin-top: 2.25rem; padding: 1rem;">Завърши поръчката</button>
           </form>
         </div>
         
@@ -384,6 +391,138 @@
     </div>
   </section>
 
+  <!-- === PRIVACY POLICY PAGE VIEW === -->
+  <section class="legal-page-section" id="privacy-page-view" style="display: none; padding: 4rem 0; min-height: 80vh; background: var(--bg-light);">
+    <div class="container" style="max-width: 900px; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 3rem 2.5rem; box-shadow: var(--shadow-sm);">
+      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--primary); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: var(--transition-fast);">
+        <i class="fas fa-arrow-left"></i> Назад към каталога
+      </button>
+      
+      <div class="legal-content">
+        <h1 style="font-family: var(--font-sans); color: var(--primary); font-size: 2.25rem; font-weight: 800; margin-bottom: 1.5rem; border-bottom: 2px solid var(--gold); padding-bottom: 0.75rem;">Политика за поверителност</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">Последна промяна: 12 юни 2026 г.</p>
+        
+        <p style="margin-bottom: 1.5rem; font-size: 1.05rem; line-height: 1.7; color: var(--primary);">
+          Добре дошли в <strong>CaseKing</strong>. Ние ценим Вашата поверителност и се ангажираме да защитаваме Вашите лични данни в пълно съответствие с Общия регламент за защита на данните (Регламент (ЕС) 2016/679 - GDPR). Тази Политика за поверителност описва как събираме, използваме и споделяме информация при посещение на нашия уебсайт или при извършване на поръчка.
+        </p>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">1. Какви лични данни събираме</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          Когато правите поръчка на нашия сайт, ние събираме следните лични данни, които са необходими за изпълнение на договора за продажба и доставка:
+        </p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
+          <li><strong>Име и фамилия:</strong> За целите на адресиране на пратката и фактуриране.</li>
+          <li><strong>Телефон за връзка:</strong> За потвърждение на поръчката и комуникация с куриерската фирма.</li>
+          <li><strong>Адрес за доставка:</strong> Офис на куриер (Еконт/Спиди) или личен адрес за доставка на продуктите.</li>
+          <li><strong>Данни за фирмата (при B2B поръчки):</strong> Име на фирма, ЕИК/БУЛСТАТ, адрес на регистрация и МОЛ за целите на издаване на данъчна фактура.</li>
+          <li><strong>Технически данни:</strong> IP адрес, тип браузър и бисквитки за аналитични цели и правилно функциониране на сайта.</li>
+        </ul>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">2. Основание и цели на обработката</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          Ние обработваме Вашите лични данни на следните правни основания:
+        </p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
+          <li><strong>Изпълнение на договор (Чл. 6, ал. 1, б. „б“ от GDPR):</strong> Вашите данни са необходими, за да обработим поръчката Ви, да подготвим доставката и да Ви изпратим закупените стоки.</li>
+          <li><strong>Законово задължение (Чл. 6, ал. 1, б. „в“ от GDPR):</strong> За издаване на фактури и счетоводно отчитане на трансакциите.</li>
+          <li><strong>Изрично съгласие:</strong> За съхранение на бисквитки на Вашето устройство.</li>
+        </ul>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">3. Получатели на лични данни</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          Ние споделяме Вашите данни единствено с доверени партньори, ангажирани с доставката на Вашата поръчка:
+        </p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
+          <li><strong>Куриерски фирми (Еконт / Спиди):</strong> За целите на доставката, с опция за преглед и тест преди плащане.</li>
+          <li><strong>Счетоводни софтуери и услуги:</strong> При издаване на фактура за законова отчетност.</li>
+        </ul>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">4. Срок на съхранение</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          Съхраняваме Вашите лични данни за период, необходим за изпълнение на поръчката, както и за спазване на законовите счетоводни изисквания (обикновено до 10 години за счетоводни документи). Техническите бисквитки се съхраняват съгласно техния срок на валидност или докато не ги изтриете от браузъра си.
+        </p>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">5. Вашите права съгласно GDPR</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          Като субект на данни, Вие разполагате със следните права по всяко време:
+        </p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
+          <li><strong>Право на достъп:</strong> Да разберете дали и какви Ваши данни се обработват.</li>
+          <li><strong>Право на коригиране:</strong> Да изискате промяна на грешни или непълни лични данни.</li>
+          <li><strong>Право на изтриване („право да бъдеш забравен“):</strong> Да поискате изтриване на Вашите данни, освен ако няма законово изискване за тяхното съхранение.</li>
+          <li><strong>Право на ограничаване на обработката:</strong> Да поискате временно спиране на обработката при спорни случаи.</li>
+          <li><strong>Право на преносимост на данните:</strong> Да получите данните си в структуриран и четим формат.</li>
+          <li><strong>Право на възражение:</strong> Да се противопоставите на обработването за целите на директния маркетинг.</li>
+        </ul>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          За да упражните някое от тези права, можете да се свържете с нас на имейл: <a href="mailto:caseking23@gmail.com" style="color: var(--gold); text-decoration: underline;">caseking23@gmail.com</a>.
+        </p>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">6. Сигурност на данните</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          Ние предприемаме подходящи технически и организационни мерки за защита на Вашите лични данни от загуба, неоторизиран достъп или разкриване. Нашият уебсайт използва криптирана SSL връзка (HTTPS).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- === TERMS OF USE PAGE VIEW === -->
+  <section class="legal-page-section" id="terms-page-view" style="display: none; padding: 4rem 0; min-height: 80vh; background: var(--bg-light);">
+    <div class="container" style="max-width: 900px; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 3rem 2.5rem; box-shadow: var(--shadow-sm);">
+      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--primary); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: var(--transition-fast);">
+        <i class="fas fa-arrow-left"></i> Назад към каталога
+      </button>
+      
+      <div class="legal-content">
+        <h1 style="font-family: var(--font-sans); color: var(--primary); font-size: 2.25rem; font-weight: 800; margin-bottom: 1.5rem; border-bottom: 2px solid var(--gold); padding-bottom: 0.75rem;">Условия за ползване</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">Последна промяна: 12 юни 2026 г.</p>
+        
+        <p style="margin-bottom: 1.5rem; font-size: 1.05rem; line-height: 1.7; color: var(--primary);">
+          Добре дошли в електронния магазин <strong>CaseKing</strong>. Моля, запознайте се внимателно с Общите условия за ползване на сайта и пазаруване преди да направите поръчка. Използването на този сайт и изпращането на поръчка представлява Вашето изрично съгласие с тези Условия.
+        </p>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">1. Общи положения</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          Сайтът функционира като платформа за продажба на аксесоари за мобилни телефони (калъфи, кейсове и др.). Информацията за продуктите, цените и наличностите е актуална към момента на публикуване.
+        </p>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">2. Цени и плащане</h2>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
+          <li>Всички цени на сайта са обявени в евро (€) и български лева (лв.) с включени данъци.</li>
+          <li>Плащането се извършва изключително чрез <strong>наложен платеж</strong> в брой или с карта при получаване на пратката от куриер.</li>
+          <li>Всички трансакции се придружават от съответния счетоводен документ (куриерска разписка при Пощенски паричен превод или фактура при заявен B2B режим).</li>
+        </ul>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">3. Доставка, Преглед и Тест</h2>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
+          <li>Доставките се извършват на територията на Република България чрез лицензирани куриерски услуги (Еконт или Спиди).</li>
+          <li>Всички пратки се изпращат с включена безплатна опция за <strong>Преглед и Тест</strong> преди заплащане.</li>
+          <li>Клиентът е длъжен да огледа стоката в присъствието на куриера. В случай на установено транспортно увреждане или липса, се попълва двустранен протокол за рекламация на място.</li>
+        </ul>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">4. Право на отказ и връщане (Рекламация)</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          Съгласно Закона за защита на потребителите (ЗЗП), потребителят има право да се откаже от договора и да върне закупената стока в срок от <strong>14 календарни дни</strong> от датата на получаването ѝ, при следните условия:
+        </p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
+          <li>Стоката да бъде в оригиналния си търговски вид, неразпечатана, неизползвана и без увреждания.</li>
+          <li>Разходите за връщане на стоката са изцяло за сметка на потребителя.</li>
+          <li>За да стартирате процес на връщане, се свържете с нас на имейл: <a href="mailto:caseking23@gmail.com" style="color: var(--gold); text-decoration: underline;">caseking23@gmail.com</a>.</li>
+        </ul>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">5. Ограничаване на отговорността</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          CaseKing не носи отговорност за щети, възникнали от неправилна употреба на продуктите или за технически проблеми в работата на сайта, които са извън нашия контрол.
+        </p>
+        
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">6. Контакт с нас</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
+          За всякакви въпроси, оплаквания или запитвания относно Общите условия, можете да се свържете с нашия екип на имейл: <a href="mailto:caseking23@gmail.com" style="color: var(--gold); text-decoration: underline;">caseking23@gmail.com</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
   <!-- --- BRAND FOOTER --- -->
   <footer id="footer">
     <div class="container footer-grid">
@@ -398,8 +537,8 @@
         <ul class="footer-links">
           <li><a href="/" class="footer-link" onclick="event.preventDefault(); goToHome();">Начало</a></li>
           <li><a href="/blog" class="footer-link">Блог</a></li>
-          <li><a href="#" class="footer-link">Условия за ползване</a></li>
-          <li><a href="#" class="footer-link">Политика за поверителност</a></li>
+          <li><a href="/terms" class="footer-link" onclick="event.preventDefault(); history.pushState(null, '', '/terms'); handleRouting();">Условия за ползване</a></li>
+          <li><a href="/privacy" class="footer-link" onclick="event.preventDefault(); history.pushState(null, '', '/privacy'); handleRouting();">Политика за поверителност</a></li>
         </ul>
       </div>
       <div>
@@ -635,6 +774,17 @@
           <!-- Dynamically loaded -->
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Cookie Consent Banner -->
+  <div id="cookie-consent-banner" class="cookie-banner" style="display: none;">
+    <div class="cookie-banner-content">
+      <p style="margin: 0; font-size: 0.85rem; line-height: 1.5;">
+        Този уебсайт използва бисквитки (cookies) за подобряване на Вашето изживяване, аналитични цели и функционалност на сайта. С натискането на бутона „Приемам“, Вие се съгласявате с използването им съгласно нашата 
+        <a href="/privacy" onclick="event.preventDefault(); history.pushState(null, '', '/privacy'); handleRouting();" style="color: var(--gold); text-decoration: underline; font-weight: 500;">Политика за поверителност</a>.
+      </p>
+      <button class="btn-premium" onclick="acceptCookies()" style="padding: 0.4rem 1.25rem; font-size: 0.8rem; font-weight: 600; white-space: nowrap; border-radius: 6px;">Приемам</button>
     </div>
   </div>
 
