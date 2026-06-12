@@ -1604,6 +1604,7 @@ function processCSVData(rows) {
     }
     
     const product = {
+      id,
       name,
       brand,
       model,
@@ -1676,18 +1677,14 @@ window.confirmCSVImport = async function() {
   if (!confirm(`Сигурни ли сте, че искате да импортирате ${parsedCSVProducts.length} продукта?`)) return;
   
   try {
-    let importedCount = 0;
-    
     // Build metadata cache
     const existingCats = await convex.query("meta:getCategories");
     const existingBrands = await convex.query("meta:getBrands");
     const existingModels = await convex.query("meta:getModels");
-    const existingProducts = await convex.query("products:get");
     
     const catsCache = new Set(existingCats.map(c => c.id));
     const brandsCache = new Set(existingBrands.map(b => b.name.toLowerCase()));
     const modelsCache = new Set(existingModels.map(m => `${m.brand.toLowerCase()}:${m.name.toLowerCase()}`));
-    const existingIds = new Set(existingProducts.map(p => p._id));
     
     const catNames = {
       "car_acc": "Аксесоари за автомобил",
@@ -1702,8 +1699,8 @@ window.confirmCSVImport = async function() {
       "pop_socket": "Попсокет / Връзки"
     };
 
+    // 1. Ensure all categories, brands, and models exist in metadata first
     for (const p of parsedCSVProducts) {
-      // Create category if missing
       if (!catsCache.has(p.category)) {
         const catName = catNames[p.category] || p.category;
         await convex.mutation("meta:addCategory", {
@@ -1714,7 +1711,6 @@ window.confirmCSVImport = async function() {
         catsCache.add(p.category);
       }
       
-      // Create brand if missing
       const brandLower = p.brand.toLowerCase();
       if (p.brand !== "Всички марки" && !brandsCache.has(brandLower)) {
         const logoName = `logo_${brandLower}_clean.webp`;
@@ -1725,7 +1721,6 @@ window.confirmCSVImport = async function() {
         brandsCache.add(brandLower);
       }
       
-      // Create model if missing
       const modelLower = p.model.toLowerCase();
       const modelKey = `${p.brand.toLowerCase()}:${modelLower}`;
       if (p.brand !== "Всички марки" && p.model !== "Всички модели" && !modelsCache.has(modelKey)) {
@@ -1735,20 +1730,21 @@ window.confirmCSVImport = async function() {
         });
         modelsCache.add(modelKey);
       }
-      
-      // If product exists in database, run update mutation. Otherwise, create a new record.
-      if (p.id && existingIds.has(p.id)) {
-        const { id, ...updateData } = p;
-        await convex.mutation("products:update", { id, ...updateData });
-      } else {
-        const { id, ...createData } = p;
-        await convex.mutation("products:create", createData);
-      }
-      
-      importedCount++;
+    }
+
+    // 2. Upload products in batches of 100 to optimize performance
+    let totalUpdated = 0;
+    let totalCreated = 0;
+    const chunkSize = 100;
+    
+    for (let i = 0; i < parsedCSVProducts.length; i += chunkSize) {
+      const chunk = parsedCSVProducts.slice(i, i + chunkSize);
+      const res = await convex.mutation("products:upsertBatch", { products: chunk });
+      totalUpdated += res.updatedCount || 0;
+      totalCreated += res.createdCount || 0;
     }
     
-    alert(`Успешно импортирани ${importedCount} продукта!`);
+    alert(`Успешно импортиране! Добавени нови: ${totalCreated}, Обновени съществуващи: ${totalUpdated}.`);
     parsedCSVProducts = [];
     document.getElementById("csv-preview-section").style.display = "none";
     document.getElementById("csv-file-input").value = "";

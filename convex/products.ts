@@ -335,5 +335,63 @@ export const inspect = query({
   }
 });
 
+export const upsertBatch = mutation({
+  args: {
+    products: v.array(
+      v.object({
+        id: v.union(v.string(), v.null()),
+        name: v.string(),
+        brand: v.string(),
+        model: v.string(),
+        category: v.string(),
+        image: v.string(),
+        images: v.optional(v.array(v.string())),
+        rating: v.number(),
+        tag: v.union(v.string(), v.null()),
+        description: v.string(),
+        specs: v.object({
+          material: v.string(),
+          weight: v.string(),
+          origin: v.string(),
+          delivery: v.string(),
+        }),
+        priceB2C: v.number(),
+        oldPriceB2C: v.union(v.number(), v.null()),
+        priceB2B: v.number(),
+        oldPriceB2B: v.union(v.number(), v.null()),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    let updatedCount = 0;
+    let createdCount = 0;
+    
+    for (const p of args.products) {
+      const { id, ...data } = p;
+      let exists = false;
+      
+      if (id) {
+        const dbId = ctx.db.normalizeId("products", id);
+        if (dbId) {
+          const existing = await ctx.db.get(dbId);
+          if (existing && !existing.isDeleted) {
+            await ctx.db.patch(dbId, data);
+            updatedCount++;
+            exists = true;
+          }
+        }
+      }
+      
+      if (!exists) {
+        await ctx.db.insert("products", data);
+        createdCount++;
+      }
+    }
+    
+    return { updatedCount, createdCount };
+  }
+});
+
+
 
 
