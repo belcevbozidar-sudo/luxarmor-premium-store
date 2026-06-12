@@ -1522,11 +1522,11 @@ function processCSVData(rows) {
       }
       return -1;
     };
-    nameIdx = findHeaderIdx(["name", "име"]);
+    nameIdx = findHeaderIdx(["name", "име", "мета заглавие"]);
     brandIdx = findHeaderIdx(["brand", "марка"]);
     modelIdx = findHeaderIdx(["model", "модел"]);
     categoryIdx = findHeaderIdx(["category", "категория"]);
-    priceB2CIdx = findHeaderIdx(["priceb2c", "цена b2c", "цена", "b2c цена"]);
+    priceB2CIdx = findHeaderIdx(["priceb2c", "цена b2c", "цена", "b2c цена", "цени", "цените"]);
     priceB2BIdx = findHeaderIdx(["priceb2b", "цена b2b", "b2b цена"]);
     oldPriceB2CIdx = findHeaderIdx(["oldpriceb2c", "стара цена b2c", "стара цена", "old price b2c"]);
     oldPriceB2BIdx = findHeaderIdx(["oldpriceb2b", "стара цена b2b", "old price b2b"]);
@@ -1535,10 +1535,10 @@ function processCSVData(rows) {
     weightIdx = findHeaderIdx(["weight", "тегло", "грама"]);
     originIdx = findHeaderIdx(["origin", "произход", "държава"]);
     delIdx = findHeaderIdx(["delivery", "доставка"]);
-    imgIdx = findHeaderIdx(["image", "снимка", "изображение"]);
+    imgIdx = findHeaderIdx(["image", "снимка", "изображение", "снимки"]);
     
-    if (nameIdx === -1 || brandIdx === -1 || categoryIdx === -1 || priceB2CIdx === -1) {
-      alert("Липсват задължителни колони в таблицата! Задължителни са: Име (Name), Марка (Brand), Категория (Category), Цена B2C (PriceB2C).");
+    if (nameIdx === -1 || brandIdx === -1 || priceB2CIdx === -1) {
+      alert("Липсват задължителни колони в таблицата! Задължителни са: Мета заглавие, Марка, Цените.");
       return;
     }
   }
@@ -1592,7 +1592,7 @@ function processCSVData(rows) {
     } else {
       brand = brandIdx !== -1 && row[brandIdx] ? row[brandIdx].toString().trim() : "Всички марки";
       model = modelIdx !== -1 && row[modelIdx] ? row[modelIdx].toString().trim() : "Всички модели";
-      category = row[categoryIdx] ? row[categoryIdx].toString().trim() : "pop_socket";
+      category = categoryIdx !== -1 && row[categoryIdx] ? row[categoryIdx].toString().trim() : "cases";
       priceB2B = priceB2BIdx !== -1 ? (parseFloat(row[priceB2BIdx]) || Math.round(priceB2C * 0.8 * 100) / 100) : (Math.round(priceB2C * 0.8 * 100) / 100);
       if (isNaN(priceB2B)) priceB2B = Math.round(priceB2C * 0.8 * 100) / 100;
       if (!description) description = "Премиум аксесоар за телефон";
@@ -1640,13 +1640,24 @@ function renderCSVPreview() {
     const tr = document.createElement("tr");
     const oldB2CStr = p.oldPriceB2C ? ` <del style="font-size:0.8rem; color:var(--text-muted);">${formatAdminPrice(p.oldPriceB2C)}</del>` : "";
     const oldB2BStr = p.oldPriceB2B ? ` <del style="font-size:0.8rem; color:var(--text-muted);">${formatAdminPrice(p.oldPriceB2B)}</del>` : "";
+    const thumbUrl = p.image || 'assets/logo.webp';
+    const imagesCount = p.images ? p.images.length : 1;
+    
     tr.innerHTML = `
-      <td><strong>${p.name}</strong></td>
       <td>${p.brand}</td>
       <td>${p.model}</td>
-      <td>${p.category}</td>
-      <td>${formatAdminPrice(p.priceB2C)}${oldB2CStr}</td>
-      <td>${formatAdminPrice(p.priceB2B)}${oldB2BStr}</td>
+      <td>
+        <div style="font-size: 0.85rem;">B2C: <strong>${formatAdminPrice(p.priceB2C)}</strong>${oldB2CStr}</div>
+        <div style="font-size: 0.85rem;">B2B: <strong>${formatAdminPrice(p.priceB2B)}</strong>${oldB2BStr}</div>
+      </td>
+      <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.description}">${p.description}</td>
+      <td><strong>${p.name}</strong></td>
+      <td>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <img src="${thumbUrl}" style="width: 36px; height: 36px; object-fit: contain; border: 1px solid var(--border-color); border-radius: 4px; background: #fafafa;" onerror="this.src='assets/logo.webp'">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">${imagesCount} бр.</span>
+        </div>
+      </td>
     `;
     tbody.appendChild(tr);
   });

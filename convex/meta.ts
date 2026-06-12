@@ -16,7 +16,7 @@ export const addBrand = mutation({
       .query("brands")
       .filter((q) => q.eq(q.field("name"), args.name))
       .first();
-    if (existing) throw new Error("Марката вече съществува!");
+    if (existing) return existing._id;
     return await ctx.db.insert("brands", args);
   },
 });
@@ -46,7 +46,7 @@ export const addModel = mutation({
       .query("models")
       .filter((q) => q.and(q.eq(q.field("name"), args.name), q.eq(q.field("brand"), args.brand)))
       .first();
-    if (existing) throw new Error("Моделът вече съществува за тази марка!");
+    if (existing) return existing._id;
     return await ctx.db.insert("models", args);
   },
 });
@@ -76,7 +76,7 @@ export const addCategory = mutation({
       .query("categories")
       .filter((q) => q.eq(q.field("id"), args.id))
       .first();
-    if (existing) throw new Error("Категорията вече съществува!");
+    if (existing) return existing._id;
     return await ctx.db.insert("categories", args);
   },
 });
