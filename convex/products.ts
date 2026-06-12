@@ -283,3 +283,57 @@ export const migrateSemicolonImages = mutation({
   },
 });
 
+export const deduplicate = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db
+      .query("products")
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("isDeleted"), undefined),
+          q.eq(q.field("isDeleted"), false)
+        )
+      )
+      .take(3000);
+      
+    const seen = new Set();
+    let deletedCount = 0;
+    
+    for (const p of products) {
+      const key = `${(p.name || "").toString().toLowerCase()}|${(p.brand || "").toString().toLowerCase()}|${(p.model || "").toString().toLowerCase()}|${p.priceB2C || 0}`;
+      if (seen.has(key)) {
+        await ctx.db.delete(p._id);
+        deletedCount++;
+      } else {
+        seen.add(key);
+      }
+    }
+    
+    return `Removed ${deletedCount} duplicate products.`;
+  },
+});
+
+export const inspect = query({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    const keys = products.slice(0, 10).map(p => {
+      return {
+        id: p._id,
+        name: p.name,
+        brand: p.brand,
+        model: p.model,
+        priceB2C: p.priceB2C,
+        price: p.price,
+        isDeleted: p.isDeleted
+      };
+    });
+    return {
+      total: products.length,
+      keys
+    };
+  }
+});
+
+
+
