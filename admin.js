@@ -1500,7 +1500,7 @@ function processCSVData(rows) {
   const headers = rows[0].map(h => h.toString().trim().toLowerCase());
   const isSellaviFormat = headers.includes("име на продукта") && (headers.includes("цена") || headers.includes("цена b2c")) && headers.includes("категория");
   
-  let nameIdx, brandIdx, modelIdx, categoryIdx, priceB2CIdx, priceB2BIdx, oldPriceB2CIdx, oldPriceB2BIdx, descIdx, matIdx, weightIdx, originIdx, delIdx, imgIdx;
+  let nameIdx, brandIdx, modelIdx, categoryIdx, priceB2CIdx, priceB2BIdx, oldPriceB2CIdx, oldPriceB2BIdx, descIdx, matIdx, weightIdx, originIdx, delIdx, imgIdx, idIdx;
   
   if (isSellaviFormat) {
     nameIdx = headers.indexOf("име на продукта");
@@ -1514,6 +1514,8 @@ function processCSVData(rows) {
     descIdx = headers.indexOf("описание");
     weightIdx = headers.indexOf("тегло");
     matIdx = headers.indexOf("материал");
+    idIdx = headers.indexOf("id на продукта") !== -1 ? headers.indexOf("id на продукта") : headers.indexOf("sku");
+    brandIdx = headers.indexOf("марка");
   } else {
     const findHeaderIdx = (variants) => {
       for (const variant of variants) {
@@ -1536,6 +1538,7 @@ function processCSVData(rows) {
     originIdx = findHeaderIdx(["origin", "произход", "държава"]);
     delIdx = findHeaderIdx(["delivery", "доставка"]);
     imgIdx = findHeaderIdx(["image", "снимка", "изображение", "снимки"]);
+    idIdx = findHeaderIdx(["id на продукта", "id", "_id", "sku"]);
     
     if (nameIdx === -1 || brandIdx === -1 || priceB2CIdx === -1) {
       alert("Липсват задължителни колони в таблицата! Задължителни са: Мета заглавие, Марка, Цените.");
@@ -1575,6 +1578,8 @@ function processCSVData(rows) {
     let material = matIdx !== -1 && row[matIdx] ? row[matIdx].toString().trim() : "Премиум силикон / TPU / Кожа";
     let weight = weightIdx !== -1 && row[weightIdx] ? row[weightIdx].toString().trim() : "30г";
     if (weight && !weight.endsWith("г")) weight = weight + "г";
+    let id = idIdx !== -1 && row[idIdx] ? row[idIdx].toString().trim() : null;
+    if (id === "") id = null;
     
     if (isSellaviFormat) {
       const catVal = row[categoryIdx] ? row[categoryIdx].toString().trim() : "";
@@ -1677,10 +1682,12 @@ window.confirmCSVImport = async function() {
     const existingCats = await convex.query("meta:getCategories");
     const existingBrands = await convex.query("meta:getBrands");
     const existingModels = await convex.query("meta:getModels");
+    const existingProducts = await convex.query("products:get");
     
     const catsCache = new Set(existingCats.map(c => c.id));
     const brandsCache = new Set(existingBrands.map(b => b.name.toLowerCase()));
     const modelsCache = new Set(existingModels.map(m => `${m.brand.toLowerCase()}:${m.name.toLowerCase()}`));
+    const existingIds = new Set(existingProducts.map(p => p._id));
     
     const catNames = {
       "car_acc": "Аксесоари за автомобил",
@@ -1729,7 +1736,15 @@ window.confirmCSVImport = async function() {
         modelsCache.add(modelKey);
       }
       
-      await convex.mutation("products:create", p);
+      // If product exists in database, run update mutation. Otherwise, create a new record.
+      if (p.id && existingIds.has(p.id)) {
+        const { id, ...updateData } = p;
+        await convex.mutation("products:update", { id, ...updateData });
+      } else {
+        const { id, ...createData } = p;
+        await convex.mutation("products:create", createData);
+      }
+      
       importedCount++;
     }
     
@@ -1806,7 +1821,9 @@ window.exportProductsToExcel = async function() {
         "Ключови думи": p.name.split(" ").join(","),
         "URL": slugify(p.name),
         "Мета тагове": p.name.split(" ").join(","),
-        "Модел": p.specs.material || "RT-11",
+        "Марка": p.brand,
+        "Модел": p.model,
+        "Материал": p.specs.material || "Премиум силикон / TPU / Кожа",
         "SKU": p._id,
         "Цена": p.priceB2C,
         "Цена B2C": p.priceB2C,
