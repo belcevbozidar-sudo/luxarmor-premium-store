@@ -1,11 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-// Dynamic password from environment variables (falls back to default for local setup)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-if (!ADMIN_PASSWORD) {
-  throw new Error("ADMIN_PASSWORD environment variable is not set in Convex cloud!");
-}
 const LOCKOUT_DURATION = 60 * 60 * 1000; // 60 minutes in ms
 
 export const verifyAdminPassword = mutation({
@@ -14,6 +9,10 @@ export const verifyAdminPassword = mutation({
     fingerprint: v.string(),
   },
   handler: async (ctx, args) => {
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+    if (!ADMIN_PASSWORD) {
+      throw new Error("ADMIN_PASSWORD environment variable is not set in Convex cloud!");
+    }
     const now = Date.now();
 
     // Check if locked out

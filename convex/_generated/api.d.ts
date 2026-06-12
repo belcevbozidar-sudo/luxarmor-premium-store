@@ -15,6 +15,7 @@ import type * as orders from "../orders.js";
 import type * as products from "../products.js";
 import type * as promoCodes from "../promoCodes.js";
 import type * as promotions from "../promotions.js";
+import type * as settings from "../settings.js";
 import type * as users from "../users.js";
 
 import type {
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   promoCodes: typeof promoCodes;
   promotions: typeof promotions;
+  settings: typeof settings;
   users: typeof users;
 }>;
 
