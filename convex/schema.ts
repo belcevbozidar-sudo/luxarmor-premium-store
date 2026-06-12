@@ -128,5 +128,10 @@ export default defineSchema({
     isPublished: v.boolean(),
   }).index("by_slug", ["slug"])
     .index("by_published", ["isPublished"]),
+
+  homepageSettings: defineTable({
+    heroTitle: v.string(),
+    heroSubtitle: v.string(),
+  }),
 });
 

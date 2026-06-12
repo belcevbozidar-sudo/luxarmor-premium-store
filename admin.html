@@ -778,6 +778,7 @@
       <button class="nav-tab-btn" onclick="switchTab('b2b-clients-tab', this)"><i class="fas fa-user-friends"></i> B2B Клиенти</button>
       <button class="nav-tab-btn" onclick="switchTab('blog-tab', this)"><i class="fas fa-blog"></i> Блог</button>
       <button class="nav-tab-btn" onclick="switchTab('import-tab', this)"><i class="fas fa-file-import"></i> Импорт Excel</button>
+      <button class="nav-tab-btn" onclick="switchTab('settings-tab', this)"><i class="fas fa-cog"></i> Настройки</button>
     </div>
     
     <!-- Main workspace content -->
@@ -1182,6 +1183,32 @@
               <!-- Populated dynamically -->
             </tbody>
           </table>
+        </div>
+      </div>
+      
+      <!-- === TAB: SETTINGS === -->
+      <div class="tab-panel" id="settings-tab">
+        <div class="section-header">
+          <h2 class="section-title">Настройки на Магазина</h2>
+        </div>
+        
+        <div class="meta-panel" style="padding: 2rem; max-width: 600px; margin-top: 1rem;">
+          <h3 style="margin-bottom: 1.5rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem;"><i class="fas fa-home" style="color: var(--gold); margin-right: 0.5rem;"></i> Начална страница - Hero секция</h3>
+          
+          <form id="hero-settings-form" onsubmit="saveHeroSettings(event)">
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="hero-title-input" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #fff;">Заглавие (Title):</label>
+              <input type="text" id="hero-title-input" required style="width: 100%; padding: 0.75rem; border-radius: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff;" placeholder="напр. CaseKing - Премиум Аксесоари за Телефони">
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Можете да използвате HTML тагове, например: <code>&lt;span style="color: var(--gold);"&gt;Златен текст&lt;/span&gt;</code></span>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="hero-subtitle-input" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #fff;">Подзаглавие (Subtitle):</label>
+              <textarea id="hero-subtitle-input" required rows="4" style="width: 100%; padding: 0.75rem; border-radius: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; resize: vertical;" placeholder="напр. В CaseKing ще намерите най-добрите аксесоари..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn-action" style="background: var(--gold); color: #000; padding: 0.75rem 1.5rem; font-weight: 600; cursor: pointer;"><i class="fas fa-save"></i> Запази промените</button>
+          </form>
         </div>
       </div>
       

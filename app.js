@@ -153,6 +153,15 @@ let BRANDS = [...STATIC_BRANDS];
 let MODELS = [...STATIC_MODELS];
 let PROMOTIONS = [];
 let isDataLoaded = false;
+let heroTitleText = `CaseKing - Премиум <span style="color: var(--gold);">Аксесоари за Телефони</span>`;
+let heroSubtitleText = "В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с бърза доставка, преглед и тест!";
+
+function renderHeroSettings() {
+  const tEl = document.getElementById("homepage-hero-title");
+  const sEl = document.getElementById("homepage-hero-subtitle");
+  if (tEl) tEl.innerHTML = heroTitleText;
+  if (sEl) sEl.textContent = heroSubtitleText;
+}
 
 try {
   const cachedProducts = localStorage.getItem("caseking_cached_products");
@@ -248,17 +257,6 @@ function getProductSlug(name) {
 // Image proxy URL helper
 function getProductImageUrl(url, name, model) {
   if (!url) return "";
-  // If running locally via file protocol, serverless functions are unavailable
-  if (window.location.protocol === "file:") {
-    return url;
-  }
-  if (url.startsWith("data:")) {
-    return url;
-  }
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    const slug = getProductSlug(name + " " + (model || ""));
-    return `/api/image/${slug}.webp?url=${encodeURIComponent(url)}&name=${encodeURIComponent(slug)}`;
-  }
   return url;
 }
 
@@ -302,6 +300,18 @@ async function loadData() {
       PROMOTIONS = dbPromos;
       localStorage.setItem("caseking_cached_promotions", JSON.stringify(dbPromos));
     }
+    
+    try {
+      const heroSettings = await convex.query("settings:getHero");
+      if (heroSettings) {
+        heroTitleText = heroSettings.heroTitle;
+        heroSubtitleText = heroSettings.heroSubtitle;
+        renderHeroSettings();
+      }
+    } catch (heroErr) {
+      console.warn("Could not load hero settings from db:", heroErr);
+    }
+    
     console.log("Storefront data successfully loaded dynamically from Convex.");
   } catch (err) {
     console.warn("Could not load dynamic data from Convex, falling back to static dataset.", err);
@@ -368,6 +378,16 @@ function selectBrand(brandName) {
   selectedModel = null;
   selectedCategory = null;
   
+  const input = document.getElementById("smart-search-input");
+  if (input) {
+    input.value = "";
+  }
+  searchQuery = "";
+  const clearBtn = document.getElementById("search-clear-btn");
+  if (clearBtn) {
+    clearBtn.style.display = "none";
+  }
+  
   document.querySelectorAll(".category-card").forEach(card => card.classList.remove("active"));
   document.querySelectorAll(".brand-pill-btn").forEach(pill => {
     const textSpan = pill.querySelector(".brand-card-text");
@@ -423,6 +443,16 @@ function selectBrand(brandName) {
 function selectModel(modelName) {
   selectedModel = modelName;
   
+  const input = document.getElementById("smart-search-input");
+  if (input) {
+    input.value = "";
+  }
+  searchQuery = "";
+  const clearBtn = document.getElementById("search-clear-btn");
+  if (clearBtn) {
+    clearBtn.style.display = "none";
+  }
+  
   document.querySelectorAll(".model-pill-btn").forEach(pill => {
     const textSpan = pill.querySelector(".model-card-text");
     if (textSpan && textSpan.textContent === modelName) {
@@ -441,6 +471,81 @@ function selectModel(modelName) {
 }
 
 // --- SMART SEARCH BAR LOGIC ---
+const PHONETIC_MAP = {
+  "айфон": "iphone",
+  "ифон": "iphone",
+  "самсунг": "samsung",
+  "шаоми": "xiaomi",
+  "ксиаоми": "xiaomi",
+  "редми": "redmi",
+  "хуавей": "huawei",
+  "хуауей": "huawei",
+  "гугъл": "google",
+  "пиксел": "pixel",
+  "мото": "moto",
+  "моторола": "motorola",
+  "хонор": "honor",
+  "нокия": "nokia",
+  "уанплюс": "oneplus",
+  "опо": "oppo",
+  "виво": "vivo",
+  "риалми": "realme",
+  "риълми": "realme",
+  "трианю": "tranyoo",
+  "кейс": "cases",
+  "кейсове": "cases",
+  "калъф": "cases",
+  "калъфи": "cases",
+  "протектор": "protectors",
+  "протектори": "protectors",
+  "батерия": "power banks",
+  "батерии": "power banks",
+  "кабел": "cables",
+  "кабели": "cables",
+  "зарядно": "chargers",
+  "зарядни": "chargers",
+  "поставка": "holder",
+  "поставки": "holder"
+};
+
+function cyrillicToLatin(text) {
+  const map = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ж': 'zh', 'з': 'z',
+    'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p',
+    'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch',
+    'ш': 'sh', 'щ': 'sht', 'ъ': 'a', 'ь': 'y', 'ю': 'yu', 'я': 'ya'
+  };
+  return text.split('').map(char => map[char] || char).join('');
+}
+
+function getSearchQueries(q) {
+  const original = q.toLowerCase().trim();
+  const words = original.split(/\s+/);
+  
+  const mappedWords = words.map(w => {
+    if (PHONETIC_MAP[w]) return PHONETIC_MAP[w];
+    for (const [bulgarian, english] of Object.entries(PHONETIC_MAP)) {
+      if (w.startsWith(bulgarian) || bulgarian.startsWith(w)) {
+        return english;
+      }
+    }
+    return w;
+  });
+  
+  const mapped = mappedWords.join(" ");
+  const queries = [original];
+  if (mapped !== original) {
+    queries.push(mapped);
+  }
+  
+  const latinTranslit = cyrillicToLatin(original);
+  if (!queries.includes(latinTranslit)) {
+    queries.push(latinTranslit);
+  }
+  
+  return queries;
+}
+
 window.handleSearchInput = function(val) {
   searchQuery = val.trim();
   const clearBtn = document.getElementById("search-clear-btn");
@@ -453,6 +558,24 @@ window.handleSearchInput = function(val) {
   // If we are on homepage, update catalog instantly
   const path = window.location.pathname;
   if (path === "/" || path === "/index.html") {
+    if (searchQuery) {
+      selectedBrand = null;
+      selectedModel = null;
+      selectedCategory = null;
+      
+      // Clear active classes in filters
+      document.querySelectorAll(".brand-pill-btn").forEach(c => c.classList.remove("active"));
+      document.querySelectorAll(".model-pill-btn").forEach(c => c.classList.remove("active"));
+      
+      // Reset Step 2 model list
+      const modelsContainer = document.getElementById("models-list");
+      if (modelsContainer) {
+        modelsContainer.innerHTML = "";
+        modelsContainer.style.display = "none";
+      }
+      const step2Title = document.getElementById("step2-title");
+      if (step2Title) step2Title.style.display = "none";
+    }
     renderCatalog();
   }
 };
@@ -511,12 +634,16 @@ function renderSearchSuggestions() {
   }
   
   box.innerHTML = "";
-  const query = searchQuery.toLowerCase();
+  const queries = getSearchQueries(searchQuery);
   let matchesHtml = "";
   let matchCount = 0;
   
   // 1. Matches in Categories
-  const matchedCats = CATEGORIES.filter(c => c.name.toLowerCase().includes(query));
+  const matchedCats = CATEGORIES.filter(c => {
+    const catName = c.name.toLowerCase();
+    return queries.some(q => catName.includes(q));
+  });
+  
   matchedCats.forEach(cat => {
     if (matchCount >= 4) return;
     matchCount++;
@@ -531,8 +658,11 @@ function renderSearchSuggestions() {
   });
   
   // 2. Matches in Models
-  const cleanQuery = getCleanModelName(query);
-  const matchedModels = MODELS.filter(m => getCleanModelName(m.name).toLowerCase().includes(cleanQuery));
+  const matchedModels = MODELS.filter(m => {
+    const modelName = getCleanModelName(m.name).toLowerCase();
+    return queries.some(q => modelName.includes(q));
+  });
+  
   const seenModels = new Set();
   matchedModels.forEach(m => {
     const cleanName = getCleanModelName(m.name);
@@ -550,7 +680,20 @@ function renderSearchSuggestions() {
   });
   
   // 3. Matches in Products
-  const matchedProducts = PRODUCTS.filter(p => !p.isDeleted && (p.name.toLowerCase().includes(query) || (p.model && p.model.toLowerCase().includes(query))));
+  const matchedProducts = PRODUCTS.filter(p => {
+    if (p.isDeleted) return false;
+    const pName = p.name.toLowerCase();
+    const pModel = (p.model || "").toLowerCase();
+    const pBrand = p.brand.toLowerCase();
+    const pCategory = p.category.toLowerCase();
+    return queries.some(q => 
+      pName.includes(q) || 
+      pModel.includes(q) || 
+      pBrand.includes(q) || 
+      pCategory.includes(q)
+    );
+  });
+  
   matchedProducts.slice(0, 5).forEach(product => {
     if (matchCount >= 12) return;
     matchCount++;
@@ -572,6 +715,13 @@ function renderSearchSuggestions() {
   if (matchCount === 0) {
     box.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Няма намерени резултати</div>`;
   } else {
+    // Append "See all results" button at the bottom
+    matchesHtml += `
+      <div class="search-suggestion-item see-all-results" onclick="selectSuggestion('see_all', '')" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.2rem; cursor: pointer; transition: background 0.2s; border-top: 1px solid rgba(15,23,42,0.08); background: var(--bg-light); text-align: center;">
+        <span style="font-weight: 700; font-size: 0.9rem; color: var(--gold);">Виж всички резултати за "${searchQuery}"</span>
+        <i class="fas fa-arrow-right" style="color: var(--gold); font-size: 0.85rem;"></i>
+      </div>
+    `;
     box.innerHTML = matchesHtml;
   }
   box.style.display = "block";
@@ -593,6 +743,19 @@ window.selectSuggestion = function(type, id) {
   } else if (type === "product") {
     history.pushState(null, "", "/produkt/" + id);
     handleRouting();
+  } else if (type === "see_all") {
+    const path = window.location.pathname;
+    if (path !== "/" && path !== "/index.html") {
+      history.pushState(null, "", "/");
+      handleRouting();
+    }
+    renderCatalog();
+    setTimeout(() => {
+      const catalogSection = document.getElementById("catalog");
+      if (catalogSection) {
+        catalogSection.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
   }
 };
 
@@ -659,13 +822,19 @@ function renderCatalog() {
 
   // Filter by search query if set
   if (searchQuery) {
-    const q = searchQuery.toLowerCase();
-    filteredProducts = filteredProducts.filter(p => 
-      p.name.toLowerCase().includes(q) || 
-      p.brand.toLowerCase().includes(q) || 
-      (p.model && p.model.toLowerCase().includes(q)) ||
-      p.category.toLowerCase().includes(q)
-    );
+    const queries = getSearchQueries(searchQuery);
+    filteredProducts = filteredProducts.filter(p => {
+      const pName = p.name.toLowerCase();
+      const pModel = (p.model || "").toLowerCase();
+      const pBrand = p.brand.toLowerCase();
+      const pCategory = p.category.toLowerCase();
+      return queries.some(q => 
+        pName.includes(q) || 
+        pModel.includes(q) || 
+        pBrand.includes(q) || 
+        pCategory.includes(q)
+      );
+    });
     if (catalogTitle) {
       if (selectedModel) {
         catalogTitle.textContent = `Резултати за "${searchQuery}" за ${selectedModel}`;
@@ -1702,6 +1871,20 @@ window.goToHome = function() {
   selectedModel = null;
   selectedCategory = null;
   
+  const input = document.getElementById("smart-search-input");
+  if (input) {
+    input.value = "";
+  }
+  searchQuery = "";
+  const clearBtn = document.getElementById("search-clear-btn");
+  if (clearBtn) {
+    clearBtn.style.display = "none";
+  }
+  const box = document.getElementById("search-suggestions");
+  if (box) {
+    box.style.display = "none";
+  }
+  
   // Clear active classes in filters
   document.querySelectorAll(".brand-card").forEach(c => c.classList.remove("active"));
   document.querySelectorAll(".category-card").forEach(c => c.classList.remove("active"));
@@ -2123,6 +2306,7 @@ function selectMobileBrand(brandName, btn) {
 // --- INITIALIZATION ---
 async function initApp() {
   // Render views immediately with cached or static dataset (instant mount!)
+  renderHeroSettings();
   renderBrands();
   renderCategories();
   renderCatalog();

@@ -233,6 +233,17 @@ async function loadDashboardData() {
     renderPromoCodes();
     renderB2BUsers();
     renderBlogPosts();
+    
+    try {
+      const heroSettings = await convex.query("settings:getHero");
+      if (heroSettings) {
+        document.getElementById("hero-title-input").value = heroSettings.heroTitle;
+        document.getElementById("hero-subtitle-input").value = heroSettings.heroSubtitle;
+      }
+    } catch (heroErr) {
+      console.warn("Could not load hero settings from db:", heroErr);
+    }
+
     populateFormSelects();
   } catch (err) {
     console.error("Error loading dashboard data:", err);
@@ -2314,5 +2325,18 @@ window.deleteBlogPost = async function(postId) {
     } catch (err) {
       alert("Грешка при изтриване: " + err.message);
     }
+  }
+};
+
+window.saveHeroSettings = async function(event) {
+  event.preventDefault();
+  const heroTitle = document.getElementById("hero-title-input").value.trim();
+  const heroSubtitle = document.getElementById("hero-subtitle-input").value.trim();
+  
+  try {
+    await convex.mutation("settings:updateHero", { heroTitle, heroSubtitle });
+    alert("Настройките на Hero секцията са запазени успешно!");
+  } catch (err) {
+    alert("Грешка при запазване на настройките: " + err.message);
   }
 };
