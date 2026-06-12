@@ -1808,50 +1808,18 @@ window.exportProductsToExcel = async function() {
     };
 
     products.forEach(p => {
-      const catPath = categoryPaths[p.category] ? categoryPaths[p.category](p) : "Аксесоари";
-      const weightNum = parseFloat(p.specs.weight) || 30;
-      
       const row = {
         "ID на продукта": p._id,
-        "статус": 1,
-        "Име на продукта": p.name,
-        "Описание": p.description,
-        "Мета заглавие": p.name,
-        "Мета описание": p.description,
-        "Ключови думи": p.name.split(" ").join(","),
-        "URL": slugify(p.name),
-        "Мета тагове": p.name.split(" ").join(","),
         "Марка": p.brand,
         "Модел": p.model,
-        "Материал": p.specs.material || "Премиум силикон / TPU / Кожа",
-        "SKU": p._id,
-        "Цена": p.priceB2C,
         "Цена B2C": p.priceB2C,
-        "Стара цена B2C": p.oldPriceB2C || "",
         "Цена B2B": p.priceB2B,
+        "Стара цена B2C": p.oldPriceB2C || "",
         "Стара цена B2B": p.oldPriceB2B || "",
-        "Мярка за размер": "сантиметър",
-        "Дължина": 10,
-        "Широчина": 10,
-        "Височина": 10,
-        "Мярка за тегло/обем": "грам",
-        "Тегло": weightNum,
-        "Скрий": 0,
-        "Баркод": " ",
-        "Количество": 100000,
-        "Мин. количество за поръчка": 1,
-        "Макс. количество за поръчка": 100,
-        "Отчет на наличността": 1,
-        "Наличност": "Наличен",
-        "Последователност на показване": 0,
-        "Снимка на продукт": p.image,
-        "Категория": catPath,
-        "Фильтры": " ",
-        "Препоръчани продукти": " ",
-        "Размер на отстъпката": "",
-        "Начало": "",
-        "Край": "",
-        "Опции за продукти": ""
+        "Описание": p.description,
+        "Мета заглавие": p.name,
+        "Снимки": p.images && p.images.length > 0 ? p.images.join(";") : p.image,
+        "Категория": p.category
       };
       rows.push(row);
     });
