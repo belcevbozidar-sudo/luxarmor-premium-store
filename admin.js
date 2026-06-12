@@ -631,7 +631,7 @@ function renderBrandsAndModels() {
       div.className = "meta-item";
       div.innerHTML = `
         <div class="meta-item-info" style="flex:1; display:flex; align-items:center; gap:0.75rem;">
-          <img src="${cat.image.startsWith('assets/') ? cat.image : cat.image}" class="meta-logo-preview" onerror="this.style.display='none'">
+          <img src="${cat.image.startsWith('data:') ? cat.image : (cat.image.startsWith('assets/') ? cat.image : `assets/${cat.image}`)}" class="meta-logo-preview" onerror="this.style.display='none'">
           <strong>${cat.name}</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${cat.id})</span>
         </div>
         <button class="btn-icon delete" onclick="deleteCategory('${cat._id}')" title="Изтрий категория"><i class="fas fa-trash"></i></button>
@@ -650,7 +650,7 @@ function renderBrandsAndModels() {
     div.style.cursor = "pointer";
     div.innerHTML = `
       <div class="meta-item-info" style="flex:1; display:flex; align-items:center; gap:0.75rem;">
-        <img src="assets/${b.logo}" class="meta-logo-preview" onerror="this.style.display='none'">
+        <img src="${b.logo.startsWith('data:') ? b.logo : `assets/${b.logo}`}" class="meta-logo-preview" onerror="this.style.display='none'">
         <strong>${b.name}</strong>
       </div>
       <button class="btn-icon delete" onclick="event.stopPropagation(); deleteBrand('${b._id}')" title="Изтрий марка"><i class="fas fa-trash"></i></button>
@@ -758,7 +758,33 @@ window.loadMoreModels = function() {
   renderBrandsAndModels();
 };
 
+// Helper to read and compress file to base64 WebP
+function getBase64Image(fileInput, maxWidth = 400, maxHeight = 400) {
+  return new Promise((resolve, reject) => {
+    const file = fileInput.files[0];
+    if (!file) {
+      resolve("");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      compressImage(e.target.result, maxWidth, maxHeight, 0.8)
+        .then(resolve)
+        .catch(reject);
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
 window.openBrandModal = function() {
+  document.getElementById("brand-name-input").value = "";
+  document.getElementById("brand-logo-input").value = "";
+  const previewDiv = document.getElementById("brand-logo-preview");
+  if (previewDiv) {
+    previewDiv.style.display = "none";
+    previewDiv.querySelector("img").src = "";
+  }
   document.getElementById("brand-modal").classList.add("active");
 };
 window.closeBrandModal = function() {
@@ -767,14 +793,19 @@ window.closeBrandModal = function() {
 window.saveBrand = async function(event) {
   event.preventDefault();
   const name = document.getElementById("brand-name-input").value.trim();
-  const logo = document.getElementById("brand-logo-input").value.trim();
+  const logoInput = document.getElementById("brand-logo-input");
   
   try {
-    await convex.mutation("meta:addBrand", { name, logo });
+    const logoBase64 = await getBase64Image(logoInput, 300, 300);
+    if (!logoBase64) {
+      alert("Моля, изберете лого за марката!");
+      return;
+    }
+    await convex.mutation("meta:addBrand", { name, logo: logoBase64 });
     closeBrandModal();
     loadDashboardData();
   } catch (err) {
-    alert(err.message);
+    alert("Грешка при добавяне на марка: " + err.message);
   }
 };
 window.deleteBrand = async function(brandId) {
@@ -1161,6 +1192,76 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // Category Image Uploader bindings
+  const catImageInput = document.getElementById("category-image-input");
+  if (catImageInput) {
+    catImageInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      const previewDiv = document.getElementById("category-image-preview");
+      if (file && previewDiv) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          previewDiv.querySelector("img").src = ev.target.result;
+          previewDiv.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    const catDragZone = catImageInput.parentElement;
+    if (catDragZone) {
+      catDragZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        catDragZone.style.borderColor = "#fff";
+      });
+      catDragZone.addEventListener("dragleave", () => {
+        catDragZone.style.borderColor = "var(--gold)";
+      });
+      catDragZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        catDragZone.style.borderColor = "var(--gold)";
+        if (e.dataTransfer.files.length > 0) {
+          catImageInput.files = e.dataTransfer.files;
+          catImageInput.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+  }
+
+  // Brand Logo Uploader bindings
+  const brandLogoInput = document.getElementById("brand-logo-input");
+  if (brandLogoInput) {
+    brandLogoInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      const previewDiv = document.getElementById("brand-logo-preview");
+      if (file && previewDiv) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          previewDiv.querySelector("img").src = ev.target.result;
+          previewDiv.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    const brandDragZone = brandLogoInput.parentElement;
+    if (brandDragZone) {
+      brandDragZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        brandDragZone.style.borderColor = "#fff";
+      });
+      brandDragZone.addEventListener("dragleave", () => {
+        brandDragZone.style.borderColor = "var(--gold)";
+      });
+      brandDragZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        brandDragZone.style.borderColor = "var(--gold)";
+        if (e.dataTransfer.files.length > 0) {
+          brandLogoInput.files = e.dataTransfer.files;
+          brandLogoInput.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+  }
 
   // Blog Post Cover Image Uploader
   const blogImageInput = document.getElementById("blog-post-image-input");
@@ -1835,6 +1936,11 @@ window.openCategoryModal = function() {
   document.getElementById("category-id-input").value = "";
   document.getElementById("category-name-input").value = "";
   document.getElementById("category-image-input").value = "";
+  const previewDiv = document.getElementById("category-image-preview");
+  if (previewDiv) {
+    previewDiv.style.display = "none";
+    previewDiv.querySelector("img").src = "";
+  }
   document.getElementById("category-modal").classList.add("active");
 };
 
@@ -1846,10 +1952,15 @@ window.saveCategory = async function(event) {
   event.preventDefault();
   const id = document.getElementById("category-id-input").value.trim();
   const name = document.getElementById("category-name-input").value.trim();
-  const image = document.getElementById("category-image-input").value.trim();
+  const imageInput = document.getElementById("category-image-input");
   
   try {
-    await convex.mutation("meta:addCategory", { id, name, image });
+    const imageBase64 = await getBase64Image(imageInput, 400, 400);
+    if (!imageBase64) {
+      alert("Моля, изберете снимка за категорията!");
+      return;
+    }
+    await convex.mutation("meta:addCategory", { id, name, image: imageBase64 });
     closeCategoryModal();
     loadDashboardData();
   } catch (err) {

@@ -1342,9 +1342,14 @@
             <label>Име на български език:</label>
             <input type="text" id="category-name-input" required placeholder="напр. Външни батерии">
           </div>
-          <div class="form-group">
-            <label>Снимка (път към файл в assets):</label>
-            <input type="text" id="category-image-input" required placeholder="напр. assets/cat_power_bank.webp">
+          <div class="form-group" style="border: 2px dashed var(--gold); border-radius: 8px; padding: 1.5rem; text-align: center; background: rgba(0,0,0,0.2); position: relative; cursor: pointer; margin-bottom: 1rem;">
+            <i class="fas fa-image" style="font-size: 2rem; color: var(--gold); margin-bottom: 0.5rem;"></i>
+            <p style="font-weight: 500; font-size: 0.95rem; margin-bottom: 0.25rem; color: #fff;">Снимка на категорията</p>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Изберете снимка или я издърпайте тук</span>
+            <input type="file" id="category-image-input" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+          </div>
+          <div id="category-image-preview" style="margin-top:0.5rem; display:none; text-align:center; margin-bottom: 1rem;">
+            <img src="" style="max-width:100px; max-height:100px; border-radius:4px; border:1px solid var(--border-color); object-fit: contain;">
           </div>
           <div class="modal-footer">
             <button type="button" class="btn-secondary" onclick="closeCategoryModal()">Отказ</button>
@@ -1401,9 +1406,14 @@
             <label>Име на марката:</label>
             <input type="text" id="brand-name-input" required placeholder="напр. Apple, Samsung">
           </div>
-          <div class="form-group">
-            <label>Име на логото (с разширение):</label>
-            <input type="text" id="brand-logo-input" required placeholder="напр. logo_apple.webp">
+          <div class="form-group" style="border: 2px dashed var(--gold); border-radius: 8px; padding: 1.5rem; text-align: center; background: rgba(0,0,0,0.2); position: relative; cursor: pointer; margin-bottom: 1rem;">
+            <i class="fas fa-image" style="font-size: 2rem; color: var(--gold); margin-bottom: 0.5rem;"></i>
+            <p style="font-weight: 500; font-size: 0.95rem; margin-bottom: 0.25rem; color: #fff;">Лого на марката</p>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Изберете лого или го издърпайте тук</span>
+            <input type="file" id="brand-logo-input" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
+          </div>
+          <div id="brand-logo-preview" style="margin-top:0.5rem; display:none; text-align:center; margin-bottom: 1rem;">
+            <img src="" style="max-width:100px; max-height:100px; border-radius:4px; border:1px solid var(--border-color); object-fit: contain;">
           </div>
           <div class="modal-footer">
             <button type="button" class="btn-secondary" onclick="closeBrandModal()">Отказ</button>

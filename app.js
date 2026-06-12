@@ -354,7 +354,7 @@ function renderBrands() {
     btn.onclick = () => selectBrand(brand.name);
     
     btn.innerHTML = `
-      <img src="assets/${brand.logo}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
+      <img src="${brand.logo.startsWith('data:') ? brand.logo : `assets/${brand.logo}`}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
       <span class="brand-card-text">${brand.name}</span>
     `;
     container.appendChild(btn);
@@ -365,7 +365,7 @@ function renderBrands() {
       mBtn.className = "menu-brand-item";
       mBtn.onclick = () => selectMobileBrand(brand.name, mBtn);
       mBtn.innerHTML = `
-        <img src="assets/${brand.logo}" class="menu-brand-img" onerror="this.style.display='none'">
+        <img src="${brand.logo.startsWith('data:') ? brand.logo : `assets/${brand.logo}`}" class="menu-brand-img" onerror="this.style.display='none'">
         <span>${brand.name}</span>
       `;
       mobileContainer.appendChild(mBtn);
@@ -2105,7 +2105,7 @@ function renderCategoryDetailBrands(catId) {
       renderCategoryDetailPage(catId);
     };
     btn.innerHTML = `
-      <img src="/assets/${brand.logo}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
+      <img src="${brand.logo.startsWith('data:') ? brand.logo : `/assets/${brand.logo}`}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
       <span class="brand-card-text">${brand.name}</span>
     `;
     container.appendChild(btn);
