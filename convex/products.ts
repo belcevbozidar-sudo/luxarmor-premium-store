@@ -294,23 +294,35 @@ export const deduplicate = mutation({
           q.eq(q.field("isDeleted"), false)
         )
       )
-      .take(3000);
+      .take(4000);
       
-    const seen = new Set();
+    const seen = new Map();
     let deletedCount = 0;
     
     for (const p of products) {
       const key = `${(p.name || "").toString().toLowerCase()}|${(p.brand || "").toString().toLowerCase()}|${(p.model || "").toString().toLowerCase()}|${p.priceB2C || 0}`;
       if (seen.has(key)) {
-        await ctx.db.delete(p._id);
-        deletedCount++;
+        const existing = seen.get(key);
+        const existingHasLoader = (existing.image || "").includes("loader_1.png");
+        const newHasLoader = (p.image || "").includes("loader_1.png");
+        
+        if (existingHasLoader && !newHasLoader) {
+          // Delete existing (it has spinner), keep new (it has real image)
+          await ctx.db.delete(existing._id);
+          seen.set(key, p);
+          deletedCount++;
+        } else {
+          // Delete new, keep existing
+          await ctx.db.delete(p._id);
+          deletedCount++;
+        }
       } else {
-        seen.add(key);
+        seen.set(key, p);
       }
     }
     
     return `Removed ${deletedCount} duplicate products.`;
-  },
+  }
 });
 
 export const inspect = query({
@@ -390,8 +402,34 @@ export const upsertBatch = mutation({
     
     return { updatedCount, createdCount };
   }
+});export const getSpigenS25 = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("products").collect();
+    return all.filter(p => p.name.includes("S25") || p.name.includes("Spigen")).slice(0, 50).map(p => ({
+      id: p._id,
+      name: p.name,
+      image: p.image,
+      images: p.images
+    }));
+  }
 });
 
-
-
-
+export const deleteEnglishDuplicates = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    const cyrillic = products.filter(p => !p.isDeleted && /[а-яА-Я]/.test(p.name));
+    const latin = products.filter(p => !p.isDeleted && !/[а-яА-Я]/.test(p.name));
+    
+    let deletedCount = 0;
+    for (const l of latin) {
+      const dup = cyrillic.find(c => c.brand === l.brand && c.model === l.model && c.priceB2C === l.priceB2C);
+      if (dup) {
+        await ctx.db.delete(l._id);
+        deletedCount++;
+      }
+    }
+    return `Deleted ${deletedCount} English duplicate products.`;
+  }
+});
