@@ -1152,6 +1152,26 @@ window.addToCart = function(productId, quantity = 1, event = null) {
   }
   
   saveCart();
+  
+  if (event) {
+    let imgToClone = null;
+    const targetEl = event.target || event.currentTarget;
+    if (targetEl) {
+      const card = targetEl.closest('.product-card');
+      if (card) {
+        imgToClone = card.querySelector('.product-img');
+      } else {
+        const detailImg = document.getElementById("product-page-image");
+        if (detailImg && (targetEl.id === "product-page-add-to-cart" || targetEl.closest("#product-page-add-to-cart"))) {
+          imgToClone = detailImg;
+        }
+      }
+    }
+    
+    if (imgToClone) {
+      animateFlyToCart(imgToClone);
+    }
+  }
 };
 
 window.updateCartItemQty = function(indexOrId, newQty) {
@@ -2443,6 +2463,7 @@ async function initApp() {
   
   // Background header transparency transitions and hide/reveal on scroll
   let lastScrollY = window.scrollY;
+  let accumulatedScroll = 0;
   window.addEventListener("scroll", () => {
     const header = document.querySelector("header");
     if (!header) return;
@@ -2456,13 +2477,21 @@ async function initApp() {
     }
     
     const diff = currentScrollY - lastScrollY;
+    if ((diff > 0 && accumulatedScroll < 0) || (diff < 0 && accumulatedScroll > 0)) {
+      accumulatedScroll = 0;
+    }
+    accumulatedScroll += diff;
+    
     if (currentScrollY <= 80) {
       header.classList.remove("hidden-nav");
+      accumulatedScroll = 0;
     } else {
-      if (diff > 15) {
+      if (accumulatedScroll > 15) {
         header.classList.add("hidden-nav");
-      } else if (diff < -15) {
+        accumulatedScroll = 0;
+      } else if (accumulatedScroll < -10) {
         header.classList.remove("hidden-nav");
+        accumulatedScroll = 0;
       }
     }
     
