@@ -694,6 +694,14 @@ function renderSearchSuggestions() {
     );
   });
   
+  // Sort matchedProducts from lower price to higher price
+  const isB2B = currentUser && currentUser.clientType === "B2B";
+  matchedProducts.sort((a, b) => {
+    const priceA = isB2B ? (a.priceB2B ?? a.price ?? 0) : (a.priceB2C ?? a.price ?? 0);
+    const priceB = isB2B ? (b.priceB2B ?? b.price ?? 0) : (b.priceB2C ?? b.price ?? 0);
+    return priceA - priceB;
+  });
+  
   matchedProducts.slice(0, 5).forEach(product => {
     if (matchCount >= 12) return;
     matchCount++;
@@ -835,6 +843,15 @@ function renderCatalog() {
         pCategory.includes(q)
       );
     });
+    
+    // Sort from lower price to higher price
+    const isB2B = currentUser && currentUser.clientType === "B2B";
+    filteredProducts.sort((a, b) => {
+      const priceA = isB2B ? (a.priceB2B ?? a.price ?? 0) : (a.priceB2C ?? a.price ?? 0);
+      const priceB = isB2B ? (b.priceB2B ?? b.price ?? 0) : (b.priceB2C ?? b.price ?? 0);
+      return priceA - priceB;
+    });
+    
     if (catalogTitle) {
       if (selectedModel) {
         catalogTitle.textContent = `Резултати за "${searchQuery}" за ${selectedModel}`;
