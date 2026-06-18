@@ -314,7 +314,7 @@ async function renderRelatedProducts(productIds) {
           <div class="product-price-box">
             ${priceHtml}
           </div>
-          <button class="btn-card-buy" onclick="window.addToCart('${product._id}', 1)">Добави в количката</button>
+          <button class="btn-card-buy" onclick="window.addToCart('${product._id}', 1, event)">Добави в количката</button>
         </div>
       `;
       grid.appendChild(card);

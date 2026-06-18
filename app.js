@@ -927,7 +927,7 @@ function renderCatalog() {
         <div class="product-price-box">
           ${priceHtml}
         </div>
-        <button class="btn-card-buy" onclick="addToCart('${product._id}', 1)">Добави в количката</button>
+        <button class="btn-card-buy" onclick="addToCart('${product._id}', 1, event)">Добави в количката</button>
       </div>
     `;
     grid.appendChild(card);
@@ -1064,18 +1064,18 @@ function renderProductPage(productId) {
     activeProductPageQty++;
     document.getElementById("product-page-qty-val").textContent = activeProductPageQty;
   };
-  document.getElementById("product-page-add-to-cart").onclick = () => {
-    addToCart(p._id, activeProductPageQty);
+  document.getElementById("product-page-add-to-cart").onclick = (e) => {
+    addToCart(p._id, activeProductPageQty, e);
   };
 }
 
 // --- CART CALCULATIONS & RENDERING ---
 function updateCartCount() {
   const countElements = document.querySelectorAll(".cart-count");
-  const totalQty = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const uniqueCount = cart.length;
   countElements.forEach(el => {
-    el.textContent = totalQty;
-    el.style.display = totalQty > 0 ? "flex" : "none";
+    el.textContent = uniqueCount;
+    el.style.display = uniqueCount > 0 ? "flex" : "none";
   });
 }
 
@@ -1085,7 +1085,48 @@ function saveCart() {
   renderCartItems();
 }
 
-window.addToCart = function(productId, quantity = 1) {
+function animateFlyToCart(imgEl) {
+  const imgRect = imgEl.getBoundingClientRect();
+  const cartCountEl = document.querySelector('.cart-count');
+  if (!cartCountEl) return;
+  const cartIcon = cartCountEl.parentElement;
+  const cartRect = cartIcon.getBoundingClientRect();
+  
+  const clone = imgEl.cloneNode(true);
+  clone.style.position = 'fixed';
+  clone.style.left = `${imgRect.left}px`;
+  clone.style.top = `${imgRect.top}px`;
+  clone.style.width = `${imgRect.width}px`;
+  clone.style.height = `${imgRect.height}px`;
+  clone.style.zIndex = '99999';
+  clone.style.transition = 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)';
+  clone.style.pointerEvents = 'none';
+  clone.style.transformOrigin = 'center center';
+  
+  document.body.appendChild(clone);
+  
+  // Trigger layout/reflow
+  clone.getBoundingClientRect();
+  
+  requestAnimationFrame(() => {
+    clone.style.left = `${cartRect.left + cartRect.width / 2 - 15}px`;
+    clone.style.top = `${cartRect.top + cartRect.height / 2 - 15}px`;
+    clone.style.width = '30px';
+    clone.style.height = '30px';
+    clone.style.opacity = '0.2';
+    clone.style.transform = 'scale(0.1) rotate(360deg)';
+  });
+  
+  clone.addEventListener('transitionend', () => {
+    clone.remove();
+    cartIcon.classList.add('cart-pulse');
+    cartIcon.addEventListener('animationend', () => {
+      cartIcon.classList.remove('cart-pulse');
+    }, { once: true });
+  });
+}
+
+window.addToCart = function(productId, quantity = 1, event = null) {
   // Find product details
   const product = PRODUCTS.find(p => p._id === productId);
   if (!product) return;
@@ -1111,7 +1152,6 @@ window.addToCart = function(productId, quantity = 1) {
   }
   
   saveCart();
-  openCartSidebar();
 };
 
 window.updateCartItemQty = function(indexOrId, newQty) {
@@ -1463,10 +1503,18 @@ function renderCheckoutSummary() {
     }
   }
   
-  const total = subtotal + shippingCost - discountAmount;
+  const baseForVat = Math.max(0, subtotal - discountAmount);
+  const vatAmount = baseForVat * 0.20;
+  const total = subtotal + shippingCost - discountAmount + vatAmount;
   
   subtotalEl.textContent = formatPrice(subtotal);
   shippingEl.textContent = shippingCost === 0 ? "Безплатна" : formatPrice(shippingCost);
+  
+  const vatEl = document.getElementById("checkout-sum-vat");
+  if (vatEl) {
+    vatEl.textContent = formatPrice(vatAmount);
+  }
+  
   totalEl.textContent = formatPrice(total);
 }
 
@@ -1520,7 +1568,9 @@ window.submitCheckout = async function(event) {
     }
   }
   
-  const total = subtotal + shippingCost - discountAmount;
+  const baseForVat = Math.max(0, subtotal - discountAmount);
+  const vatAmount = baseForVat * 0.20;
+  const total = subtotal + shippingCost - discountAmount + vatAmount;
   const orderNum = "CK-" + Math.floor(100000 + Math.random() * 900000);
   
   const orderPayload = {
@@ -2302,7 +2352,7 @@ function renderCategoryDetailPage(catId) {
         <div class="product-price-box">
           ${priceHtml}
         </div>
-        <button class="btn-card-buy" onclick="addToCart('${product._id}', 1)">Добави в количката</button>
+        <button class="btn-card-buy" onclick="addToCart('${product._id}', 1, event)">Добави в количката</button>
       </div>
     `;
     grid.appendChild(card);
@@ -2391,14 +2441,32 @@ async function initApp() {
   // Verify session login in background
   verifySession();
   
-  // Background header transparency transitions on scroll
+  // Background header transparency transitions and hide/reveal on scroll
+  let lastScrollY = window.scrollY;
   window.addEventListener("scroll", () => {
     const header = document.querySelector("header");
-    if (window.scrollY > 30) {
+    if (!header) return;
+    
+    const currentScrollY = window.scrollY;
+    
+    if (currentScrollY > 30) {
       header.classList.add("scrolled");
     } else {
       header.classList.remove("scrolled");
     }
+    
+    const diff = currentScrollY - lastScrollY;
+    if (currentScrollY <= 80) {
+      header.classList.remove("hidden-nav");
+    } else {
+      if (diff > 15) {
+        header.classList.add("hidden-nav");
+      } else if (diff < -15) {
+        header.classList.remove("hidden-nav");
+      }
+    }
+    
+    lastScrollY = currentScrollY;
   });
   
   // Google sign in init
