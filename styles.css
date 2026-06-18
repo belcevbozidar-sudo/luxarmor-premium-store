@@ -4,11 +4,11 @@
 :root {
   --primary: #0f172a;          /* Rich slate navy/charcoal */
   --primary-light: #1e293b;    /* Charcoal tone for high contrast elements */
-  --accent: #cca43b;           /* Premium CaseKing gold */
-  --gold: #cca43b;             /* Backwards compatibility gold color */
-  --accent-light: #faf5e6;     /* Light gold/cream backdrop */
-  --accent-hover: #b58f2a;     /* Darker gold for hovers */
-  --accent-glow: rgba(204, 164, 59, 0.15);
+  --accent: #167aff;           /* Premium CaseKing blue */
+  --gold: #167aff;             /* Backwards compatibility gold color */
+  --accent-light: #e8f1ff;     /* Light blue backdrop */
+  --accent-hover: #0062dd;     /* Darker blue for hovers */
+  --accent-glow: rgba(22, 122, 255, 0.15);
   --text-dark: #0f172a;
   --text-muted: #64748b;
   --bg-light: #f8fafc;
@@ -22,7 +22,7 @@
   --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.03);
   --shadow-md: 0 12px 30px rgba(15, 23, 42, 0.06);
   --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.1);
-  --shadow-glow: 0 0 20px rgba(204, 164, 59, 0.2);
+  --shadow-glow: 0 0 20px rgba(22, 122, 255, 0.2);
   
   --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: all 0.2s ease;
@@ -83,7 +83,7 @@ button {
   padding: 0.85rem 1.5rem !important;
   border-radius: var(--radius-md) !important;
   border: 1px solid var(--accent) !important;
-  box-shadow: 0 4px 12px rgba(204, 164, 59, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(22, 122, 255, 0.2) !important;
   cursor: pointer !important;
   transition: var(--transition-smooth) !important;
   text-align: center;
@@ -92,7 +92,7 @@ button {
 .btn-premium:hover {
   background-color: var(--accent-hover) !important;
   border-color: var(--accent-hover) !important;
-  box-shadow: 0 6px 16px rgba(204, 164, 59, 0.35) !important;
+  box-shadow: 0 6px 16px rgba(22, 122, 255, 0.35) !important;
   transform: translateY(-1px);
 }
 
@@ -271,7 +271,7 @@ header.scrolled {
 .header-btn:hover {
   background-color: var(--accent-light);
   color: var(--accent);
-  border-color: rgba(204, 164, 59, 0.1);
+  border-color: rgba(22, 122, 255, 0.1);
   transform: translateY(-1px);
 }
 
@@ -382,7 +382,7 @@ header.scrolled {
   align-items: center;
   justify-content: center;
   margin-bottom: 0;
-  box-shadow: 0 4px 10px rgba(204, 164, 59, 0.2);
+  box-shadow: 0 4px 10px rgba(22, 122, 255, 0.2);
   flex-shrink: 0;
 }
 
@@ -1961,7 +1961,7 @@ footer {
 #auth-modal input:not([type="checkbox"]):focus {
   border-color: var(--accent) !important;
   background: #fff !important;
-  box-shadow: 0 0 0 3px rgba(204, 164, 59, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(22, 122, 255, 0.1) !important;
 }
 
 #auth-modal .btn-secondary {
@@ -2114,7 +2114,7 @@ footer {
 
 .meta-item.selected {
   border-color: var(--gold) !important;
-  background: rgba(204, 164, 59, 0.1) !important;
+  background: rgba(22, 122, 255, 0.1) !important;
 }
 
 /* --- PRODUCT DETAILS PAGE LAYOUT --- */
@@ -2179,7 +2179,7 @@ footer {
   background: var(--gold);
   color: #000;
   transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 0 10px rgba(204, 164, 59, 0.5);
+  box-shadow: 0 0 10px rgba(22, 122, 255, 0.5);
 }
 
 .gallery-nav-btn i {
@@ -2407,7 +2407,7 @@ footer {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(204,164,59,0.08) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(22, 122, 255, 0.08) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -2516,7 +2516,7 @@ footer {
 
 #smart-search-input:focus {
   border-color: var(--gold) !important;
-  box-shadow: 0 0 0 3px rgba(204, 164, 59, 0.15);
+  box-shadow: 0 0 0 3px rgba(22, 122, 255, 0.15);
 }
 
 .search-suggestion-item {
@@ -2525,7 +2525,7 @@ footer {
 }
 
 .search-suggestion-item:hover {
-  background-color: rgba(204, 164, 59, 0.08) !important;
+  background-color: rgba(22, 122, 255, 0.08) !important;
 }
 
 /* Custom scrollbar for search suggestions */

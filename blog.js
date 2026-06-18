@@ -259,6 +259,13 @@ async function renderRelatedProducts(productIds) {
     const currentUser = JSON.parse(localStorage.getItem("caseking_current_user")) || null;
     const isB2B = currentUser && currentUser.clientType === "B2B";
     const BGN_RATE = 1.95583;
+
+    // Always sort by price (from cheapest to most expensive)
+    validProducts.sort((a, b) => {
+      const priceA = isB2B ? (a.priceB2B ?? a.price ?? 0) : (a.priceB2C ?? a.price ?? 0);
+      const priceB = isB2B ? (b.priceB2B ?? b.price ?? 0) : (b.priceB2C ?? b.price ?? 0);
+      return priceA - priceB;
+    });
     
     function formatPrice(val) {
       const eurVal = parseFloat(val);

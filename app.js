@@ -825,7 +825,6 @@ function renderCatalog() {
     // handled below
   } else {
     if (catalogTitle) catalogTitle.textContent = "Препоръчани продукти";
-    filteredProducts = filteredProducts.filter(p => !p.isDeleted).slice(0, 8);
   }
 
   // Filter by search query if set
@@ -844,14 +843,6 @@ function renderCatalog() {
       );
     });
     
-    // Sort from lower price to higher price
-    const isB2B = currentUser && currentUser.clientType === "B2B";
-    filteredProducts.sort((a, b) => {
-      const priceA = isB2B ? (a.priceB2B ?? a.price ?? 0) : (a.priceB2C ?? a.price ?? 0);
-      const priceB = isB2B ? (b.priceB2B ?? b.price ?? 0) : (b.priceB2C ?? b.price ?? 0);
-      return priceA - priceB;
-    });
-    
     if (catalogTitle) {
       if (selectedModel) {
         catalogTitle.textContent = `Резултати за "${searchQuery}" за ${selectedModel}`;
@@ -861,6 +852,19 @@ function renderCatalog() {
         catalogTitle.textContent = `Резултати от търсенето за: "${searchQuery}"`;
       }
     }
+  }
+
+  // Always sort by price (from cheapest to most expensive)
+  const isB2B = currentUser && currentUser.clientType === "B2B";
+  filteredProducts.sort((a, b) => {
+    const priceA = isB2B ? (a.priceB2B ?? a.price ?? 0) : (a.priceB2C ?? a.price ?? 0);
+    const priceB = isB2B ? (b.priceB2B ?? b.price ?? 0) : (b.priceB2C ?? b.price ?? 0);
+    return priceA - priceB;
+  });
+
+  // If not filtered (recommended view), show only the 8 cheapest products
+  if (!isFiltered) {
+    filteredProducts = filteredProducts.slice(0, 8);
   }
 
   // Update section subtitle dynamically
@@ -1144,7 +1148,7 @@ window.removeFromCart = function(indexOrId) {
   }
 };
 
-function triggerCartConfetti(colors = ['#cca43b', '#0f172a', '#ffffff', '#faf5e6'], particleCount = 100) {
+function triggerCartConfetti(colors = ['#167aff', '#0f172a', '#ffffff', '#e8f1ff'], particleCount = 100) {
   setTimeout(() => {
     const canvas = document.getElementById("cart-confetti-canvas");
     const overlay = document.getElementById("cart-overlay");
@@ -1194,7 +1198,7 @@ function renderCartItems() {
       if (!freeShippingThresholdReached && subtotal > 0) {
         freeShippingThresholdReached = true;
         if (!isInitialLoad && typeof confetti === "function") {
-          triggerCartConfetti(['#cca43b', '#0f172a', '#ffffff', '#faf5e6'], 100);
+          triggerCartConfetti(['#167aff', '#0f172a', '#ffffff', '#e8f1ff'], 100);
         }
       }
     } else {
@@ -1227,7 +1231,7 @@ function renderCartItems() {
         if (!giftThresholdReached && subtotal > 0) {
           giftThresholdReached = true;
           if (!isInitialLoad && typeof confetti === "function") {
-            triggerCartConfetti(['#cca43b', '#0f172a', '#2ecc71', '#ffffff'], 120);
+            triggerCartConfetti(['#167aff', '#0f172a', '#2ecc71', '#ffffff'], 120);
           }
         }
       }
@@ -2245,6 +2249,14 @@ function renderCategoryDetailPage(catId) {
     countEl.textContent = count === 1 ? "1 продукт" : `${count} продукта`;
   }
   
+  // Always sort by price (from cheapest to most expensive)
+  const isB2B = currentUser && currentUser.clientType === "B2B";
+  filteredProducts.sort((a, b) => {
+    const priceA = isB2B ? (a.priceB2B ?? a.price ?? 0) : (a.priceB2C ?? a.price ?? 0);
+    const priceB = isB2B ? (b.priceB2B ?? b.price ?? 0) : (b.priceB2C ?? b.price ?? 0);
+    return priceA - priceB;
+  });
+
   if (filteredProducts.length === 0) {
     grid.innerHTML = `<div class="no-products-message" style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">Няма намерени продукти в тази категория.</div>`;
     return;

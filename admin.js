@@ -1019,7 +1019,7 @@ function renderOrders() {
       <td>${o.name}</td>
       <td>${o.phone}</td>
       <td><strong>${formatAdminPrice(o.total)}</strong></td>
-      <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(204,164,59,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
+      <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(22,122,255,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
       <td>${dateStr}</td>
       <td><span class="badge-status ${o.status}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
       <td>
@@ -2198,7 +2198,7 @@ window.renderDashboardStats = function() {
           <td><strong>${o.orderNumber}</strong></td>
           <td>${o.name}</td>
           <td>${formatAdminPrice(o.total)}</td>
-          <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(204,164,59,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
+          <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(22,122,255,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
           <td><span class="badge-status ${o.status}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
         `;
         recentTbody.appendChild(tr);
