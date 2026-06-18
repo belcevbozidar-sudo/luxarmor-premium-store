@@ -2461,41 +2461,16 @@ async function initApp() {
   // Verify session login in background
   verifySession();
   
-  // Background header transparency transitions and hide/reveal on scroll
-  let lastScrollY = window.scrollY;
-  let accumulatedScroll = 0;
+  // Background header transparency transitions on scroll
   window.addEventListener("scroll", () => {
     const header = document.querySelector("header");
     if (!header) return;
     
-    const currentScrollY = window.scrollY;
-    
-    if (currentScrollY > 30) {
+    if (window.scrollY > 30) {
       header.classList.add("scrolled");
     } else {
       header.classList.remove("scrolled");
     }
-    
-    const diff = currentScrollY - lastScrollY;
-    if ((diff > 0 && accumulatedScroll < 0) || (diff < 0 && accumulatedScroll > 0)) {
-      accumulatedScroll = 0;
-    }
-    accumulatedScroll += diff;
-    
-    if (currentScrollY <= 80) {
-      header.classList.remove("hidden-nav");
-      accumulatedScroll = 0;
-    } else {
-      if (accumulatedScroll > 15) {
-        header.classList.add("hidden-nav");
-        accumulatedScroll = 0;
-      } else if (accumulatedScroll < -10) {
-        header.classList.remove("hidden-nav");
-        accumulatedScroll = 0;
-      }
-    }
-    
-    lastScrollY = currentScrollY;
   });
   
   // Google sign in init
