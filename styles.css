@@ -1014,6 +1014,7 @@ header.scrolled {
   flex-grow: 1;
   padding: 2rem;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .cart-empty-message {
@@ -1105,8 +1106,7 @@ header.scrolled {
   border-top: 1px solid var(--border-color);
   padding: 2rem;
   background-color: var(--bg-light);
-  max-height: 50vh;
-  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .cart-summary-row {
@@ -2104,6 +2104,14 @@ footer {
   #homepage-hero-title {
     font-size: 1.85rem !important;
     line-height: 1.25 !important;
+  }
+
+  .cart-footer {
+    padding: 1.25rem !important;
+  }
+
+  .cart-items-container {
+    padding: 1.25rem !important;
   }
 }
 
