@@ -3,8 +3,17 @@
   "rewrites": [
     { "source": "/api/image/:slug*", "destination": "/api/image" },
     { "source": "/produkt/:slug*", "destination": "/index" },
-    { "source": "/category", "destination": "/index" },
-    { "source": "/category/:slug*", "destination": "/index" },
+    { "source": "/aksesoari", "destination": "/index" },
+    { "source": "/keysove-i-kalufi", "destination": "/index" },
+    { "source": "/protektori-za-ekran", "destination": "/index" },
+    { "source": "/aksesoari-za-avtomobili", "destination": "/index" },
+    { "source": "/bezzhichni-zaryadni", "destination": "/index" },
+    { "source": "/zaryadni-ustroystva", "destination": "/index" },
+    { "source": "/kabeli-za-zaryadane", "destination": "/index" },
+    { "source": "/postavki-za-byuro", "destination": "/index" },
+    { "source": "/selfi-stikove", "destination": "/index" },
+    { "source": "/popsoket-i-vrazki", "destination": "/index" },
+    { "source": "/vanshni-baterii", "destination": "/index" },
     { "source": "/privacy", "destination": "/index" },
     { "source": "/terms", "destination": "/index" }
   ]

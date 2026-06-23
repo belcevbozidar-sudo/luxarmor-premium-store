@@ -99,16 +99,16 @@ export const seedMetadata = mutation({
     const existingCats = await ctx.db.query("categories").collect();
     if (existingCats.length === 0) {
       const CATEGORIES = [
-        { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
-        { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
-        { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
-        { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
-        { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
-        { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
-        { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
-        { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
-        { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
-        { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
+        { id: "keysove-i-kalufi", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
+        { id: "protektori-za-ekran", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
+        { id: "aksesoari-za-avtomobili", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
+        { id: "bezzhichni-zaryadni", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
+        { id: "zaryadni-ustroystva", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
+        { id: "kabeli-za-zaryadane", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
+        { id: "postavki-za-byuro", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
+        { id: "selfi-stikove", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
+        { id: "popsoket-i-vrazki", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
+        { id: "vanshni-baterii", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
       ];
       for (const cat of CATEGORIES) {
         await ctx.db.insert("categories", cat);
@@ -199,6 +199,47 @@ export const migrateToWebp = mutation({
     }
 
     return { categoriesUpdated: catCount, brandsUpdated: brandCount };
+  },
+});
+
+export const migrateCategories = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const mapping: Record<string, string> = {
+      "cases": "keysove-i-kalufi",
+      "protectors": "protektori-za-ekran",
+      "car_acc": "aksesoari-za-avtomobili",
+      "wireless_chargers": "bezzhichni-zaryadni",
+      "all_chargers": "zaryadni-ustroystva",
+      "original_cables": "kabeli-za-zaryadane",
+      "desk_holder": "postavki-za-byuro",
+      "selfie_stick": "selfi-stikove",
+      "pop_socket": "popsoket-i-vrazki",
+      "power_banks": "vanshni-baterii"
+    };
+
+    // 1. Migrate categories table IDs
+    const categories = await ctx.db.query("categories").collect();
+    for (const cat of categories) {
+      const newId = mapping[cat.id];
+      if (newId) {
+        // Since id is a field on the categories document, patch it
+        await ctx.db.patch(cat._id, { id: newId });
+      }
+    }
+
+    // 2. Migrate products table categories
+    const products = await ctx.db.query("products").collect();
+    let productCount = 0;
+    for (const p of products) {
+      const newCat = mapping[p.category];
+      if (newCat) {
+        await ctx.db.patch(p._id, { category: newCat });
+        productCount++;
+      }
+    }
+
+    return { productsMigrated: productCount };
   },
 });
 

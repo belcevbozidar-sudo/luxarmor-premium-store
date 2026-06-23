@@ -12,16 +12,16 @@ let allBlogPosts = [];
 let blogPostCoverImage = "";
 
 const STATIC_CATEGORIES = [
-  { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
-  { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
-  { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
-  { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
-  { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
-  { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
-  { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
-  { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
-  { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
-  { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
+  { id: "keysove-i-kalufi", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
+  { id: "protektori-za-ekran", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
+  { id: "aksesoari-za-avtomobili", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
+  { id: "bezzhichni-zaryadni", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
+  { id: "zaryadni-ustroystva", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
+  { id: "kabeli-za-zaryadane", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
+  { id: "postavki-za-byuro", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
+  { id: "selfi-stikove", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
+  { id: "popsoket-i-vrazki", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
+  { id: "vanshni-baterii", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
 ];
 
 let allCategories = [...STATIC_CATEGORIES];
@@ -1480,9 +1480,9 @@ function getCategoryIdAndName(catStr, nameStr) {
   const nStr = (nameStr || "").toString().toLowerCase();
   
   if (cStr.includes("стойка") || cStr.includes("стойки") || nStr.includes("стойка") || nStr.includes("стойки")) {
-    return { id: "car_acc", name: "Аксесоари за автомобил" };
+    return { id: "aksesoari-za-avtomobili", name: "Аксесоари за автомобил" };
   } else if (cStr.includes("батерия") || cStr.includes("батерии") || cStr.includes("power bank") || nStr.includes("външна батерия")) {
-    return { id: "power_banks", name: "Външни батерии" };
+    return { id: "vanshni-baterii", name: "Външни батерии" };
   } else if (cStr.includes("слушалки") || nStr.includes("слушалки")) {
     return { id: "headphones", name: "Слушалки" };
   } else if (cStr.includes("памети") || cStr.includes("flash") || cStr.includes("micro sd") || cStr.includes("sd карти") || nStr.includes("sd") || nStr.includes("flash")) {
@@ -1490,15 +1490,15 @@ function getCategoryIdAndName(catStr, nameStr) {
   } else if (cStr.includes("фолио за машина") || nStr.includes("фолио за машина") || nStr.includes("хидравлично фолио") || nStr.includes("hydrogel film")) {
     return { id: "hydrogel_film", name: "Хидрогел фолио" };
   } else if (cStr.includes("зарядно") || cStr.includes("зарядни") || nStr.includes("зарядно") || nStr.includes("зарядни") || nStr.includes("адаптер")) {
-    return { id: "all_chargers", name: "Зарядни устройства" };
+    return { id: "zaryadni-ustroystva", name: "Зарядни устройства" };
   } else if (cStr.includes("кабели") || cStr.includes("кабел") || nStr.includes("кабел") || cStr.includes("адаптер")) {
-    return { id: "original_cables", name: "Кабели за зареждане" };
+    return { id: "kabeli-za-zaryadane", name: "Кабели за зареждане" };
   } else if (nStr.includes("протектор") || nStr.includes("стъкло") || nStr.includes("стъклен") || nStr.includes("glass")) {
-    return { id: "protectors", name: "Протектори за екран" };
+    return { id: "protektori-za-ekran", name: "Протектори за екран" };
   } else if (nStr.includes("тефтер") || nStr.includes("калъф") || nStr.includes("кейс") || nStr.includes("гръб") || nStr.includes("силикон") || nStr.includes("кожен") || nStr.includes("case")) {
-    return { id: "cases", name: "Кейсове / Калъфи" };
+    return { id: "keysove-i-kalufi", name: "Кейсове / Калъфи" };
   } else {
-    return { id: "pop_socket", name: "Попсокет / Връзки" };
+    return { id: "popsoket-i-vrazki", name: "Попсокет / Връзки" };
   }
 }
 
@@ -1698,7 +1698,7 @@ function processCSVData(rows) {
     } else {
       brand = brandIdx !== -1 && row[brandIdx] ? row[brandIdx].toString().trim() : "Всички марки";
       model = modelIdx !== -1 && row[modelIdx] ? row[modelIdx].toString().trim() : "Всички модели";
-      category = categoryIdx !== -1 && row[categoryIdx] ? row[categoryIdx].toString().trim() : "cases";
+      category = categoryIdx !== -1 && row[categoryIdx] ? row[categoryIdx].toString().trim() : "keysove-i-kalufi";
       priceB2B = priceB2BIdx !== -1 ? (parseFloat(row[priceB2BIdx]) || Math.round(priceB2C * 0.8 * 100) / 100) : (Math.round(priceB2C * 0.8 * 100) / 100);
       if (isNaN(priceB2B)) priceB2B = Math.round(priceB2C * 0.8 * 100) / 100;
       if (!description) description = "Премиум аксесоар за телефон";
@@ -1788,16 +1788,16 @@ window.confirmCSVImport = async function() {
     const modelsCache = new Set(existingModels.map(m => `${m.brand.toLowerCase()}:${m.name.toLowerCase()}`));
     
     const catNames = {
-      "car_acc": "Аксесоари за автомобил",
-      "power_banks": "Външни батерии",
+      "aksesoari-za-avtomobili": "Аксесоари за автомобил",
+      "vanshni-baterii": "Външни батерии",
       "headphones": "Слушалки",
       "memory_cards": "Памети & Карти",
       "hydrogel_film": "Хидрогел фолио",
-      "all_chargers": "Зарядни устройства",
-      "original_cables": "Кабели за зареждане",
-      "protectors": "Протектори за екран",
-      "cases": "Кейсове / Калъфи",
-      "pop_socket": "Попсокет / Връзки"
+      "zaryadni-ustroystva": "Зарядни устройства",
+      "kabeli-za-zaryadane": "Кабели за зареждане",
+      "protektori-za-ekran": "Протектори за екран",
+      "keysove-i-kalufi": "Кейве / Калъфи",
+      "popsoket-i-vrazki": "Попсокет / Връзки"
     };
 
     // 1. Ensure all categories, brands, and models exist in metadata first
@@ -1892,16 +1892,16 @@ window.exportProductsToExcel = async function() {
     };
     
     const categoryPaths = {
-      "cases": (p) => `Аксесоари,Аксесоари>${p.brand},Аксесоари>${p.brand}>${p.model}`,
-      "protectors": (p) => `Аксесоари,Аксесоари>${p.brand},Аксесоари>${p.brand}>${p.model}`,
-      "car_acc": (p) => `Аксесоари,Аксесоари>Автоаксесоари,Аксесоари>Автоаксесоари>Стойки за кола`,
-      "power_banks": (p) => `Power Bank ( Външна батерия )`,
+      "keysove-i-kalufi": (p) => `Аксесоари,Аксесоари>${p.brand},Аксесоари>${p.brand}>${p.model}`,
+      "protektori-za-ekran": (p) => `Аксесоари,Аксесоари>${p.brand},Аксесоари>${p.brand}>${p.model}`,
+      "aksesoari-za-avtomobili": (p) => `Аксесоари,Аксесоари>Автоаксесоари,Аксесоари>Автоаксесоари>Стойки за кола`,
+      "vanshni-baterii": (p) => `Power Bank ( Външна батерия )`,
       "headphones": (p) => `Слушалки,Слушалки>Безжични слушалки`,
       "memory_cards": (p) => `Памети,Памети>USB Flash памети`,
       "hydrogel_film": (p) => `Фолио за машина`,
-      "all_chargers": (p) => `Зарядни устройства,Зарядни устройства>Tranyoo`,
-      "original_cables": (p) => `Кабели и Адаптери`,
-      "pop_socket": (p) => `Аксесоари`
+      "zaryadni-ustroystva": (p) => `Зарядни устройства,Зарядни устройства>Tranyoo`,
+      "kabeli-za-zaryadane": (p) => `Кабели и Адаптери`,
+      "popsoket-i-vrazki": (p) => `Аксесоари`
     };
 
     products.forEach(p => {

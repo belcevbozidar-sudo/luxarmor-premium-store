@@ -38,7 +38,7 @@ const STATIC_PRODUCTS = [
     name: "Премиум кожен кейс MagSafe Case",
     brand: "Apple",
     model: "iPhone 15 Pro Max",
-    category: "cases",
+    category: "keysove-i-kalufi",
     priceB2C: 69.00,
     oldPriceB2C: 99.00,
     priceB2B: 55.00,
@@ -54,7 +54,7 @@ const STATIC_PRODUCTS = [
     name: "Карбонов кейс UltraSlim Kevlar",
     brand: "Apple",
     model: "iPhone 15 Pro",
-    category: "cases",
+    category: "keysove-i-kalufi",
     priceB2C: 79.00,
     oldPriceB2C: null,
     priceB2B: 63.00,
@@ -70,7 +70,7 @@ const STATIC_PRODUCTS = [
     name: "Удароустойчив силиконов кейс Liquid Armor",
     brand: "Samsung",
     model: "Galaxy S24 Ultra",
-    category: "cases",
+    category: "keysove-i-kalufi",
     priceB2C: 39.00,
     oldPriceB2C: 49.00,
     priceB2B: 31.20,
@@ -86,7 +86,7 @@ const STATIC_PRODUCTS = [
     name: "Хибриден кейс с подсилени ръбове Crystal Clear",
     brand: "Samsung",
     model: "Galaxy S23 Ultra",
-    category: "cases",
+    category: "keysove-i-kalufi",
     priceB2C: 29.00,
     oldPriceB2C: null,
     priceB2B: 23.20,
@@ -102,7 +102,7 @@ const STATIC_PRODUCTS = [
     name: "Външна батерия MagSafe Power Bank 10000mAh",
     brand: "Apple",
     model: "Всички модели",
-    category: "power_banks",
+    category: "vanshni-baterii",
     priceB2C: 59.00,
     oldPriceB2C: 89.00,
     priceB2B: 47.00,
@@ -116,16 +116,16 @@ const STATIC_PRODUCTS = [
 ];
 
 const STATIC_CATEGORIES = [
-  { id: "cases", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
-  { id: "protectors", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
-  { id: "car_acc", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
-  { id: "wireless_chargers", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
-  { id: "all_chargers", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
-  { id: "original_cables", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
-  { id: "desk_holder", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
-  { id: "selfie_stick", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
-  { id: "pop_socket", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
-  { id: "power_banks", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
+  { id: "keysove-i-kalufi", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
+  { id: "protektori-za-ekran", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
+  { id: "aksesoari-za-avtomobili", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
+  { id: "bezzhichni-zaryadni", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
+  { id: "zaryadni-ustroystva", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
+  { id: "kabeli-za-zaryadane", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
+  { id: "postavki-za-byuro", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
+  { id: "selfi-stikove", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
+  { id: "popsoket-i-vrazki", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
+  { id: "vanshni-baterii", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
 ];
 
 const STATIC_BRANDS = [
@@ -492,20 +492,20 @@ const PHONETIC_MAP = {
   "риалми": "realme",
   "риълми": "realme",
   "трианю": "tranyoo",
-  "кейс": "cases",
-  "кейсове": "cases",
-  "калъф": "cases",
-  "калъфи": "cases",
-  "протектор": "protectors",
-  "протектори": "protectors",
-  "батерия": "power banks",
-  "батерии": "power banks",
-  "кабел": "cables",
-  "кабели": "cables",
-  "зарядно": "chargers",
-  "зарядни": "chargers",
-  "поставка": "holder",
-  "поставки": "holder"
+  "кейс": "keysove-i-kalufi",
+  "кейсове": "keysove-i-kalufi",
+  "калъф": "keysove-i-kalufi",
+  "калъфи": "keysove-i-kalufi",
+  "протектор": "protektori-za-ekran",
+  "протектори": "protektori-za-ekran",
+  "батерия": "vanshni-baterii",
+  "батерии": "vanshni-baterii",
+  "кабел": "kabeli-za-zaryadane",
+  "кабели": "kabeli-za-zaryadane",
+  "зарядно": "zaryadni-ustroystva",
+  "зарядни": "zaryadni-ustroystva",
+  "поставка": "postavki-za-byuro",
+  "поставки": "postavki-za-byuro"
 };
 
 function cyrillicToLatin(text) {
@@ -738,7 +738,7 @@ function renderSearchSuggestions() {
 window.selectSuggestion = function(type, id) {
   hideSearchSuggestions();
   if (type === "category") {
-    history.pushState(null, "", "/category/" + id);
+    history.pushState(null, "", "/" + id);
     handleRouting();
   } else if (type === "model") {
     history.pushState(null, "", "/");
@@ -785,7 +785,7 @@ function renderCategories() {
     card.className = "category-card";
     card.style.cursor = "pointer";
     card.onclick = () => {
-      history.pushState(null, "", "/category/" + cat.id);
+      history.pushState(null, "", "/" + cat.id);
       handleRouting();
     };
     card.innerHTML = `
@@ -2009,8 +2009,33 @@ function handleRouting() {
   let path = window.location.pathname;
   let hash = window.location.hash;
   
-  // Normalize path if we clicked a root link or hash link (e.g. #catalog, #checkout) from a /produkt/ or /category/ page
-  const isSpecialPath = path.startsWith("/produkt/") || path.startsWith("/category/") || path === "/category";
+  // Legacy /category redirect support
+  if (path === "/category") {
+    history.replaceState(null, "", "/aksesoari");
+    path = "/aksesoari";
+  } else if (path.startsWith("/category/")) {
+    const legacySlug = path.substring("/category/".length);
+    const mapping = {
+      "cases": "keysove-i-kalufi",
+      "protectors": "protektori-za-ekran",
+      "car_acc": "aksesoari-za-avtomobili",
+      "wireless_chargers": "bezzhichni-zaryadni",
+      "all_chargers": "zaryadni-ustroystva",
+      "original_cables": "kabeli-za-zaryadane",
+      "desk_holder": "postavki-za-byuro",
+      "selfie_stick": "selfi-stikove",
+      "pop_socket": "popsoket-i-vrazki",
+      "power_banks": "vanshni-baterii"
+    };
+    const newSlug = mapping[legacySlug] || legacySlug;
+    history.replaceState(null, "", "/" + newSlug);
+    path = "/" + newSlug;
+  }
+
+  // Normalize path if we clicked a root link or hash link (e.g. #catalog, #checkout) from a /produkt/, /aksesoari/, or a flat category page
+  const categoryIds = CATEGORIES.map(c => c.id);
+  const isCategoryDetailPath = categoryIds.includes(path.substring(1));
+  const isSpecialPath = path.startsWith("/produkt/") || isCategoryDetailPath || path === "/aksesoari";
   if (isSpecialPath && (hash === "#checkout" || hash === "#catalog" || hash === "#footer" || hash === "#")) {
     history.replaceState(null, "", "/" + hash);
     path = window.location.pathname;
@@ -2041,19 +2066,16 @@ function handleRouting() {
     }
   }
   
-  // Check if route is /category or /category/[id]
+  // Check if route is a flat category slug
   let activeCategoryDetailId = null;
-  if (path === "/category") {
-    // handled below
-  } else if (path.startsWith("/category/")) {
-    const catId = path.substring("/category/".length);
-    const category = CATEGORIES.find(c => c.id === catId);
-    if (category) {
-      activeCategoryDetailId = catId;
-    } else if (isDataLoaded) {
-      history.replaceState(null, "", "/");
-      path = "/";
-    }
+  const pathSlug = path.substring(1);
+  const category = CATEGORIES.find(c => c.id === pathSlug);
+  if (category) {
+    activeCategoryDetailId = category.id;
+  } else if (isDataLoaded && path !== "/" && path !== "/aksesoari" && !path.startsWith("/produkt/") && path !== "/privacy" && path !== "/terms" && path !== "/blog") {
+    // If route doesn't match any valid pages, redirect to home
+    history.replaceState(null, "", "/");
+    path = "/";
   }
   
   if (!activeCategoryDetailId) {
@@ -2081,7 +2103,7 @@ function handleRouting() {
     
     renderCheckoutSummary();
     window.scrollTo(0, 0);
-  } else if (path === "/category") {
+  } else if (path === "/aksesoari") {
     // Show Categories List View
     homeView.style.display = "none";
     productView.style.display = "none";
@@ -2155,7 +2177,7 @@ function renderCategoriesListPage() {
     card.className = "category-card";
     card.style.cursor = "pointer";
     card.onclick = () => {
-      history.pushState(null, "", "/category/" + cat.id);
+      history.pushState(null, "", "/" + cat.id);
       handleRouting();
     };
     
@@ -2262,25 +2284,25 @@ function renderCategoryDetailPage(catId) {
   const descEl = document.getElementById("category-detail-desc");
   if (descEl) {
     const categoryDescriptions = {
-      cases: "Открийте нашата богата гама от висококачествени кейсове и калъфи, осигуряващи максимална защита и неповторим стил за вашия телефон.",
-      protectors: "Изключително здрави закалени стъклени протектори за екран, предпазващи дисплея от надраскване, пукнатини и силни удари без загуба на чувствителност.",
-      car_acc: "Удобни магнитни и механични поставки, безжични зарядни и други важни аксесоари за безопасно и комфортно пътуване във вашия автомобил.",
-      wireless_chargers: "Модерни и бързи безжични зарядни устройства, съвместими с MagSafe и Qi стандарти за максимално улеснение в ежедневието ви.",
-      all_chargers: "Висококачествени адаптери за стена и кола с технологии за бързо зареждане Power Delivery и Quick Charge за всички ваши устройства.",
-      original_cables: "Издръжливи кабелни решения с текстилна оплетка и подсилени краища за бърз трансфер на данни и сигурно захранване без прекъсване.",
-      desk_holder: "Ергономични метални и пластмасови поставки за бюро, подходящи за видео разговори, гледане на съдържание и удобна ежедневна работа.",
-      selfie_stick: "Стабилни и леки селфи стикове с вграден трипод и Bluetooth дистанционно управление за заснемане на перфектните моменти навсякъде.",
-      pop_socket: "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон.",
-      power_banks: "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение.",
-      headphones: "Премиум безжични и жични слушалки с изключително качество на звука, дълбок бас и ергономичен дизайн за максимален комфорт.",
-      memory_cards: "Бързи и надеждни карти памет и флаш памети за сигурно съхранение на вашите снимки, видеоклипове и важни файлове.",
-      hydrogel_film: "Високотехнологично самовъзстановяващо се хидрогел фолио за пълна 360-градусова защита на екрана и гърба на вашето мобилно устройство."
+      "keysove-i-kalufi": "Открийте нашата богата гама от висококачествени кейсове и калъфи, осигуряващи максимална защита и неповторим стил за вашия телефон.",
+      "protektori-za-ekran": "Изключително здрави закалени стъклени протектори за екран, предпазващи дисплея от надраскване, пукнатини и силни удари без загуба на чувствителност.",
+      "aksesoari-za-avtomobili": "Удобни магнитни и механични поставки, безжични зарядни и други важни аксесоари за безопасно и комфортно пътуване във вашия автомобил.",
+      "bezzhichni-zaryadni": "Модерни и бързи безжични зарядни устройства, съвместими с MagSafe и Qi стандарти за максимално улеснение в ежедневието ви.",
+      "zaryadni-ustroystva": "Висококачествени адаптери за стена и кола с технологии за бързо зареждане Power Delivery и Quick Charge за всички ваши устройства.",
+      "kabeli-za-zaryadane": "Издръжливи кабелни решения с текстилна оплетка и подсилени краища за бърз трансфер на данни и сигурно захранване без прекъсване.",
+      "postavki-za-byuro": "Ергономични метални и пластмасови поставки за бюро, подходящи за видео разговори, гледане на съдържание и удобна ежедневна работа.",
+      "selfi-stikove": "Стабилни и леки селфи стикове с вграден трипод и Bluetooth дистанционно управление за заснемане на перфектните моменти навсякъде.",
+      "popsoket-i-vrazki": "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон.",
+      "vanshni-baterii": "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение.",
+      "headphones": "Премиум безжични и жични слушалки с изключително качество на звука, дълбок бас и ергономичен дизайн за максимален комфорт.",
+      "memory_cards": "Бързи и надеждни карти памет и флаш памети за сигурно съхранение на вашите снимки, видеоклипове и важни файлове.",
+      "hydrogel_film": "Високотехнологично самовъзстановяващо се хидрогел фолио за пълна 360-градусова защита на екрана и гърба на вашето мобилно устройство."
     };
     descEl.textContent = categoryDescriptions[catId] || "Премиум телефонни аксесоари от най-висок клас, подбрани специално за вашите нужди и изисквания.";
   }
   
   // Handle Category Filtering Panel
-  const isModelSpecific = ["cases", "protectors", "hydrogel_film"].includes(catId);
+  const isModelSpecific = ["keysove-i-kalufi", "protektori-za-ekran", "hydrogel_film"].includes(catId);
   const filterPanel = document.getElementById("category-detail-filter-panel");
   if (filterPanel) {
     if (isModelSpecific) {
@@ -2382,7 +2404,7 @@ function renderCategoryDetailPage(catId) {
 window.backToCategories = function() {
   categoryDetailSelectedBrand = null;
   categoryDetailSelectedModel = null;
-  history.pushState(null, "", "/category");
+  history.pushState(null, "", "/aksesoari");
   handleRouting();
 };
 
