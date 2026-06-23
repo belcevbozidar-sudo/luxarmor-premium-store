@@ -1,5 +1,18 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/category", "destination": "/aksesoari", "permanent": true },
+    { "source": "/category/cases", "destination": "/keysove-i-kalufi", "permanent": true },
+    { "source": "/category/protectors", "destination": "/protektori-za-ekran", "permanent": true },
+    { "source": "/category/car_acc", "destination": "/aksesoari-za-avtomobili", "permanent": true },
+    { "source": "/category/wireless_chargers", "destination": "/bezzhichni-zaryadni", "permanent": true },
+    { "source": "/category/all_chargers", "destination": "/zaryadni-ustroystva", "permanent": true },
+    { "source": "/category/original_cables", "destination": "/kabeli-za-zaryadane", "permanent": true },
+    { "source": "/category/desk_holder", "destination": "/postavki-za-byuro", "permanent": true },
+    { "source": "/category/selfie_stick", "destination": "/selfi-stikove", "permanent": true },
+    { "source": "/category/pop_socket", "destination": "/popsoket-i-vrazki", "permanent": true },
+    { "source": "/category/power_banks", "destination": "/vanshni-baterii", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/api/image/:slug*", "destination": "/api/image" },
     { "source": "/produkt/:slug*", "destination": "/index" },
