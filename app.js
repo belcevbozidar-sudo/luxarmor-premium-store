@@ -2004,12 +2004,7 @@ window.goToHome = function() {
   handleRouting();
   
   setTimeout(() => {
-    const heroEl = document.getElementById("hero-section");
-    if (heroEl) {
-      heroEl.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, 100);
 };
 
