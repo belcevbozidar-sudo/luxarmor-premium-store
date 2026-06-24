@@ -169,6 +169,36 @@ export const seedMetadata = mutation({
       }
     }
 
+    // 4. Seed Page Metadata (SEO settings)
+    const existingSeo = await ctx.db.query("pageMetadata").collect();
+    if (existingSeo.length === 0) {
+      const SEO_DEFAULTS = [
+        {
+          pageKey: "home",
+          title: "CaseKing - Избери Марка и Модел за Телефон | Кейсове и Аксесоари",
+          description: "Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с бърза доставка, преглед и тест!"
+        },
+        {
+          pageKey: "za-nas",
+          title: "За нас | CaseKing",
+          description: "Научете повече за CaseKing, нашата визия и мисията ни да осигурим безкомпромисно качество и бърза доставка на премиум телефонни аксесоари."
+        },
+        {
+          pageKey: "kontakti",
+          title: "Контакти | CaseKing",
+          description: "Свържете се с CaseKing. Изпратете ни запитване през нашата контактна форма или се обадете на 0889 650 060 за бърза консултация."
+        },
+        {
+          pageKey: "aksesoari",
+          title: "Категории Аксесоари | CaseKing",
+          description: "Разгледайте нашите категории аксесоари за мобилни телефони - кейсове, калъфи, стъклени протектори, зарядни устройства и много други."
+        }
+      ];
+      for (const seo of SEO_DEFAULTS) {
+        await ctx.db.insert("pageMetadata", seo);
+      }
+    }
+
     return "Metadata seeded successfully";
   },
 });

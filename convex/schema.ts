@@ -142,5 +142,11 @@ export default defineSchema({
     createdAt: v.string(),
     status: v.string(),
   }),
+
+  pageMetadata: defineTable({
+    pageKey: v.string(), // "home" | "za-nas" | "kontakti" | "aksesoari"
+    title: v.string(),
+    description: v.string(),
+  }).index("by_pageKey", ["pageKey"]),
 });
 

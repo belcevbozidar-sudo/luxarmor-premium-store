@@ -153,6 +153,7 @@ let BRANDS = [...STATIC_BRANDS];
 let MODELS = [...STATIC_MODELS];
 let PROMOTIONS = [];
 let isDataLoaded = false;
+let pageSeoMetadata = [];
 let heroTitleText = `CaseKing - Премиум <span style="color: var(--gold);">Аксесоари за Телефони</span>`;
 let heroSubtitleText = "В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с бърза доставка, преглед и тест!";
 
@@ -310,6 +311,16 @@ async function loadData() {
       }
     } catch (heroErr) {
       console.warn("Could not load hero settings from db:", heroErr);
+    }
+
+    try {
+      const dbSeo = await convex.query("settings:getAllPageMetadata");
+      if (dbSeo) {
+        pageSeoMetadata = dbSeo;
+        handleRouting();
+      }
+    } catch (seoErr) {
+      console.warn("Could not load SEO page settings from db:", seoErr);
     }
     
     console.log("Storefront data successfully loaded dynamically from Convex.");
@@ -2008,6 +2019,54 @@ window.goToHome = function() {
   }, 100);
 };
 
+function updateSEO(pageKey, dynamicTitle = null, dynamicDesc = null) {
+  let title = dynamicTitle;
+  let description = dynamicDesc;
+  
+  if (!title || !description) {
+    const pageData = pageSeoMetadata.find(m => m.pageKey === pageKey);
+    if (pageData) {
+      if (!title) title = pageData.title;
+      if (!description) description = pageData.description;
+    }
+  }
+  
+  // Set fallback defaults if still not found
+  if (!title) {
+    if (pageKey === "home") title = "CaseKing - Избери Марка и Модел за Телефон | Кейсове и Аксесоари";
+    else if (pageKey === "za-nas") title = "За нас | CaseKing";
+    else if (pageKey === "kontakti") title = "Контакти | CaseKing";
+    else if (pageKey === "aksesoari") title = "Категории Аксесоари | CaseKing";
+    else title = "CaseKing";
+  }
+  
+  if (!description) {
+    if (pageKey === "home") description = "Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с бърза доставка, преглед и тест!";
+    else if (pageKey === "za-nas") description = "Научете повече за CaseKing, нашата визия и мисията ни да осигурим безкомпромисно качество и бърза доставка на премиум телефонни аксесоари.";
+    else if (pageKey === "kontakti") description = "Свържете се с CaseKing. Изпратете ни запитване през нашата контактна форма или се обадете на 0889 650 060 за бърза консултация.";
+    else if (pageKey === "aksesoari") description = "Разгледайте нашите категории аксесоари за мобилни телефони - кейсове, калъфи, стъклени протектори, зарядни устройства и много други.";
+    else description = "Най-добрите аксесоари за мобилни телефони на едно място. Професионално обслужване, качество и бърза доставка с опция за преглед и тест.";
+  }
+  
+  // Apply to DOM
+  document.title = title;
+  
+  let descMeta = document.querySelector('meta[name="description"]');
+  if (!descMeta) {
+    descMeta = document.createElement('meta');
+    descMeta.name = "description";
+    document.head.appendChild(descMeta);
+  }
+  descMeta.content = description;
+  
+  // Apply to OpenGraph for social shares
+  let ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) ogTitle.content = title;
+  
+  let ogDesc = document.querySelector('meta[property="og:description"]');
+  if (ogDesc) ogDesc.content = description;
+}
+
 // --- CLIENT-SIDE ROUTER ---
 function handleRouting() {
   let path = window.location.pathname;
@@ -2101,6 +2160,7 @@ function handleRouting() {
     
     renderProductPage(product._id);
     window.scrollTo(0, 0);
+    updateSEO(null, product.name + " " + (product.model || ""), product.description);
   } else if (hash === "#checkout") {
     // Show Checkout funnel
     homeView.style.display = "none";
@@ -2111,6 +2171,7 @@ function handleRouting() {
     
     renderCheckoutSummary();
     window.scrollTo(0, 0);
+    updateSEO(null, "Количка | CaseKing", "Вашата пазарска количка в CaseKing. Прегледайте продуктите и завършете поръчката си бързо и сигурно.");
   } else if (path === "/aksesoari") {
     // Show Categories List View
     homeView.style.display = "none";
@@ -2120,6 +2181,7 @@ function handleRouting() {
     categoryDetailView.style.display = "none";
     
     renderCategoriesListPage();
+    updateSEO("aksesoari");
     
     // Scroll down to the categories grid smoothly
     setTimeout(() => {
@@ -2140,6 +2202,22 @@ function handleRouting() {
     
     renderCategoryDetailPage(activeCategoryDetailId);
     window.scrollTo(0, 0);
+    const categoryDescriptions = {
+      "keysove-i-kalufi": "Открийте нашата богата гама от висококачествени кейсове и калъфи, осигуряващи максимална защита и неповторим стил за вашия телефон.",
+      "protektori-za-ekran": "Изключително здрави закалени стъклени протектори за екран, предпазващи дисплея от надраскване, пукнатини и силни удари без загуба на чувствителност.",
+      "aksesoari-za-avtomobili": "Удобни магнитни и механични поставки, безжични зарядни и други важни аксесоари за безопасно и комфортно пътуване във вашия автомобил.",
+      "bezzhichni-zaryadni": "Модерни и бързи безжични зарядни устройства, съвместими с MagSafe и Qi стандарти за максимално улеснение в ежедневието ви.",
+      "zaryadni-ustroystva": "Висококачествени адаптери за стена и кола с технологии за бързо зареждане Power Delivery и Quick Charge за всички ваши устройства.",
+      "kabeli-za-zaryadane": "Издръжливи кабелни решения с текстилна оплетка и подсилени краища за бърз трансфер на данни и сигурно захранване без прекъсване.",
+      "postavki-za-byuro": "Ергономични метални и пластмасови поставки за бюро, подходящи за видео разговори, гледане на съдържание и удобна ежедневна работа.",
+      "selfi-stikove": "Стабилни и леки селфи стикове с вграден трипод и Bluetooth дистанционно управление за заснемане на перфектните моменти навсякъде.",
+      "popsoket-i-vrazki": "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон.",
+      "vanshni-baterii": "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение."
+    };
+    const catObj = CATEGORIES.find(c => c.id === activeCategoryDetailId);
+    const catTitle = catObj ? `${catObj.name} | CaseKing` : "Категория";
+    const catDesc = categoryDescriptions[activeCategoryDetailId] || "Премиум аксесоари за мобилни телефони.";
+    updateSEO(null, catTitle, catDesc);
   } else if (path === "/privacy") {
     // Show Privacy Policy
     homeView.style.display = "none";
@@ -2149,6 +2227,7 @@ function handleRouting() {
     categoryDetailView.style.display = "none";
     if (privacyView) privacyView.style.display = "block";
     window.scrollTo(0, 0);
+    updateSEO(null, "Политика за поверителност | CaseKing", "Политика за поверителност и защита на личните данни съгласно изискванията на GDPR в онлайн магазин CaseKing.");
   } else if (path === "/terms") {
     // Show Terms of Use
     homeView.style.display = "none";
@@ -2158,6 +2237,7 @@ function handleRouting() {
     categoryDetailView.style.display = "none";
     if (termsView) termsView.style.display = "block";
     window.scrollTo(0, 0);
+    updateSEO(null, "Условия за ползване | CaseKing", "Общи условия за ползване, доставка, плащане и право на връщане на продукти в онлайн магазин CaseKing.");
   } else if (path === "/za-nas") {
     // Show About Us page
     homeView.style.display = "none";
@@ -2167,6 +2247,7 @@ function handleRouting() {
     categoryDetailView.style.display = "none";
     if (zaNasView) zaNasView.style.display = "block";
     window.scrollTo(0, 0);
+    updateSEO("za-nas");
   } else if (path === "/kontakti") {
     // Show Contacts page
     homeView.style.display = "none";
@@ -2176,6 +2257,7 @@ function handleRouting() {
     categoryDetailView.style.display = "none";
     if (kontaktiView) kontaktiView.style.display = "block";
     window.scrollTo(0, 0);
+    updateSEO("kontakti");
   } else {
     // Show Standard Home/Catalog view
     productView.style.display = "none";
@@ -2185,6 +2267,7 @@ function handleRouting() {
     homeView.style.display = "block";
     
     renderCatalog();
+    updateSEO("home");
   }
 }
 

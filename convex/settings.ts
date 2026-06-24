@@ -33,3 +33,38 @@ export const updateHero = mutation({
     }
   },
 });
+
+export const getAllPageMetadata = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("pageMetadata").collect();
+  },
+});
+
+export const updatePageMetadata = mutation({
+  args: {
+    pageKey: v.string(),
+    title: v.string(),
+    description: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("pageMetadata")
+      .withIndex("by_pageKey", (q) => q.eq("pageKey", args.pageKey))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        title: args.title,
+        description: args.description,
+      });
+      return existing._id;
+    } else {
+      return await ctx.db.insert("pageMetadata", {
+        pageKey: args.pageKey,
+        title: args.title,
+        description: args.description,
+      });
+    }
+  },
+});

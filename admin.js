@@ -10,6 +10,7 @@ let allPromotions = [];
 let allOrders = [];
 let allBlogPosts = [];
 let blogPostCoverImage = "";
+let allPageMetadata = [];
 
 const STATIC_CATEGORIES = [
   { id: "keysove-i-kalufi", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
@@ -242,6 +243,13 @@ async function loadDashboardData() {
       }
     } catch (heroErr) {
       console.warn("Could not load hero settings from db:", heroErr);
+    }
+
+    try {
+      allPageMetadata = await convex.query("settings:getAllPageMetadata");
+      loadPageSeoValues();
+    } catch (seoErr) {
+      console.warn("Could not load SEO page metadata from db:", seoErr);
     }
 
     populateFormSelects();
@@ -2441,5 +2449,74 @@ window.saveHeroSettings = async function(event) {
     alert("Настройките на Hero секцията са запазени успешно!");
   } catch (err) {
     alert("Грешка при запазване на настройките: " + err.message);
+  }
+};
+
+window.loadPageSeoValues = function() {
+  const pageKey = document.getElementById("seo-page-select").value;
+  const pageData = allPageMetadata.find(m => m.pageKey === pageKey);
+  
+  const titleInput = document.getElementById("seo-title-input");
+  const descInput = document.getElementById("seo-desc-input");
+  
+  if (titleInput && descInput) {
+    titleInput.value = pageData ? pageData.title : "";
+    descInput.value = pageData ? pageData.description : "";
+    updateSeoCounters();
+  }
+};
+
+window.updateSeoCounters = function() {
+  const titleInput = document.getElementById("seo-title-input");
+  const descInput = document.getElementById("seo-desc-input");
+  
+  const titleCounter = document.getElementById("seo-title-counter");
+  const descCounter = document.getElementById("seo-desc-counter");
+  
+  if (titleInput && titleCounter) {
+    const len = titleInput.value.length;
+    titleCounter.textContent = `${len} / 60 знака`;
+    titleCounter.style.color = len > 60 ? "var(--danger)" : "rgba(255,255,255,0.4)";
+  }
+  
+  if (descInput && descCounter) {
+    const len = descInput.value.length;
+    descCounter.textContent = `${len} / 160 знака`;
+    descCounter.style.color = len > 160 ? "var(--danger)" : "rgba(255,255,255,0.4)";
+  }
+};
+
+window.savePageSeoSettings = async function(event) {
+  event.preventDefault();
+  const pageKey = document.getElementById("seo-page-select").value;
+  const title = document.getElementById("seo-title-input").value.trim();
+  const description = document.getElementById("seo-desc-input").value.trim();
+  
+  const submitBtn = event.target.querySelector("button[type='submit']");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Запазване...';
+  }
+  
+  try {
+    await convex.mutation("settings:updatePageMetadata", { pageKey, title, description });
+    
+    // Update local cache
+    const existingIdx = allPageMetadata.findIndex(m => m.pageKey === pageKey);
+    if (existingIdx !== -1) {
+      allPageMetadata[existingIdx].title = title;
+      allPageMetadata[existingIdx].description = description;
+    } else {
+      allPageMetadata.push({ pageKey, title, description });
+    }
+    
+    alert("SEO настройките са запазени успешно!");
+  } catch (err) {
+    alert("Грешка при запазване: " + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Запази SEO настройките';
+    }
   }
 };
