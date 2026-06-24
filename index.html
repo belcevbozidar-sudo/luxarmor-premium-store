@@ -55,9 +55,9 @@
       <nav class="nav-menu">
         <a href="/" class="nav-link" onclick="event.preventDefault(); goToHome();">Начало</a>
         <a href="/aksesoari" class="nav-link" onclick="event.preventDefault(); history.pushState(null, '', '/aksesoari'); handleRouting();">Категории</a>
-        <a href="#catalog" class="nav-link">Каталог</a>
+        <a href="/za-nas" class="nav-link" onclick="event.preventDefault(); history.pushState(null, '', '/za-nas'); handleRouting();">За нас</a>
         <a href="/blog" class="nav-link">Блог</a>
-        <a href="#footer" class="nav-link">Контакти</a>
+        <a href="/kontakti" class="nav-link" onclick="event.preventDefault(); history.pushState(null, '', '/kontakti'); handleRouting();">Контакти</a>
       </nav>
       
       <div class="header-actions">
@@ -97,7 +97,7 @@
   <!-- === STOREFRONT HOME VIEW === -->
   <div id="storefront-home-view">
     <!-- --- HERO / SEO INTRO SECTION --- -->
-    <section class="hero-seo-section" style="padding: 4rem 0 2rem; text-align: center; background: radial-gradient(circle at center, rgba(22, 122, 255, 0.08) 0%, transparent 70%); border-bottom: 1px solid rgba(15,23,42,0.04); margin-bottom: 2rem;">
+    <section id="hero-section" class="hero-seo-section" style="padding: 4rem 0 2rem; text-align: center; background: radial-gradient(circle at center, rgba(22, 122, 255, 0.08) 0%, transparent 70%); border-bottom: 1px solid rgba(15,23,42,0.04); margin-bottom: 2rem;">
       <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 1.5rem;">
         <h1 id="homepage-hero-title" style="font-size: 2.75rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem; letter-spacing: -0.5px; line-height: 1.2;">
           CaseKing - Премиум <span style="color: var(--gold);">Аксесоари за Телефони</span>
@@ -524,6 +524,149 @@
     </div>
   </section>
 
+  <!-- === ABOUT US PAGE VIEW === -->
+  <section class="legal-page-section" id="za-nas-page-view" style="display: none; padding: 4rem 0; min-height: 80vh; background: var(--bg-light);">
+    <div class="container" style="max-width: 900px; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 3rem 2.5rem; box-shadow: var(--shadow-sm);">
+      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--accent); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: var(--transition-fast);">
+        <i class="fas fa-arrow-left"></i> Назад към каталога
+      </button>
+      
+      <div class="legal-content">
+        <h1 style="font-family: var(--font-sans); color: var(--primary); font-size: 2.25rem; font-weight: 800; margin-bottom: 1.5rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.75rem;">За нас</h1>
+        
+        <p style="margin-bottom: 1.5rem; font-size: 1.15rem; line-height: 1.8; color: var(--primary); font-weight: 500;">
+          Добре дошли в <strong>CaseKing</strong> – Вашата крайна дестинация за висококачествени и премиум аксесоари за мобилни телефони.
+        </p>
+
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--text-muted); font-size: 1.05rem;">
+          Ние вярваме, че Вашият смартфон е повече от просто устройство – той е продължение на Вашия стил и ежедневие. Затова нашата мисия е да предоставим най-добрата защита, естетика и функционалност чрез внимателно селектирани кейсове, протектори и зарядни устройства от ново поколение.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 3rem 0;">
+          <div style="background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: center; transition: var(--transition-smooth);" onmouseover="this.style.transform='translateY(-5px)'; this.style.borderColor='var(--accent)'" onmouseout="this.style.transform='none'; this.style.borderColor='var(--border-color)'">
+            <div style="width: 50px; height: 50px; background: var(--accent-light); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 0.5rem; font-size: 1.15rem;">Безкомпромисно качество</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">Всички наши продукти се тестват за издръжливост, прецизен пас и премиум усещане при допир.</p>
+          </div>
+          
+          <div style="background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: center; transition: var(--transition-smooth);" onmouseover="this.style.transform='translateY(-5px)'; this.style.borderColor='var(--accent)'" onmouseout="this.style.transform='none'; this.style.borderColor='var(--border-color)'">
+            <div style="width: 50px; height: 50px; background: var(--accent-light); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+              <i class="fas fa-truck"></i>
+            </div>
+            <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 0.5rem; font-size: 1.15rem;">Бърза доставка</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">Изпращаме всяка поръчка в рамките на 24 часа с куриер (Еконт/Спиди) и опция преглед и тест.</p>
+          </div>
+
+          <div style="background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: center; transition: var(--transition-smooth);" onmouseover="this.style.transform='translateY(-5px)'; this.style.borderColor='var(--accent)'" onmouseout="this.style.transform='none'; this.style.borderColor='var(--border-color)'">
+            <div style="width: 50px; height: 50px; background: var(--accent-light); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.5rem;">
+              <i class="fas fa-headset"></i>
+            </div>
+            <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 0.5rem; font-size: 1.15rem;">Професионална грижа</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">Нашият екип за обслужване на клиенти е винаги на разположение за консултации и съдействие при избора.</p>
+          </div>
+        </div>
+
+        <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">Нашата визия</h2>
+        <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--text-muted); font-size: 1.05rem;">
+          Ние се стремим да бъдем водещ стандарт на пазара, като непрекъснато разширяваме нашето портфолио с най-новите технологии и иновации в сферата на мобилните аксесоари. Благодарим Ви, че избрахте CaseKing за Ваш партньор в защитата на Вашите устройства!
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- === CONTACTS PAGE VIEW === -->
+  <section class="legal-page-section" id="kontakti-page-view" style="display: none; padding: 4rem 0; min-height: 80vh; background: var(--bg-light);">
+    <div class="container" style="max-width: 900px; background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 3rem 2.5rem; box-shadow: var(--shadow-sm);">
+      <button class="btn-secondary" onclick="backToCatalog()" style="margin-bottom: 2rem; display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; border: 1px solid var(--border-color); color: var(--accent); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: var(--transition-fast);">
+        <i class="fas fa-arrow-left"></i> Назад към каталога
+      </button>
+      
+      <div class="legal-content">
+        <h1 style="font-family: var(--font-sans); color: var(--primary); font-size: 2.25rem; font-weight: 800; margin-bottom: 1.5rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.75rem;">Контакти</h1>
+        
+        <p style="margin-bottom: 2.5rem; line-height: 1.7; color: var(--text-muted); font-size: 1.05rem;">
+          Имате въпроси за нашите продукти, нуждаете се от съдействие за Вашата поръчка или искате да обсъдим B2B партньорство? Напишете ни съобщение или се свържете директно с нас.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; margin-top: 1.5rem;">
+          <!-- Contact details column -->
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display: flex; align-items: flex-start; gap: 1rem; background: var(--bg-light); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 12px;">
+              <div style="width: 45px; height: 45px; background: var(--accent-light); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                <i class="fas fa-phone-alt"></i>
+              </div>
+              <div>
+                <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 0.25rem; font-size: 1.05rem;">Телефон за връзка</h4>
+                <a href="tel:0889650060" style="color: var(--accent); text-decoration: none; font-weight: 600; font-size: 1.15rem; transition: var(--transition-fast);" onmouseover="this.style.color='var(--accent-hover)'" onmouseout="this.style.color='var(--accent)'">0889 650 060</a>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Понеделник - Петък: 09:00 - 18:00 ч.</p>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: flex-start; gap: 1rem; background: var(--bg-light); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 12px;">
+              <div style="width: 45px; height: 45px; background: var(--accent-light); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div>
+                <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 0.25rem; font-size: 1.05rem;">Имейл адрес</h4>
+                <a href="mailto:caseking23@gmail.com" style="color: var(--accent); text-decoration: none; font-weight: 600; font-size: 1.15rem; transition: var(--transition-fast);" onmouseover="this.style.color='var(--accent-hover)'" onmouseout="this.style.color='var(--accent)'">caseking23@gmail.com</a>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Отговаряме в рамките на няколко часа.</p>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: flex-start; gap: 1rem; background: var(--bg-light); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 12px;">
+              <div style="width: 45px; height: 45px; background: var(--accent-light); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div>
+                <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 0.25rem; font-size: 1.05rem;">Локация и склад</h4>
+                <p style="color: var(--text-dark); font-weight: 500; font-size: 1.05rem; margin-bottom: 0.25rem;">гр. София, България</p>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Онлайн магазин с експресна доставка за цялата страна.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Form column -->
+          <div style="background: var(--bg-light); border: 1px solid var(--border-color); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow-sm);">
+            <h3 style="color: var(--primary); font-weight: 700; margin-bottom: 1.5rem; font-size: 1.25rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.75rem;">Изпратете ни съобщение</h3>
+            
+            <form id="contact-form" onsubmit="handleContactSubmit(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--primary-light);">Вашето име *</label>
+                <input type="text" id="contact-name" required placeholder="Иван Иванов" style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-sans); background: var(--bg-white); color: var(--primary); font-size: 0.95rem; outline: none; transition: var(--transition-fast);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--primary-light);">Имейл адрес *</label>
+                <input type="email" id="contact-email" required placeholder="your@email.com" style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-sans); background: var(--bg-white); color: var(--primary); font-size: 0.95rem; outline: none; transition: var(--transition-fast);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--primary-light);">Телефон за връзка</label>
+                <input type="text" id="contact-phone" placeholder="0889XXXXXX" style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-sans); background: var(--bg-white); color: var(--primary); font-size: 0.95rem; outline: none; transition: var(--transition-fast);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'">
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--primary-light);">Съобщение *</label>
+                <textarea id="contact-message" required rows="4" placeholder="Напишете Вашето съобщение тук..." style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: var(--font-sans); background: var(--bg-white); color: var(--primary); font-size: 0.95rem; outline: none; resize: vertical; transition: var(--transition-fast);" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'"></textarea>
+              </div>
+
+              <button type="submit" class="btn-premium" style="width: 100%; padding: 0.85rem; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer;">
+                <i class="fas fa-paper-plane"></i> Изпрати съобщение
+              </button>
+            </form>
+            
+            <div id="contact-success-msg" style="display: none; margin-top: 1.5rem; padding: 1rem; background: #e6f6ee; border: 1px solid #a3e0c1; border-radius: 8px; color: #1e7e4c; font-size: 0.95rem; align-items: center; gap: 0.75rem; font-weight: 500;">
+              <i class="fas fa-check-circle" style="font-size: 1.25rem; color: #1e7e4c;"></i>
+              <span>Съобщението бе изпратено успешно! Благодарим Ви.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
   <!-- --- BRAND FOOTER --- -->
   <footer id="footer">
     <div class="container footer-grid">
@@ -537,6 +680,8 @@
         <h4 class="footer-title">Информация</h4>
         <ul class="footer-links">
           <li><a href="/" class="footer-link" onclick="event.preventDefault(); goToHome();">Начало</a></li>
+          <li><a href="/za-nas" class="footer-link" onclick="event.preventDefault(); history.pushState(null, '', '/za-nas'); handleRouting();">За нас</a></li>
+          <li><a href="/kontakti" class="footer-link" onclick="event.preventDefault(); history.pushState(null, '', '/kontakti'); handleRouting();">Контакти</a></li>
           <li><a href="/blog" class="footer-link">Блог</a></li>
           <li><a href="/terms" class="footer-link" onclick="event.preventDefault(); history.pushState(null, '', '/terms'); handleRouting();">Условия за ползване</a></li>
           <li><a href="/privacy" class="footer-link" onclick="event.preventDefault(); history.pushState(null, '', '/privacy'); handleRouting();">Политика за поверителност</a></li>
@@ -759,9 +904,9 @@
       <div class="menu-nav-links">
         <a href="/" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); goToHome();">Начало</a>
         <a href="/aksesoari" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); history.pushState(null, '', '/aksesoari'); handleRouting();">Категории</a>
-        <a href="#catalog" class="menu-nav-link" onclick="closeMobileMenu()">Каталог</a>
+        <a href="/za-nas" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); history.pushState(null, '', '/za-nas'); handleRouting();">За нас</a>
         <a href="/blog" class="menu-nav-link">Блог</a>
-        <a href="#footer" class="menu-nav-link" onclick="closeMobileMenu()">Контакти</a>
+        <a href="/kontakti" class="menu-nav-link" onclick="event.preventDefault(); closeMobileMenu(); history.pushState(null, '', '/kontakti'); handleRouting();">Контакти</a>
       </div>
       <div class="menu-brands-section">
         <h4 class="menu-section-title">Марки Телефони</h4>

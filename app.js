@@ -2002,6 +2002,15 @@ window.goToHome = function() {
   
   history.pushState(null, "", "/");
   handleRouting();
+  
+  setTimeout(() => {
+    const heroEl = document.getElementById("hero-section");
+    if (heroEl) {
+      heroEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, 100);
 };
 
 // --- CLIENT-SIDE ROUTER ---
@@ -2049,10 +2058,14 @@ function handleRouting() {
   const categoryDetailView = document.getElementById("category-detail-view");
   const privacyView = document.getElementById("privacy-page-view");
   const termsView = document.getElementById("terms-page-view");
+  const zaNasView = document.getElementById("za-nas-page-view");
+  const kontaktiView = document.getElementById("kontakti-page-view");
   if (!homeView || !productView || !checkoutView || !categoriesListView || !categoryDetailView) return;
 
   if (privacyView) privacyView.style.display = "none";
   if (termsView) termsView.style.display = "none";
+  if (zaNasView) zaNasView.style.display = "none";
+  if (kontaktiView) kontaktiView.style.display = "none";
   
   // Check if the route is a product detail path
   let product = null;
@@ -2072,7 +2085,7 @@ function handleRouting() {
   const category = CATEGORIES.find(c => c.id === pathSlug);
   if (category) {
     activeCategoryDetailId = category.id;
-  } else if (isDataLoaded && path !== "/" && path !== "/aksesoari" && !path.startsWith("/produkt/") && path !== "/privacy" && path !== "/terms" && path !== "/blog") {
+  } else if (isDataLoaded && path !== "/" && path !== "/aksesoari" && !path.startsWith("/produkt/") && path !== "/privacy" && path !== "/terms" && path !== "/za-nas" && path !== "/kontakti" && path !== "/blog") {
     // If route doesn't match any valid pages, redirect to home
     history.replaceState(null, "", "/");
     path = "/";
@@ -2149,6 +2162,24 @@ function handleRouting() {
     categoriesListView.style.display = "none";
     categoryDetailView.style.display = "none";
     if (termsView) termsView.style.display = "block";
+    window.scrollTo(0, 0);
+  } else if (path === "/za-nas") {
+    // Show About Us page
+    homeView.style.display = "none";
+    productView.style.display = "none";
+    checkoutView.style.display = "none";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "none";
+    if (zaNasView) zaNasView.style.display = "block";
+    window.scrollTo(0, 0);
+  } else if (path === "/kontakti") {
+    // Show Contacts page
+    homeView.style.display = "none";
+    productView.style.display = "none";
+    checkoutView.style.display = "none";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "none";
+    if (kontaktiView) kontaktiView.style.display = "block";
     window.scrollTo(0, 0);
   } else {
     // Show Standard Home/Catalog view
@@ -2582,6 +2613,52 @@ function acceptCookies() {
   }
 }
 
+async function handleContactSubmit(event) {
+  event.preventDefault();
+  
+  const name = document.getElementById("contact-name").value;
+  const email = document.getElementById("contact-email").value;
+  const phone = document.getElementById("contact-phone").value;
+  const message = document.getElementById("contact-message").value;
+  
+  const submitBtn = event.target.querySelector("button[type='submit']");
+  const successMsg = document.getElementById("contact-success-msg");
+  
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Изпращане...';
+  }
+  
+  try {
+    const res = await convex.mutation("contacts:sendMessage", {
+      name,
+      email,
+      phone: phone || "",
+      message
+    });
+    
+    if (res && res.success) {
+      if (successMsg) {
+        successMsg.style.display = "flex";
+      }
+      event.target.reset();
+      setTimeout(() => {
+        if (successMsg) successMsg.style.display = "none";
+      }, 5000);
+    } else {
+      alert("Възникна грешка при изпращането на съобщението. Моля, опитайте отново.");
+    }
+  } catch (err) {
+    console.error("Failed to send contact message:", err);
+    alert("Грешка при изпращане: " + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Изпрати съобщение';
+    }
+  }
+}
+
 // Global Exports
 window.openMobileMenu = openMobileMenu;
 window.closeMobileMenu = closeMobileMenu;
@@ -2589,6 +2666,7 @@ window.renderCartItems = renderCartItems;
 window.applyPromoCode = applyPromoCode;
 window.handleRouting = handleRouting;
 window.acceptCookies = acceptCookies;
+window.handleContactSubmit = handleContactSubmit;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);

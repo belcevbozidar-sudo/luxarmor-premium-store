@@ -28,6 +28,8 @@
     { "source": "/popsoket-i-vrazki", "destination": "/index" },
     { "source": "/vanshni-baterii", "destination": "/index" },
     { "source": "/privacy", "destination": "/index" },
-    { "source": "/terms", "destination": "/index" }
+    { "source": "/terms", "destination": "/index" },
+    { "source": "/za-nas", "destination": "/index" },
+    { "source": "/kontakti", "destination": "/index" }
   ]
 }

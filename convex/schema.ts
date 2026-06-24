@@ -133,5 +133,14 @@ export default defineSchema({
     heroTitle: v.string(),
     heroSubtitle: v.string(),
   }),
+
+  contactMessages: defineTable({
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    message: v.string(),
+    createdAt: v.string(),
+    status: v.string(),
+  }),
 });
 
