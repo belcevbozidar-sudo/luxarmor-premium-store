@@ -2202,22 +2202,6 @@ function handleRouting() {
     
     renderCategoryDetailPage(activeCategoryDetailId);
     window.scrollTo(0, 0);
-    const categoryDescriptions = {
-      "keysove-i-kalufi": "Открийте нашата богата гама от висококачествени кейсове и калъфи, осигуряващи максимална защита и неповторим стил за вашия телефон.",
-      "protektori-za-ekran": "Изключително здрави закалени стъклени протектори за екран, предпазващи дисплея от надраскване, пукнатини и силни удари без загуба на чувствителност.",
-      "aksesoari-za-avtomobili": "Удобни магнитни и механични поставки, безжични зарядни и други важни аксесоари за безопасно и комфортно пътуване във вашия автомобил.",
-      "bezzhichni-zaryadni": "Модерни и бързи безжични зарядни устройства, съвместими с MagSafe и Qi стандарти за максимално улеснение в ежедневието ви.",
-      "zaryadni-ustroystva": "Висококачествени адаптери за стена и кола с технологии за бързо зареждане Power Delivery и Quick Charge за всички ваши устройства.",
-      "kabeli-za-zaryadane": "Издръжливи кабелни решения с текстилна оплетка и подсилени краища за бърз трансфер на данни и сигурно захранване без прекъсване.",
-      "postavki-za-byuro": "Ергономични метални и пластмасови поставки за бюро, подходящи за видео разговори, гледане на съдържание и удобна ежедневна работа.",
-      "selfi-stikove": "Стабилни и леки селфи стикове с вграден трипод и Bluetooth дистанционно управление за заснемане на перфектните моменти навсякъде.",
-      "popsoket-i-vrazki": "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон.",
-      "vanshni-baterii": "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение."
-    };
-    const catObj = CATEGORIES.find(c => c.id === activeCategoryDetailId);
-    const catTitle = catObj ? `${catObj.name} | CaseKing` : "Категория";
-    const catDesc = categoryDescriptions[activeCategoryDetailId] || "Премиум аксесоари за мобилни телефони.";
-    updateSEO(null, catTitle, catDesc);
   } else if (path === "/privacy") {
     // Show Privacy Policy
     homeView.style.display = "none";
@@ -2392,22 +2376,24 @@ function renderCategoryDetailPage(catId) {
   
   const descEl = document.getElementById("category-detail-desc");
   if (descEl) {
-    const categoryDescriptions = {
-      "keysove-i-kalufi": "Открийте нашата богата гама от висококачествени кейсове и калъфи, осигуряващи максимална защита и неповторим стил за вашия телефон.",
-      "protektori-za-ekran": "Изключително здрави закалени стъклени протектори за екран, предпазващи дисплея от надраскване, пукнатини и силни удари без загуба на чувствителност.",
-      "aksesoari-za-avtomobili": "Удобни магнитни и механични поставки, безжични зарядни и други важни аксесоари за безопасно и комфортно пътуване във вашия автомобил.",
-      "bezzhichni-zaryadni": "Модерни и бързи безжични зарядни устройства, съвместими с MagSafe и Qi стандарти за максимално улеснение в ежедневието ви.",
-      "zaryadni-ustroystva": "Висококачествени адаптери за стена и кола с технологии за бързо зареждане Power Delivery и Quick Charge за всички ваши устройства.",
-      "kabeli-za-zaryadane": "Издръжливи кабелни решения с текстилна оплетка и подсилени краища за бърз трансфер на данни и сигурно захранване без прекъсване.",
-      "postavki-za-byuro": "Ергономични метални и пластмасови поставки за бюро, подходящи за видео разговори, гледане на съдържание и удобна ежедневна работа.",
-      "selfi-stikove": "Стабилни и леки селфи стикове с вграден трипод и Bluetooth дистанционно управление за заснемане на перфектните моменти навсякъде.",
-      "popsoket-i-vrazki": "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон.",
-      "vanshni-baterii": "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение.",
-      "headphones": "Премиум безжични и жични слушалки с изключително качество на звука, дълбок бас и ергономичен дизайн за максимален комфорт.",
-      "memory_cards": "Бързи и надеждни карти памет и флаш памети за сигурно съхранение на вашите снимки, видеоклипове и важни файлове.",
-      "hydrogel_film": "Високотехнологично самовъзстановяващо се хидрогел фолио за пълна 360-градусова защита на екрана и гърба на вашето мобилно устройство."
-    };
-    descEl.textContent = categoryDescriptions[catId] || "Премиум телефонни аксесоари от най-висок клас, подбрани специално за вашите нужди и изисквания.";
+    descEl.textContent = (category && category.description) ? category.description : "Премиум телефонни аксесоари от най-висок клас, подбрани специално за вашите нужди и изисквания.";
+  }
+
+  // Update category SEO metadata dynamically
+  if (category) {
+    let finalTitle = category.seoTitle ? category.seoTitle : `${category.name} | CaseKing`;
+    let finalDesc = category.seoDescription ? category.seoDescription : (category.description ? category.description : `Висококачествени ${category.name.toLowerCase()} за вашия телефон от CaseKing. Бърза доставка, преглед и тест.`);
+
+    // If a phone model filter is selected
+    if (categoryDetailSelectedModel) {
+      finalTitle = `${category.name} за ${categoryDetailSelectedBrand} ${categoryDetailSelectedModel} | Премиум Защита - CaseKing`;
+      finalDesc = `Изберете премиум ${category.name.toLowerCase()} за ${categoryDetailSelectedBrand} ${categoryDetailSelectedModel} в онлайн магазин CaseKing. Изключителна защита, бърза доставка, преглед и тест!`;
+    } else if (categoryDetailSelectedBrand) {
+      finalTitle = `${category.name} за ${categoryDetailSelectedBrand} | Премиум Защита - CaseKing`;
+      finalDesc = `Голямо разнообразие от ${category.name.toLowerCase()} за ${categoryDetailSelectedBrand} в онлайн магазин CaseKing. Поръчайте с бърза доставка и преглед!`;
+    }
+
+    updateSEO(null, finalTitle, finalDesc);
   }
   
   // Handle Category Filtering Panel

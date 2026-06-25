@@ -105,6 +105,9 @@ export default defineSchema({
     id: v.string(),
     name: v.string(),
     image: v.string(),
+    description: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
   }),
 
   promoCodes: defineTable({

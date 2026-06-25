@@ -70,14 +70,59 @@ export const getCategories = query({
 });
 
 export const addCategory = mutation({
-  args: { id: v.string(), name: v.string(), image: v.string() },
+  args: {
+    id: v.string(),
+    name: v.string(),
+    image: v.string(),
+    description: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("categories")
       .filter((q) => q.eq(q.field("id"), args.id))
       .first();
     if (existing) return existing._id;
-    return await ctx.db.insert("categories", args);
+    return await ctx.db.insert("categories", {
+      id: args.id,
+      name: args.name,
+      image: args.image,
+      description: args.description || "",
+      seoTitle: args.seoTitle || "",
+      seoDescription: args.seoDescription || "",
+    });
+  },
+});
+
+export const updateCategory = mutation({
+  args: {
+    id: v.string(),
+    name: v.string(),
+    image: v.optional(v.string()),
+    description: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("categories")
+      .filter((q) => q.eq(q.field("id"), args.id))
+      .first();
+    if (!existing) throw new Error("Category not found");
+    
+    const patchData: any = {
+      name: args.name,
+      description: args.description || "",
+      seoTitle: args.seoTitle || "",
+      seoDescription: args.seoDescription || "",
+    };
+    if (args.image) {
+      patchData.image = args.image;
+    }
+    
+    await ctx.db.patch(existing._id, patchData);
+    return existing._id;
   },
 });
 
@@ -99,16 +144,16 @@ export const seedMetadata = mutation({
     const existingCats = await ctx.db.query("categories").collect();
     if (existingCats.length === 0) {
       const CATEGORIES = [
-        { id: "keysove-i-kalufi", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp" },
-        { id: "protektori-za-ekran", name: "Протектори за екран", image: "assets/cat_protectors.webp" },
-        { id: "aksesoari-za-avtomobili", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp" },
-        { id: "bezzhichni-zaryadni", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp" },
-        { id: "zaryadni-ustroystva", name: "Зарядни устройства", image: "assets/cat_car_charger.webp" },
-        { id: "kabeli-za-zaryadane", name: "Кабели за зареждане", image: "assets/cat_cables.webp" },
-        { id: "postavki-za-byuro", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp" },
-        { id: "selfi-stikove", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp" },
-        { id: "popsoket-i-vrazki", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp" },
-        { id: "vanshni-baterii", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
+        { id: "keysove-i-kalufi", name: "Кейсове / Калъфи", image: "assets/cat_cases.webp", description: "Открийте нашата богата гама от висококачествени кейсове и калъфи, осигуряващи максимална защита и неповторим стил за вашия телефон." },
+        { id: "protektori-za-ekran", name: "Протектори за екран", image: "assets/cat_protectors.webp", description: "Изключително здрави закалени стъклени протектори за екран, предпазващи дисплея от надраскване, пукнатини и силни удари без загуба на чувствителност." },
+        { id: "aksesoari-za-avtomobili", name: "Аксесоари за автомобил", image: "assets/cat_car_holder.webp", description: "Удобни магнитни и механични поставки, безжични зарядни и други важни аксесоари за безопасно и комфортно пътуване във вашия автомобил." },
+        { id: "bezzhichni-zaryadni", name: "Безжични зарядни", image: "assets/cat_wireless_charger.webp", description: "Модерни и бързи безжични зарядни устройства, съвместими с MagSafe и Qi стандарти за максимално улеснение в ежедневието ви." },
+        { id: "zaryadni-ustroystva", name: "Зарядни устройства", image: "assets/cat_car_charger.webp", description: "Висококачествени адаптери за стена и кола с технологии за бързо зареждане Power Delivery и Quick Charge за всички ваши устройства." },
+        { id: "kabeli-za-zaryadane", name: "Кабели за зареждане", image: "assets/cat_cables.webp", description: "Издръжливи кабелни решения с текстилна оплетка и подсилени краища за бърз трансфер на данни и сигурно захранване без прекъсване." },
+        { id: "postavki-za-byuro", name: "Поставки за бюро", image: "assets/cat_desk_stand.webp", description: "Ергономични метални и пластмасови поставки за бюро, подходящи за видео разговори, гледане на съдържание и удобна ежедневна работа." },
+        { id: "selfi-stikove", name: "Селфи стикове", image: "assets/cat_selfie_stick.webp", description: "Стабилни и леки селфи стикове с вграден трипод и Bluetooth дистанционно управление за заснемане на перфектните моменти навсякъде." },
+        { id: "popsoket-i-vrazki", name: "Попсокет / Връзки", image: "assets/cat_pop_socket.webp", description: "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон." },
+        { id: "vanshni-baterii", name: "Външни батерии", image: "assets/cat_power_bank.webp", description: "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение." }
       ];
       for (const cat of CATEGORIES) {
         await ctx.db.insert("categories", cat);
@@ -270,6 +315,39 @@ export const migrateCategories = mutation({
     }
 
     return { productsMigrated: productCount };
+  },
+});
+
+export const migrateCategoryDescriptions = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const categoryDescriptions: Record<string, string> = {
+      "keysove-i-kalufi": "Открийте нашата богата гама от висококачествени кейсове и калъфи, осигуряващи максимална защита и неповторим стил за вашия телефон.",
+      "protektori-za-ekran": "Изключително здрави закалени стъклени протектори за екран, предпазващи дисплея от надраскване, пукнатини и силни удари без загуба на чувствителност.",
+      "aksesoari-za-avtomobili": "Удобни магнитни и механични поставки, безжични зарядни и други важни аксесоари за безопасно и комфортно пътуване във вашия автомобил.",
+      "bezzhichni-zaryadni": "Модерни и бързи безжични зарядни устройства, съвместими с MagSafe и Qi стандарти за максимално улеснение в ежедневието ви.",
+      "zaryadni-ustroystva": "Висококачествени адаптери за стена и кола с технологии за бързо зареждане Power Delivery и Quick Charge за всички ваши устройства.",
+      "kabeli-za-zaryadane": "Издръжливи кабелни решения с текстилна оплетка и подсилени краища за бърз трансфер на данни и сигурно захранване без прекъсване.",
+      "postavki-za-byuro": "Ергономични метални и пластмасови поставки за бюро, подходящи за видео разговори, гледане на съдържание и удобна ежедневна работа.",
+      "selfi-stikove": "Стабилни и леки селфи стикове с вграден трипод и Bluetooth дистанционно управление за заснемане на перфектните моменти навсякъде.",
+      "popsoket-i-vrazki": "Практични попсокети, пръстени и стилни връзки за ръка за по-сигурен захват и уникална персонализация на вашия смартфон.",
+      "vanshni-baterii": "Мощни преносими батерии с голям капацитет и бързо безжично или жично зареждане, за да бъдете винаги свързани в движение."
+    };
+
+    const categories = await ctx.db.query("categories").collect();
+    let count = 0;
+    for (const cat of categories) {
+      const defaultDesc = categoryDescriptions[cat.id];
+      if (defaultDesc) {
+        await ctx.db.patch(cat._id, {
+          description: cat.description || defaultDesc,
+          seoTitle: cat.seoTitle || (cat.name + " | CaseKing"),
+          seoDescription: cat.seoDescription || defaultDesc,
+        });
+        count++;
+      }
+    }
+    return { migrated: count };
   },
 });
 

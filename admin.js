@@ -642,7 +642,10 @@ function renderBrandsAndModels() {
           <img src="${cat.image.startsWith('data:') ? cat.image : (cat.image.startsWith('assets/') ? cat.image : `assets/${cat.image}`)}" class="meta-logo-preview" onerror="this.style.display='none'">
           <strong>${cat.name}</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${cat.id})</span>
         </div>
-        <button class="btn-icon delete" onclick="deleteCategory('${cat._id}')" title="Изтрий категория"><i class="fas fa-trash"></i></button>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn-icon" onclick="openCategoryModal('${cat.id}')" title="Редактирай категория"><i class="fas fa-edit"></i></button>
+          <button class="btn-icon delete" onclick="deleteCategory('${cat._id}')" title="Изтрий категория"><i class="fas fa-trash"></i></button>
+        </div>
       `;
       categoriesContainer.appendChild(div);
     });
@@ -1940,14 +1943,52 @@ window.exportProductsToExcel = async function() {
 };
 
 // --- CATEGORIES MANAGEMENT ---
-window.openCategoryModal = function() {
-  document.getElementById("category-id-input").value = "";
-  document.getElementById("category-name-input").value = "";
-  document.getElementById("category-image-input").value = "";
+window.openCategoryModal = function(catId = null) {
+  const modalTitle = document.getElementById("category-modal-title");
+  const submitBtn = document.getElementById("category-submit-btn");
+  const idInput = document.getElementById("category-id-input");
+  const nameInput = document.getElementById("category-name-input");
+  const imageInput = document.getElementById("category-image-input");
+  const descInput = document.getElementById("category-desc-input");
+  const seoTitleInput = document.getElementById("category-seo-title-input");
+  const seoDescInput = document.getElementById("category-seo-desc-input");
   const previewDiv = document.getElementById("category-image-preview");
-  if (previewDiv) {
-    previewDiv.style.display = "none";
-    previewDiv.querySelector("img").src = "";
+  
+  imageInput.value = "";
+  
+  if (catId) {
+    if (modalTitle) modalTitle.textContent = "Редактиране на Категория";
+    if (submitBtn) submitBtn.textContent = "Запази";
+    idInput.value = catId;
+    idInput.disabled = true;
+    
+    const cat = allCategories.find(c => c.id === catId);
+    if (cat) {
+      nameInput.value = cat.name || "";
+      if (descInput) descInput.value = cat.description || "";
+      if (seoTitleInput) seoTitleInput.value = cat.seoTitle || "";
+      if (seoDescInput) seoDescInput.value = cat.seoDescription || "";
+      
+      if (previewDiv) {
+        previewDiv.style.display = "block";
+        const img = previewDiv.querySelector("img");
+        img.src = cat.image.startsWith('data:') ? cat.image : (cat.image.startsWith('assets/') ? cat.image : `assets/${cat.image}`);
+      }
+    }
+  } else {
+    if (modalTitle) modalTitle.textContent = "Добавяне на Категория";
+    if (submitBtn) submitBtn.textContent = "Добави";
+    idInput.value = "";
+    idInput.disabled = false;
+    nameInput.value = "";
+    if (descInput) descInput.value = "";
+    if (seoTitleInput) seoTitleInput.value = "";
+    if (seoDescInput) seoDescInput.value = "";
+    
+    if (previewDiv) {
+      previewDiv.style.display = "none";
+      previewDiv.querySelector("img").src = "";
+    }
   }
   document.getElementById("category-modal").classList.add("active");
 };
@@ -1958,21 +1999,46 @@ window.closeCategoryModal = function() {
 
 window.saveCategory = async function(event) {
   event.preventDefault();
-  const id = document.getElementById("category-id-input").value.trim();
+  const idInput = document.getElementById("category-id-input");
+  const id = idInput.value.trim();
   const name = document.getElementById("category-name-input").value.trim();
   const imageInput = document.getElementById("category-image-input");
+  const description = document.getElementById("category-desc-input").value.trim();
+  const seoTitle = document.getElementById("category-seo-title-input").value.trim();
+  const seoDescription = document.getElementById("category-seo-desc-input").value.trim();
+  
+  const isEditing = idInput.disabled;
   
   try {
     const imageBase64 = await getBase64Image(imageInput, 400, 400);
-    if (!imageBase64) {
-      alert("Моля, изберете снимка за категорията!");
-      return;
+    
+    if (isEditing) {
+      await convex.mutation("meta:updateCategory", { 
+        id, 
+        name, 
+        image: imageBase64 || undefined, 
+        description, 
+        seoTitle, 
+        seoDescription 
+      });
+    } else {
+      if (!imageBase64) {
+        alert("Моля, изберете снимка за категорията!");
+        return;
+      }
+      await convex.mutation("meta:addCategory", { 
+        id, 
+        name, 
+        image: imageBase64, 
+        description, 
+        seoTitle, 
+        seoDescription 
+      });
     }
-    await convex.mutation("meta:addCategory", { id, name, image: imageBase64 });
     closeCategoryModal();
     loadDashboardData();
   } catch (err) {
-    alert("Грешка при добавяне на категория: " + err.message);
+    alert("Грешка при записване на категория: " + err.message);
   }
 };
 
