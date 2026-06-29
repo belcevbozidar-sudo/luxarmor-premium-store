@@ -1366,6 +1366,29 @@ function renderCartItems() {
       promoBanner.style.display = "none";
     }
   }
+
+  // Minimum order value validation
+  const minThreshold = clientType === "B2B" ? 29.99 : 9.99;
+  const minOrderWarning = document.getElementById("cart-min-order-warning");
+  const checkoutBtn = document.querySelector("#cart-overlay .btn-premium");
+  if (minOrderWarning) {
+    if (subtotal > 0 && subtotal < minThreshold) {
+      minOrderWarning.innerHTML = `Стойността на поръчката Ви е под минималните €${minThreshold.toFixed(2)}. Работим с минимални маржове, за да Ви осигурим възможно най-ниските цени на пазара. За да можем да обработим и доставим пратката Ви, е необходимо общата сума да бъде поне €${minThreshold.toFixed(2)}. Ценим Вашия избор!`;
+      minOrderWarning.style.display = "block";
+      if (checkoutBtn) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.style.opacity = "0.5";
+        checkoutBtn.style.cursor = "not-allowed";
+      }
+    } else {
+      minOrderWarning.style.display = "none";
+      if (checkoutBtn) {
+        checkoutBtn.disabled = false;
+        checkoutBtn.style.opacity = "1";
+        checkoutBtn.style.cursor = "pointer";
+      }
+    }
+  }
 }
 
 window.openCartSidebar = function() {
@@ -1385,6 +1408,12 @@ window.proceedToCheckout = function() {
   });
   
   const clientType = currentUser ? currentUser.clientType : "B2C";
+  const minThreshold = clientType === "B2B" ? 29.99 : 9.99;
+  if (subtotal < minThreshold) {
+    alert(`Минималната сума за поръчка е €${minThreshold.toFixed(2)}.`);
+    return;
+  }
+  
   const activePromos = PROMOTIONS.filter(p => p.clientType === clientType && p.active);
   const shippingPromo = activePromos.find(p => p.type === "free_shipping");
   
@@ -1547,6 +1576,29 @@ function renderCheckoutSummary() {
   }
   
   totalEl.textContent = formatPrice(total);
+
+  // Minimum order value validation for checkout page
+  const minThreshold = activeCheckoutType === "B2B" ? 29.99 : 9.99;
+  const minOrderWarning = document.getElementById("checkout-min-order-warning");
+  const submitBtn = document.getElementById("checkout-submit-btn");
+  if (minOrderWarning) {
+    if (subtotal > 0 && subtotal < minThreshold) {
+      minOrderWarning.innerHTML = `Стойността на поръчката Ви е под минималните €${minThreshold.toFixed(2)}. Работим с минимални маржове, за да Ви осигурим възможно най-ниските цени на пазара. За да можем да обработим и доставим пратката Ви, е необходимо общата сума да бъде поне €${minThreshold.toFixed(2)}. Ценим Вашия избор!`;
+      minOrderWarning.style.display = "block";
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = "0.5";
+        submitBtn.style.cursor = "not-allowed";
+      }
+    } else {
+      minOrderWarning.style.display = "none";
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = "1";
+        submitBtn.style.cursor = "pointer";
+      }
+    }
+  }
 }
 
 window.submitCheckout = async function(event) {
@@ -1564,6 +1616,19 @@ window.submitCheckout = async function(event) {
   const gdprConsent = document.getElementById("checkout-gdpr-consent");
   if (gdprConsent && !gdprConsent.checked) {
     alert("Моля, съгласете се с Условията за ползване и Политиката за поверителност, за да завършите поръчката!");
+    return;
+  }
+  
+  // Calculate subtotal and validate minimum order value
+  let subtotal = 0;
+  cart.forEach(item => {
+    if (!item.isGift) subtotal += item.price * item.quantity;
+  });
+
+  const clientType = activeCheckoutType;
+  const minThreshold = clientType === "B2B" ? 29.99 : 9.99;
+  if (subtotal < minThreshold) {
+    alert(`Стойността на поръчката Ви е под минималните €${minThreshold.toFixed(2)}. Работим с минимални маржове, за да Ви осигурим възможно най-ниските цени на пазара. За да можем да обработим и доставим пратката Ви, е необходимо общата сума да бъде поне €${minThreshold.toFixed(2)}.`);
     return;
   }
   

@@ -314,7 +314,10 @@
               </label>
             </div>
 
-            <button type="submit" class="btn-premium" style="width: 100%; margin-top: 2.25rem; padding: 1rem;">Завърши поръчката</button>
+            <!-- Minimum order warning -->
+            <div id="checkout-min-order-warning" style="display:none; font-size: 0.85rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgb(239, 68, 68); border-radius: 8px; margin-top: 1.5rem; color: rgb(239, 68, 68); text-align: left; line-height: 1.45;"></div>
+
+            <button type="submit" class="btn-premium" id="checkout-submit-btn" style="width: 100%; margin-top: 2.25rem; padding: 1rem;">Завърши поръчката</button>
           </form>
         </div>
         
@@ -734,6 +737,9 @@
         
         <div class="cart-promo-banner" id="cart-promo-banner" style="display:none; font-size: 0.85rem; padding: 0.75rem; background: rgba(22, 122, 255, 0.1); border: 1px dashed var(--gold); border-radius: 6px; margin-top: 1rem; color: var(--primary); text-align: center;"></div>
         
+        <!-- Minimum order warning -->
+        <div id="cart-min-order-warning" style="display:none; font-size: 0.82rem; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgb(239, 68, 68); border-radius: 6px; margin-top: 1rem; color: rgb(239, 68, 68); text-align: left; line-height: 1.45;"></div>
+
         <button class="btn-premium" onclick="proceedToCheckout()" style="width: 100%; margin-top: 1rem; padding: 0.85rem;">Напред към поръчка</button>
       </div>
     </div>

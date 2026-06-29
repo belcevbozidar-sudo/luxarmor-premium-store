@@ -395,12 +395,67 @@ export const upsertBatch = mutation({
       }
       
       if (!exists) {
+        // Fallback: look up by name, brand, model, category
+        const existingByName = await ctx.db
+          .query("products")
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("name"), data.name),
+              q.eq(q.field("brand"), data.brand),
+              q.eq(q.field("model"), data.model),
+              q.eq(q.field("category"), data.category)
+            )
+          )
+          .first();
+          
+        if (existingByName) {
+          await ctx.db.patch(existingByName._id, {
+            ...data,
+            isDeleted: false // Reactivate if it was soft-deleted
+          });
+          updatedCount++;
+          exists = true;
+        }
+      }
+      
+      if (!exists) {
         await ctx.db.insert("products", data);
         createdCount++;
       }
     }
     
     return { updatedCount, createdCount };
+  }
+});
+
+export const deleteDuplicateProducts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    const activeProducts = products.filter(p => !p.isDeleted);
+    
+    const groups: Record<string, typeof activeProducts> = {};
+    for (const p of activeProducts) {
+      const key = `${p.name.trim().toLowerCase()}|${p.brand.trim().toLowerCase()}|${p.model.trim().toLowerCase()}|${p.category.trim().toLowerCase()}`;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(p);
+    }
+    
+    let deletedCount = 0;
+    for (const [key, list] of Object.entries(groups)) {
+      if (list.length > 1) {
+        // Keep the newest one by creation time, delete older ones
+        list.sort((a, b) => b._creationTime - a._creationTime);
+        const duplicates = list.slice(1);
+        for (const dup of duplicates) {
+          await ctx.db.delete(dup._id);
+          deletedCount++;
+        }
+      }
+    }
+    return `Deleted ${deletedCount} duplicate products.`;
   }
 });export const getSpigenS25 = query({
   args: {},
@@ -431,5 +486,21 @@ export const deleteEnglishDuplicates = mutation({
       }
     }
     return `Deleted ${deletedCount} English duplicate products.`;
+  }
+});
+
+export const getS26 = query({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("products").collect();
+    return all.filter(p => p.model.toLowerCase().includes("s26") || p.name.toLowerCase().includes("s26")).map(p => ({
+      id: p._id,
+      name: p.name,
+      brand: p.brand,
+      model: p.model,
+      category: p.category,
+      priceB2C: p.priceB2C,
+      isDeleted: p.isDeleted
+    }));
   }
 });
