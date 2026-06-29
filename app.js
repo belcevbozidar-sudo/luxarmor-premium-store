@@ -1643,13 +1643,7 @@ window.submitCheckout = async function(event) {
     isGift: item.isGift || false
   }));
   
-  // Calculate total
-  let subtotal = 0;
-  cart.forEach(item => {
-    if (!item.isGift) subtotal += item.price * item.quantity;
-  });
-  
-  const clientType = activeCheckoutType;
+  // Calculate total (reusing subtotal and clientType from above)
   const activePromos = PROMOTIONS.filter(p => p.clientType === clientType && p.active);
   const shippingPromo = activePromos.find(p => p.type === "free_shipping");
   let shippingCost = 2.50;
