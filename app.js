@@ -364,8 +364,9 @@ function renderBrands() {
     if (selectedBrand === brand.name) btn.classList.add("active");
     btn.onclick = () => selectBrand(brand.name);
     
+    const logoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `assets/${brand.logo || 'logo.webp'}`;
     btn.innerHTML = `
-      <img src="${brand.logo.startsWith('data:') ? brand.logo : `assets/${brand.logo}`}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
+      <img src="${logoSrc}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
       <span class="brand-card-text">${brand.name}</span>
     `;
     container.appendChild(btn);
@@ -375,8 +376,9 @@ function renderBrands() {
       const mBtn = document.createElement("button");
       mBtn.className = "menu-brand-item";
       mBtn.onclick = () => selectMobileBrand(brand.name, mBtn);
+      const mLogoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `assets/${brand.logo || 'logo.webp'}`;
       mBtn.innerHTML = `
-        <img src="${brand.logo.startsWith('data:') ? brand.logo : `assets/${brand.logo}`}" class="menu-brand-img" onerror="this.style.display='none'">
+        <img src="${mLogoSrc}" class="menu-brand-img" onerror="this.style.display='none'">
         <span>${brand.name}</span>
       `;
       mobileContainer.appendChild(mBtn);
@@ -2375,8 +2377,9 @@ function renderCategoryDetailBrands(catId) {
       }
       renderCategoryDetailPage(catId);
     };
+    const logoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `/assets/${brand.logo || 'logo.webp'}`;
     btn.innerHTML = `
-      <img src="${brand.logo.startsWith('data:') ? brand.logo : `/assets/${brand.logo}`}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
+      <img src="${logoSrc}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
       <span class="brand-card-text">${brand.name}</span>
     `;
     container.appendChild(btn);

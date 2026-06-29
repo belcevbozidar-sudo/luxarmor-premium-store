@@ -637,9 +637,10 @@ function renderBrandsAndModels() {
     allCategories.forEach(cat => {
       const div = document.createElement("div");
       div.className = "meta-item";
+      const catImgSrc = (cat.image && cat.image.startsWith('data:')) ? cat.image : ((cat.image && cat.image.startsWith('assets/')) ? cat.image : `assets/${cat.image || 'logo.webp'}`);
       div.innerHTML = `
         <div class="meta-item-info" style="flex:1; display:flex; align-items:center; gap:0.75rem;">
-          <img src="${cat.image.startsWith('data:') ? cat.image : (cat.image.startsWith('assets/') ? cat.image : `assets/${cat.image}`)}" class="meta-logo-preview" onerror="this.style.display='none'">
+          <img src="${catImgSrc}" class="meta-logo-preview" onerror="this.style.display='none'">
           <strong>${cat.name}</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${cat.id})</span>
         </div>
         <div style="display:flex; gap:0.5rem;">
@@ -659,9 +660,10 @@ function renderBrandsAndModels() {
     const div = document.createElement("div");
     div.className = "meta-item" + (selectedBrandFilter === b.name ? " selected" : "");
     div.style.cursor = "pointer";
+    const brandLogoSrc = (b.logo && b.logo.startsWith('data:')) ? b.logo : `assets/${b.logo || 'logo.webp'}`;
     div.innerHTML = `
       <div class="meta-item-info" style="flex:1; display:flex; align-items:center; gap:0.75rem;">
-        <img src="${b.logo.startsWith('data:') ? b.logo : `assets/${b.logo}`}" class="meta-logo-preview" onerror="this.style.display='none'">
+        <img src="${brandLogoSrc}" class="meta-logo-preview" onerror="this.style.display='none'">
         <strong>${b.name}</strong>
       </div>
       <button class="btn-icon delete" onclick="event.stopPropagation(); deleteBrand('${b._id}')" title="Изтрий марка"><i class="fas fa-trash"></i></button>
@@ -1972,7 +1974,8 @@ window.openCategoryModal = function(catId = null) {
       if (previewDiv) {
         previewDiv.style.display = "block";
         const img = previewDiv.querySelector("img");
-        img.src = cat.image.startsWith('data:') ? cat.image : (cat.image.startsWith('assets/') ? cat.image : `assets/${cat.image}`);
+        const catImgSrc = (cat.image && cat.image.startsWith('data:')) ? cat.image : ((cat.image && cat.image.startsWith('assets/')) ? cat.image : `assets/${cat.image || 'logo.webp'}`);
+        img.src = catImgSrc;
       }
     }
   } else {
