@@ -326,6 +326,10 @@ async function loadData() {
     console.log("Storefront data successfully loaded dynamically from Convex.");
   } catch (err) {
     console.warn("Could not load dynamic data from Convex, falling back to static dataset.", err);
+    if (!PRODUCTS || PRODUCTS.length === 0) PRODUCTS = [...STATIC_PRODUCTS];
+    if (!CATEGORIES || CATEGORIES.length === 0) CATEGORIES = [...STATIC_CATEGORIES];
+    if (!BRANDS || BRANDS.length === 0) BRANDS = [...STATIC_BRANDS];
+    if (!MODELS || MODELS.length === 0) MODELS = [...STATIC_MODELS];
   } finally {
     isDataLoaded = true;
   }
