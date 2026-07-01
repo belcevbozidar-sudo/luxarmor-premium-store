@@ -2638,6 +2638,7 @@ async function initApp() {
     renderBrands();
     renderCategories();
     renderCatalog();
+    renderCartItems();
     handleRouting();
   });
   
