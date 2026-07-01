@@ -378,6 +378,23 @@ export const upsertBatch = mutation({
     let updatedCount = 0;
     let createdCount = 0;
     
+    // Fetch all existing products once to avoid N table scans/queries inside the loop.
+    const allExisting = await ctx.db.query("products").collect();
+    
+    // Create in-memory maps for fast lookup
+    const byIdMap = new Map();
+    const byNameKeyMap = new Map();
+    
+    for (const p of allExisting) {
+      byIdMap.set(p._id, p);
+      
+      const key = `${p.name.trim().toLowerCase()}|${p.brand.trim().toLowerCase()}|${p.model.trim().toLowerCase()}|${p.category.trim().toLowerCase()}`;
+      // If there are duplicates in the DB, prefer active ones
+      if (!byNameKeyMap.has(key) || (!p.isDeleted && byNameKeyMap.get(key).isDeleted)) {
+        byNameKeyMap.set(key, p);
+      }
+    }
+    
     for (const p of args.products) {
       const { id, ...data } = p;
       let exists = false;
@@ -385,9 +402,15 @@ export const upsertBatch = mutation({
       if (id) {
         const dbId = ctx.db.normalizeId("products", id);
         if (dbId) {
-          const existing = await ctx.db.get(dbId);
+          const existing = byIdMap.get(dbId);
           if (existing && !existing.isDeleted) {
+            const patchedDoc = { ...existing, ...data };
             await ctx.db.patch(dbId, data);
+            byIdMap.set(dbId, patchedDoc);
+            
+            const key = `${data.name.trim().toLowerCase()}|${data.brand.trim().toLowerCase()}|${data.model.trim().toLowerCase()}|${data.category.trim().toLowerCase()}`;
+            byNameKeyMap.set(key, patchedDoc);
+            
             updatedCount++;
             exists = true;
           }
@@ -396,31 +419,32 @@ export const upsertBatch = mutation({
       
       if (!exists) {
         // Fallback: look up by name, brand, model, category
-        const existingByName = await ctx.db
-          .query("products")
-          .filter((q) =>
-            q.and(
-              q.eq(q.field("name"), data.name),
-              q.eq(q.field("brand"), data.brand),
-              q.eq(q.field("model"), data.model),
-              q.eq(q.field("category"), data.category)
-            )
-          )
-          .first();
+        const key = `${data.name.trim().toLowerCase()}|${data.brand.trim().toLowerCase()}|${data.model.trim().toLowerCase()}|${data.category.trim().toLowerCase()}`;
+        const existingByName = byNameKeyMap.get(key);
           
         if (existingByName) {
+          const patchedDoc = { ...existingByName, ...data, isDeleted: false };
           await ctx.db.patch(existingByName._id, {
             ...data,
             isDeleted: false // Reactivate if it was soft-deleted
           });
+          byIdMap.set(existingByName._id, patchedDoc);
+          byNameKeyMap.set(key, patchedDoc);
+          
           updatedCount++;
           exists = true;
         }
       }
       
       if (!exists) {
-        await ctx.db.insert("products", data);
+        const newId = await ctx.db.insert("products", data);
         createdCount++;
+        
+        const newDoc = { _id: newId, ...data } as any;
+        byIdMap.set(newId, newDoc);
+        
+        const key = `${data.name.trim().toLowerCase()}|${data.brand.trim().toLowerCase()}|${data.model.trim().toLowerCase()}|${data.category.trim().toLowerCase()}`;
+        byNameKeyMap.set(key, newDoc);
       }
     }
     
