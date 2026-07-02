@@ -1733,8 +1733,8 @@ function processCSVData(rows) {
       specs: {
         material,
         weight,
-        origin: originIdx !== -1 && row[originIdx] ? row[originIdx].toString().trim() : "Германия",
-        delivery: delIdx !== -1 && row[delIdx] ? row[delIdx].toString().trim() : "Бърза доставка до 24 часа"
+        origin: originIdx !== -1 && row[originIdx] ? row[originIdx].toString().trim() : "Румъния",
+        delivery: delIdx !== -1 && row[delIdx] ? row[delIdx].toString().trim() : "Доставка 3-4 работни дни с преглед (без тест)"
       },
       image,
       images

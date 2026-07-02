@@ -221,17 +221,17 @@ export const seedMetadata = mutation({
         {
           pageKey: "home",
           title: "CaseKing - Избери Марка и Модел за Телефон | Кейсове и Аксесоари",
-          description: "Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с бърза доставка, преглед и тест!"
+          description: "Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с доставка за 3-4 работни дни и преглед (без тест)!"
         },
         {
           pageKey: "za-nas",
           title: "За нас | CaseKing",
-          description: "Научете повече за CaseKing, нашата визия и мисията ни да осигурим безкомпромисно качество и бърза доставка на премиум телефонни аксесоари."
+          description: "Научете повече за CaseKing, нашата визия и мисията ни да осигурим безкомпромисно качество и доставка за 3-4 работни дни на премиум телефонни аксесоари."
         },
         {
           pageKey: "kontakti",
           title: "Контакти | CaseKing",
-          description: "Свържете се с CaseKing. Изпратете ни запитване през нашата контактна форма или се обадете на 0889 650 060 за бърза консултация."
+          description: "Свържете се с CaseKing. Изпратете ни запитване през нашата контактна форма или се обадете на 0878 202 823 за консултация."
         },
         {
           pageKey: "aksesoari",
@@ -350,4 +350,39 @@ export const migrateCategoryDescriptions = mutation({
     return { migrated: count };
   },
 });
+
+export const updateExistingSettings = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const setting = await ctx.db.query("homepageSettings").first();
+    if (setting) {
+      await ctx.db.patch(setting._id, {
+        heroSubtitle: "В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с доставка за 3-4 работни дни и опция преглед (без тест)!"
+      });
+    }
+
+    const allMeta = await ctx.db.query("pageMetadata").collect();
+    let updatedCount = 0;
+    for (const meta of allMeta) {
+      if (meta.pageKey === "home") {
+        await ctx.db.patch(meta._id, {
+          description: "Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с доставка за 3-4 работни дни и преглед (без тест)!"
+        });
+        updatedCount++;
+      } else if (meta.pageKey === "za-nas") {
+        await ctx.db.patch(meta._id, {
+          description: "Научете повече за CaseKing, нашата визия и мисията ни да осигурим безкомпромисно качество и доставка за 3-4 работни дни на премиум телефонни аксесоари."
+        });
+        updatedCount++;
+      } else if (meta.pageKey === "kontakti") {
+        await ctx.db.patch(meta._id, {
+          description: "Свържете се с CaseKing. Изпратете ни запитване през нашата контактна форма или се обадете на 0878 202 823 за консултация."
+        });
+        updatedCount++;
+      }
+    }
+    return `Updated existing settings and ${updatedCount} metadata pages.`;
+  }
+});
+
 

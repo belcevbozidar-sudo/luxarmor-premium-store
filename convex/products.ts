@@ -652,3 +652,23 @@ export const cleanupModelsAndProducts = mutation({
     };
   }
 });
+
+export const updateAllProductSpecs = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    let updatedCount = 0;
+    for (const p of products) {
+      const newSpecs = {
+        material: p.specs?.material || "Премиум качество",
+        weight: p.specs?.weight || "20г",
+        origin: "Румъния",
+        delivery: "Доставка 3-4 работни дни с преглед (без тест)"
+      };
+      await ctx.db.patch(p._id, { specs: newSpecs });
+      updatedCount++;
+    }
+    return `Updated specs for ${updatedCount} products.`;
+  }
+});
+
