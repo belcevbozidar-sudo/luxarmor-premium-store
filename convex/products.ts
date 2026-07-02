@@ -528,3 +528,127 @@ export const getS26 = query({
     }));
   }
 });
+
+export const cleanupModelsAndProducts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const suffixesToStrip = [
+      "4в1 с джобче", "4 в 1 с джобче", "4в1", "4 в 1",
+      "черен контур", "бял контур", "черен", "черна", "черно", "черни",
+      "бял", "бяла", "бяло", "бели", "розов", "розова", "розово", "розови",
+      "златен", "златна", "златно", "златни", "син", "синя", "синьо", "сини",
+      "сив", "сива", "сиво", "сиви", "зелен", "зелена", "зелено", "зелени",
+      "червен", "червена", "червено", "червени", "златист", "златиста", "златисто", "златисти",
+      "лилав", "лилава", "лилаво", "лилави", "оранжев", "оранжева", "оранжево", "оранжеви",
+      "сребрист", "сребриста", "сребристо", "сребристи", "прозрачен", "прозрачна", "прозрачно", "прозрачни"
+    ];
+
+    function cleanModelName(brand: string, name: string): string {
+      if (!name) return "";
+      let cleaned = name.trim();
+      
+      let changed = true;
+      while (changed) {
+        changed = false;
+        const lower = cleaned.toLowerCase();
+        for (const suffix of suffixesToStrip) {
+          const regex = new RegExp(`[\\s-–—]+${suffix}$`, 'i');
+          if (regex.test(cleaned)) {
+            cleaned = cleaned.replace(regex, "").trim();
+            changed = true;
+            break;
+          }
+          
+          if (lower.endsWith(" " + suffix) || lower.endsWith("-" + suffix)) {
+            cleaned = cleaned.substring(0, cleaned.length - suffix.length).trim();
+            changed = true;
+            break;
+          }
+        }
+      }
+      
+      cleaned = cleaned.replace(/[\s-–—]+$/, "").trim();
+      
+      if (brand && brand.toLowerCase() !== "всички марки") {
+        const brandPrefixRegex = new RegExp(`^${brand}[\\s-]+`, 'i');
+        if (brandPrefixRegex.test(cleaned)) {
+          cleaned = cleaned.replace(brandPrefixRegex, "").trim();
+        }
+      }
+      
+      return cleaned;
+    }
+
+    // 1. Clean up product model fields
+    const products = await ctx.db.query("products").collect();
+    let productsUpdated = 0;
+    for (const p of products) {
+      const cleanModel = cleanModelName(p.brand, p.model);
+      if (cleanModel && cleanModel !== p.model) {
+        await ctx.db.patch(p._id, { model: cleanModel });
+        productsUpdated++;
+      }
+    }
+
+    // 2. Clean up models table
+    const dbModels = await ctx.db.query("models").collect();
+    const modelsKeep = new Map();
+    let modelsDeleted = 0;
+    let modelsUpdated = 0;
+
+    for (const m of dbModels) {
+      const cleanName = cleanModelName(m.brand, m.name);
+      const key = `${m.brand.toLowerCase()}:${cleanName.toLowerCase()}`;
+      
+      if (!cleanName) {
+        await ctx.db.delete(m._id);
+        modelsDeleted++;
+        continue;
+      }
+
+      if (modelsKeep.has(key)) {
+        await ctx.db.delete(m._id);
+        modelsDeleted++;
+      } else {
+        modelsKeep.set(key, m._id);
+        if (cleanName !== m.name) {
+          await ctx.db.patch(m._id, { name: cleanName });
+          modelsUpdated++;
+        }
+      }
+    }
+
+    // 3. Clean up duplicate products by exact Name
+    const refreshedProducts = await ctx.db.query("products").collect();
+    const activeProducts = refreshedProducts.filter(p => !p.isDeleted);
+    const groups: Record<string, typeof activeProducts> = {};
+    
+    for (const p of activeProducts) {
+      const key = p.name.trim().toLowerCase();
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(p);
+    }
+
+    let productsDeleted = 0;
+    for (const [key, list] of Object.entries(groups)) {
+      if (list.length > 1) {
+        // Keep the newest one, delete older ones
+        list.sort((a, b) => b._creationTime - a._creationTime);
+        const duplicates = list.slice(1);
+        for (const dup of duplicates) {
+          await ctx.db.delete(dup._id);
+          productsDeleted++;
+        }
+      }
+    }
+
+    return {
+      productsUpdated,
+      modelsUpdated,
+      modelsDeleted,
+      productsDeleted
+    };
+  }
+});
