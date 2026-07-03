@@ -309,6 +309,7 @@ window.updateProductModelOptions = function() {
   let html = '<option value="Всички модели">Всички модели</option>';
   
   const filteredModels = allModels.filter(m => m.brand === selectedBrand);
+  filteredModels.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
   filteredModels.forEach(m => {
     html += `<option value="${m.name}">${m.name}</option>`;
   });
@@ -711,6 +712,14 @@ function renderBrandsAndModels() {
       m.brand.toLowerCase().includes(query)
     );
   }
+  
+  // Sort alphabetically
+  filteredModels.sort((a, b) => {
+    if (a.brand !== b.brand) {
+      return a.brand.localeCompare(b.brand, undefined, { sensitivity: 'base' });
+    }
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+  });
   
   // Avoid freezing by rendering thousands of models on empty load
   if (!selectedBrandFilter && !modelSearchQuery) {

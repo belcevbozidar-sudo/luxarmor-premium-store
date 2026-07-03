@@ -440,6 +440,8 @@ function selectBrand(brandName) {
       }
     });
 
+    uniqueModels.sort((a, b) => a.displayName.localeCompare(b.displayName, undefined, { numeric: true, sensitivity: 'base' }));
+
     uniqueModels.forEach(model => {
       const btn = document.createElement("button");
       btn.className = "model-pill-btn";
@@ -2407,6 +2409,8 @@ function renderCategoryDetailBrands(catId) {
           });
         }
       });
+
+      uniqueModels.sort((a, b) => a.displayName.localeCompare(b.displayName, undefined, { numeric: true, sensitivity: 'base' }));
       
       uniqueModels.forEach(model => {
         const btn = document.createElement("button");
@@ -2591,16 +2595,33 @@ function selectMobileBrand(brandName, btn) {
   modelList.innerHTML = "";
   
   const brandModels = MODELS.filter(m => m.brand === brandName);
+  const seen = new Set();
+  const uniqueModels = [];
+  
   brandModels.forEach(model => {
+    const cleanName = getCleanModelName(model.name);
+    const norm = normalizeModel(cleanName);
+    if (!seen.has(norm)) {
+      seen.add(norm);
+      uniqueModels.push({
+        displayName: cleanName,
+        original: model
+      });
+    }
+  });
+
+  uniqueModels.sort((a, b) => a.displayName.localeCompare(b.displayName, undefined, { numeric: true, sensitivity: 'base' }));
+
+  uniqueModels.forEach(model => {
     const modelBtn = document.createElement("button");
     modelBtn.className = "menu-model-item";
     modelBtn.innerHTML = `
       <i class="fas fa-mobile-alt"></i>
-      <span>${model.name}</span>
+      <span>${model.displayName}</span>
     `;
     modelBtn.onclick = () => {
       selectedBrand = brandName;
-      selectedModel = model.name;
+      selectedModel = model.displayName;
       selectedCategory = null;
       
       closeMobileMenu();
@@ -2608,7 +2629,7 @@ function selectMobileBrand(brandName, btn) {
       // Sync desktop UI highlighting
       document.querySelectorAll(".category-card").forEach(c => c.classList.remove("active"));
       selectBrand(brandName);
-      selectModel(model.name);
+      selectModel(model.displayName);
     };
     modelList.appendChild(modelBtn);
   });
