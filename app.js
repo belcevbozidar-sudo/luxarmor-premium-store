@@ -1153,11 +1153,16 @@ window.addToCart = function(productId, quantity = 1, event = null) {
   // Determine pricing to store in cart (to lock B2B/B2C state)
   const isB2B = currentUser && currentUser.clientType === "B2B";
   const activePrice = isB2B ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
+  const productSlug = getProductSlug(product.name + " " + (product.model || ""));
+  const productUrl = productSlug ? `/produkt/${productSlug}` : "";
   
   const existingItemIndex = cart.findIndex(item => (item.id || item._id) === productId && !item.isGift);
   if (existingItemIndex > -1) {
     cart[existingItemIndex].quantity += quantity;
     cart[existingItemIndex].price = activePrice; // update to latest login type rate
+    cart[existingItemIndex].image = product.image || cart[existingItemIndex].image || "";
+    cart[existingItemIndex].productSlug = productSlug;
+    cart[existingItemIndex].productUrl = productUrl;
   } else {
     cart.push({
       id: product._id,
@@ -1166,6 +1171,8 @@ window.addToCart = function(productId, quantity = 1, event = null) {
       price: activePrice,
       brand: product.brand,
       category: product.category,
+      productSlug,
+      productUrl,
       quantity
     });
   }
@@ -1646,7 +1653,10 @@ window.submitCheckout = async function(event) {
     name: item.name,
     price: item.price,
     quantity: item.quantity,
-    isGift: item.isGift || false
+    isGift: item.isGift || false,
+    image: item.image || "",
+    productSlug: item.productSlug || "",
+    productUrl: item.productUrl || (item.productSlug ? `/produkt/${item.productSlug}` : "")
   }));
   
   // Calculate total (reusing subtotal and clientType from above)
@@ -1668,7 +1678,8 @@ window.submitCheckout = async function(event) {
   
   const baseForVat = Math.max(0, subtotal - discountAmount);
   const vatAmount = baseForVat * 0.20;
-  const total = subtotal + shippingCost - discountAmount + vatAmount;
+  const totalWithoutVat = subtotal + shippingCost - discountAmount;
+  const total = totalWithoutVat + vatAmount;
   const orderNum = "CK-" + Math.floor(100000 + Math.random() * 900000);
   
   const orderPayload = {
@@ -1677,6 +1688,10 @@ window.submitCheckout = async function(event) {
     phone,
     address,
     items: orderItems,
+    subtotal,
+    shippingCost,
+    totalWithoutVat,
+    vatAmount,
     total,
     clientType,
   };

@@ -39,6 +39,75 @@ function formatAdminPrice(val) {
   return `${num.toFixed(2)} €`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
+
+function transliterateBulgarian(text) {
+  const map = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ж': 'zh',
+    'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n',
+    'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f',
+    'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sht', 'ъ': 'a', 'ь': 'y',
+    'ю': 'yu', 'я': 'ya',
+    'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ж': 'Zh',
+    'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N',
+    'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F',
+    'Х': 'H', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Sht', 'Ъ': 'A', 'Ь': 'Y',
+    'Ю': 'Yu', 'Я': 'Ya'
+  };
+  return String(text || "").split('').map(char => map[char] || char).join('');
+}
+
+function getProductSlug(name) {
+  if (!name) return "";
+  const transliterated = transliterateBulgarian(name.toString().toLowerCase());
+  return transliterated
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+function getOrderFinanceBreakdown(order) {
+  const subtotal = typeof order.subtotal === "number"
+    ? order.subtotal
+    : (order.items || []).reduce((sum, item) => item.isGift ? sum : sum + (item.price * item.quantity), 0);
+  const shippingCost = typeof order.shippingCost === "number" ? order.shippingCost : 0;
+  const discountAmount = typeof order.discountAmount === "number" ? order.discountAmount : 0;
+  const totalWithoutVat = typeof order.totalWithoutVat === "number"
+    ? order.totalWithoutVat
+    : Math.max(0, subtotal + shippingCost - discountAmount);
+  const vatAmount = typeof order.vatAmount === "number"
+    ? order.vatAmount
+    : Math.max(0, (typeof order.total === "number" ? order.total : totalWithoutVat) - totalWithoutVat);
+  const totalWithVat = typeof order.total === "number" ? order.total : totalWithoutVat + vatAmount;
+
+  return {
+    subtotal,
+    shippingCost,
+    discountAmount,
+    totalWithoutVat,
+    vatAmount,
+    totalWithVat,
+  };
+}
+
+function getOrderItemPreview(item) {
+  const product = allProducts.find(p => p._id === item.id);
+  const image = item.image || (product && product.image) || "";
+  const productSlug = item.productSlug || (product ? getProductSlug(product.name + " " + (product.model || "")) : "");
+  const productUrl = item.productUrl || (productSlug ? `/produkt/${productSlug}` : "");
+
+  return { image, productSlug, productUrl };
+}
+
 // --- PAGINATION & FILTER STATE ---
 let productsPage = 1;
 const productsPerPage = 50;
@@ -1037,13 +1106,13 @@ function renderOrders() {
     
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><strong>${o.orderNumber}</strong></td>
-      <td>${o.name}</td>
-      <td>${o.phone}</td>
+      <td><strong>${escapeHtml(o.orderNumber)}</strong></td>
+      <td>${escapeHtml(o.name)}</td>
+      <td>${escapeHtml(o.phone)}</td>
       <td><strong>${formatAdminPrice(o.total)}</strong></td>
-      <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(22,122,255,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${o.clientType}</span></td>
-      <td>${dateStr}</td>
-      <td><span class="badge-status ${o.status}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
+      <td><span class="admin-badge" style="background:${o.clientType==='B2B'?'rgba(22,122,255,0.1)':'rgba(255,255,255,0.05)'}; color:${o.clientType==='B2B'?'var(--gold)':'var(--text)'};">${escapeHtml(o.clientType)}</span></td>
+      <td>${escapeHtml(dateStr)}</td>
+      <td><span class="badge-status ${escapeHtml(o.status)}">${o.status === 'pending' ? 'Чакаща' : o.status === 'completed' ? 'Завършена' : 'Анулирана'}</span></td>
       <td>
         <button class="btn-icon" onclick="viewOrderDetails('${o._id}')" title="Детайли"><i class="fas fa-eye"></i></button>
       </td>
@@ -1082,6 +1151,7 @@ window.viewOrderDetails = function(orderId) {
   if (!o) return;
   
   activeOrderId = orderId;
+  const totals = getOrderFinanceBreakdown(o);
   
   document.getElementById("order-details-num").textContent = o.orderNumber;
   document.getElementById("order-details-name").textContent = o.name;
@@ -1091,7 +1161,9 @@ window.viewOrderDetails = function(orderId) {
   
   const dateStr = new Date(o.createdAt).toLocaleString("bg-BG");
   document.getElementById("order-details-date").textContent = dateStr;
-  document.getElementById("order-details-total").textContent = formatAdminPrice(o.total);
+  document.getElementById("order-details-total-net").textContent = formatAdminPrice(totals.totalWithoutVat);
+  document.getElementById("order-details-vat").textContent = formatAdminPrice(totals.vatAmount);
+  document.getElementById("order-details-total").textContent = formatAdminPrice(totals.totalWithVat);
   
   const compBox = document.getElementById("order-details-company-box");
   if (o.clientType === "B2B") {
@@ -1105,21 +1177,191 @@ window.viewOrderDetails = function(orderId) {
   // Render order items
   const tbody = document.getElementById("order-items-table-body");
   tbody.innerHTML = "";
+  const orderItems = Array.isArray(o.items) ? o.items : [];
   
-  o.items.forEach(item => {
+  orderItems.forEach(item => {
     const itemTotal = item.price * item.quantity;
+    const preview = getOrderItemPreview(item);
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.name} ${item.isGift ? '<span class="admin-badge" style="background:#2ecc71; color:#000; border-color:#2ecc71; font-size:0.6rem;">ПОДАРЪК</span>' : ''}</td>
-      <td>${formatAdminPrice(item.price)}</td>
-      <td>${item.quantity}</td>
-      <td>${formatAdminPrice(itemTotal)}</td>
-    `;
+
+    const imageTd = document.createElement("td");
+    if (preview.image) {
+      const img = document.createElement("img");
+      img.src = preview.image;
+      img.alt = item.name;
+      img.className = "order-product-thumb";
+      img.loading = "lazy";
+      imageTd.appendChild(img);
+    } else {
+      imageTd.textContent = "—";
+    }
+
+    const nameTd = document.createElement("td");
+    if (preview.productUrl) {
+      const link = document.createElement("a");
+      link.href = preview.productUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.className = "order-product-link";
+      link.textContent = item.name;
+      nameTd.appendChild(link);
+    } else {
+      nameTd.textContent = item.name;
+    }
+
+    if (item.isGift) {
+      const giftBadge = document.createElement("span");
+      giftBadge.className = "admin-badge";
+      giftBadge.style.background = "#2ecc71";
+      giftBadge.style.color = "#000";
+      giftBadge.style.borderColor = "#2ecc71";
+      giftBadge.style.fontSize = "0.6rem";
+      giftBadge.style.marginLeft = "0.5rem";
+      giftBadge.textContent = "ПОДАРЪК";
+      nameTd.appendChild(giftBadge);
+    }
+
+    const qtyTd = document.createElement("td");
+    qtyTd.textContent = String(item.quantity);
+
+    const priceTd = document.createElement("td");
+    priceTd.textContent = formatAdminPrice(item.price);
+
+    const totalTd = document.createElement("td");
+    totalTd.textContent = formatAdminPrice(itemTotal);
+
+    tr.appendChild(imageTd);
+    tr.appendChild(nameTd);
+    tr.appendChild(qtyTd);
+    tr.appendChild(priceTd);
+    tr.appendChild(totalTd);
     tbody.appendChild(tr);
   });
   
   document.getElementById("order-status-select").value = o.status;
   document.getElementById("order-modal").classList.add("active");
+};
+
+window.printActiveOrderReceipt = function() {
+  const o = allOrders.find(item => item._id === activeOrderId);
+  if (!o) return;
+
+  const totals = getOrderFinanceBreakdown(o);
+  const orderDate = new Date(o.createdAt).toLocaleString("bg-BG");
+  const itemsHtml = (o.items || []).map(item => {
+    const preview = getOrderItemPreview(item);
+    const linkHtml = preview.productUrl
+      ? `<a href="${escapeHtml(preview.productUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.name)}</a>`
+      : escapeHtml(item.name);
+    const giftHtml = item.isGift ? ' <span class="gift">ПОДАРЪК</span>' : '';
+    return `
+      <tr>
+        <td>${preview.image ? `<img src="${escapeHtml(preview.image)}" alt="${escapeHtml(item.name)}" class="thumb">` : '—'}</td>
+        <td>${linkHtml}${giftHtml}</td>
+        <td>${escapeHtml(item.quantity)}</td>
+        <td>${escapeHtml(formatAdminPrice(item.price))}</td>
+        <td>${escapeHtml(formatAdminPrice(item.price * item.quantity))}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const printWindow = window.open("", "_blank", "width=1100,height=900");
+  if (!printWindow) {
+    alert("Браузърът блокира прозореца за печат. Позволете pop-up прозорци и опитайте отново.");
+    return;
+  }
+
+  printWindow.document.write(`<!doctype html>
+    <html lang="bg">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Поръчка ${escapeHtml(o.orderNumber)}</title>
+      <style>
+        :root { --gold: #167aff; --bg: #ffffff; --text: #101114; --muted: #5f6570; --line: #e7e9ee; }
+        * { box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 24px; color: var(--text); background: var(--bg); }
+        .sheet { max-width: 980px; margin: 0 auto; }
+        .header { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; border-bottom: 2px solid var(--line); padding-bottom: 16px; margin-bottom: 18px; }
+        .brand { font-size: 24px; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
+        .meta { color: var(--muted); font-size: 13px; line-height: 1.6; }
+        .cards { display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+        .card { border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+        .card h3 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; }
+        .row { display:flex; justify-content:space-between; gap: 12px; margin: 6px 0; font-size: 13px; }
+        .label { color: var(--muted); }
+        table { width:100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; vertical-align: middle; font-size: 13px; }
+        th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+        .thumb { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+        .gift { display:inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 999px; background: #daf8e3; color: #1f7a3a; font-size: 10px; font-weight: 700; }
+        .totals { margin-top: 16px; border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+        .totals .row { font-size: 14px; }
+        .totals .row strong { font-size: 15px; }
+        a { color: var(--gold); text-decoration: none; }
+        @media print {
+          body { padding: 0; }
+          .sheet { max-width: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="sheet">
+        <div class="header">
+          <div>
+            <div class="brand">CaseKing</div>
+            <div class="meta">Печатна поръчка № ${escapeHtml(o.orderNumber)}</div>
+            <div class="meta">Дата: ${escapeHtml(orderDate)}</div>
+          </div>
+          <div class="meta" style="text-align:right;">
+            <div><strong>Клиент:</strong> ${escapeHtml(o.name)}</div>
+            <div><strong>Телефон:</strong> ${escapeHtml(o.phone)}</div>
+            <div><strong>Тип:</strong> ${escapeHtml(o.clientType)}</div>
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <h3>Доставка</h3>
+            <div class="row"><span class="label">Адрес</span><span>${escapeHtml(o.address)}</span></div>
+            <div class="row"><span class="label">Статус</span><span>${escapeHtml(o.status)}</span></div>
+          </div>
+          <div class="card">
+            <h3>Фирмени данни</h3>
+            <div class="row"><span class="label">Фирма</span><span>${escapeHtml(o.companyName || "Няма")}</span></div>
+            <div class="row"><span class="label">ЕИК</span><span>${escapeHtml(o.companyBulstat || "Няма")}</span></div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Снимка</th>
+              <th>Продукт</th>
+              <th>Количество</th>
+              <th>Цена без ДДС</th>
+              <th>Общо без ДДС</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+
+        <div class="totals">
+          <div class="row"><span class="label">Обща сума без ДДС</span><span>${escapeHtml(formatAdminPrice(totals.totalWithoutVat))}</span></div>
+          <div class="row"><span class="label">ДДС 20%</span><span>${escapeHtml(formatAdminPrice(totals.vatAmount))}</span></div>
+          <div class="row"><strong>Обща сума с ДДС</strong><strong>${escapeHtml(formatAdminPrice(totals.totalWithVat))}</strong></div>
+        </div>
+      </div>
+    </body>
+    </html>`);
+  printWindow.document.close();
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+  }, 250);
+  printWindow.onafterprint = () => {
+    printWindow.close();
+  };
 };
 
 window.closeOrderModal = function() {

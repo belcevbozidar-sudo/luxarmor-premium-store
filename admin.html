@@ -341,6 +341,18 @@
       filter: brightness(1.1);
     }
 
+    .btn-action.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-action.secondary:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(22, 122, 255, 0.08);
+    }
+
     /* --- DATA TABLES / LISTS --- */
     .table-container {
       background: var(--panel);
@@ -421,6 +433,25 @@
     .badge-status.pending { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
     .badge-status.completed { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
     .badge-status.cancelled { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+
+    .order-product-link {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .order-product-link:hover {
+      text-decoration: underline;
+    }
+
+    .order-product-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
     /* --- MODALS --- */
     .modal {
@@ -1552,7 +1583,12 @@
     <div class="modal-content" style="max-width: 600px;">
       <div class="modal-header">
         <h3>Детайли за Поръчка <span id="order-details-num" style="color: var(--gold);"></span></h3>
-        <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <button class="btn-action secondary" type="button" onclick="printActiveOrderReceipt()" style="padding:0.45rem 0.8rem; font-size:0.8rem;">
+            <i class="fas fa-print"></i> Печат / PDF
+          </button>
+          <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+        </div>
       </div>
       <div class="modal-body">
         
@@ -1571,7 +1607,9 @@
             <h4>Информация за доставката</h4>
             <div class="order-details-row"><span class="label">Адрес:</span> <span id="order-details-address"></span></div>
             <div class="order-details-row"><span class="label">Дата:</span> <span id="order-details-date"></span></div>
-            <div class="order-details-row"><span class="label">Обща сума:</span> <span id="order-details-total" style="font-weight:600; color:var(--gold);"></span></div>
+            <div class="order-details-row"><span class="label">Обща сума без ДДС:</span> <span id="order-details-total-net"></span></div>
+            <div class="order-details-row"><span class="label">ДДС 20%:</span> <span id="order-details-vat"></span></div>
+            <div class="order-details-row"><span class="label">Обща сума с ДДС:</span> <span id="order-details-total" style="font-weight:600; color:var(--gold);"></span></div>
           </div>
         </div>
 
@@ -1580,10 +1618,11 @@
           <table>
             <thead>
               <tr>
+                <th>Снимка</th>
                 <th>Продукт</th>
-                <th>Ед. Цена</th>
                 <th>Количество</th>
-                <th>Общо</th>
+                <th>Цена без ДДС</th>
+                <th>Общо без ДДС</th>
               </tr>
             </thead>
             <tbody id="order-items-table-body">

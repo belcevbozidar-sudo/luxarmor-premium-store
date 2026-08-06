@@ -42,8 +42,15 @@ export default defineSchema({
         price: v.number(),
         quantity: v.number(),
         isGift: v.optional(v.boolean()),
+        image: v.optional(v.string()),
+        productUrl: v.optional(v.string()),
+        productSlug: v.optional(v.string()),
       })
     ),
+    subtotal: v.optional(v.number()),
+    shippingCost: v.optional(v.number()),
+    totalWithoutVat: v.optional(v.number()),
+    vatAmount: v.optional(v.number()),
     total: v.number(),
     status: v.string(),
     createdAt: v.string(),
@@ -152,4 +159,3 @@ export default defineSchema({
     description: v.string(),
   }).index("by_pageKey", ["pageKey"]),
 });
-
