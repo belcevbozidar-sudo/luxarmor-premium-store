@@ -32,7 +32,25 @@ export default defineSchema({
     // Ключ за бързо (индексирано) търсене на дубликати при upsertBatch,
     // вместо да се зарежда цялата products таблица при всяко извикване.
     matchKey: v.optional(v.string()),
-  }).index("by_matchKey", ["matchKey"]),
+
+    // Предварително изчислен URL slug (same algorithm as app.js
+    // getProductSlug), за да може продуктовата страница да се търси по
+    // slug индексирано, вместо да сканира цялата таблица.
+    slug: v.optional(v.string()),
+
+    // Нормализиран модел (same algorithm as app.js normalizeModel), за да
+    // може стъпка "избери модел" да намери точните продукти индексирано,
+    // вместо да сваля цялата марка/категория и да филтрира в браузъра.
+    normalizedModel: v.optional(v.string()),
+  })
+    .index("by_matchKey", ["matchKey"])
+    .index("by_category", ["category"])
+    .index("by_brand", ["brand"])
+    .index("by_category_brand", ["category", "brand"])
+    .index("by_category_brand_model", ["category", "brand", "normalizedModel"])
+    .index("by_brand_model", ["brand", "normalizedModel"])
+    .index("by_slug", ["slug"])
+    .searchIndex("search_name", { searchField: "name" }),
 
   orders: defineTable({
     orderNumber: v.string(),
@@ -119,6 +137,10 @@ export default defineSchema({
     description: v.optional(v.string()),
     seoTitle: v.optional(v.string()),
     seoDescription: v.optional(v.string()),
+    // Кеширан брой активни продукти в категорията - опреснява се чрез
+    // meta:refreshCategoryCounts, вместо да се брои цялата products
+    // таблица при всяко зареждане на страницата с категориите.
+    productCount: v.optional(v.number()),
   }),
 
   promoCodes: defineTable({

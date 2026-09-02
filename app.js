@@ -190,6 +190,19 @@ let selectedCategory = null;
 let categoryDetailSelectedBrand = null;
 let categoryDetailSelectedModel = null;
 let searchQuery = "";
+
+// Странирано ("Зареди още") състояние за renderCatalog() и
+// renderCategoryDetailPage() - продуктите се теглят от Convex на порции
+// вместо целия каталог наведнъж (виж fetchAllProducts / loadData по-долу).
+let catalogAccumulated = [];
+let catalogCursor = null;
+let catalogIsDone = true;
+let catalogLoading = false;
+
+let categoryDetailAccumulated = [];
+let categoryDetailCursor = null;
+let categoryDetailIsDone = true;
+let categoryDetailLoading = false;
 let currentUser = null;
 let googleRegisterTemp = null;
 let activeRegType = "B2C";
@@ -270,33 +283,47 @@ async function hashPassword(password) {
 }
 
 // --- CONVEX DATA ACTIONS ---
-// Зарежда целия продуктов каталог на порции (products:getPage), вместо на
-// един удар (products:get), за да не удари лимита на Convex за брой
-// байтове/документи в една заявка, когато продуктите станат много.
-async function fetchAllProducts() {
-  const allProducts = [];
-  let cursor = null;
-  let isDone = false;
-  while (!isDone) {
-    const page = await convex.query("products:getPage", { cursor });
-    allProducts.push(...page.page);
-    isDone = page.isDone;
-    cursor = page.continueCursor;
+
+// Кеш на продукти, които вече сме видели (от каталог/категория/търсене/
+// продуктова страница) - за да могат "добави в количката" и подобни
+// еднократни справки по id да работят мигновено, без мрежова заявка,
+// без да се налага да пазим ВСИЧКИ продукти в паметта. При пропуск в
+// кеша (рядко - напр. стар bookmark) пада обратно на products:getById.
+const productLookupCache = new Map();
+function cacheProducts(list) {
+  if (!list) return;
+  for (const p of list) {
+    if (p && p._id) productLookupCache.set(p._id, p);
   }
-  return allProducts;
+}
+async function getProductById(id) {
+  if (productLookupCache.has(id)) return productLookupCache.get(id);
+  try {
+    const p = await convex.query("products:getById", { id });
+    if (p) productLookupCache.set(id, p);
+    return p;
+  } catch (err) {
+    console.error("Could not fetch product by id:", err);
+    return null;
+  }
 }
 
 async function loadData() {
   try {
-    const dbProducts = await fetchAllProducts();
+    // Само една малка "порция" продукти при начално зареждане - достатъчна
+    // за препоръчаните продукти на началния изглед. Конкретна марка/модел/
+    // категория/търсене си теглят точно нужните продукти при избор (виж
+    // renderCatalog, renderCategoryDetailPage, fetchSearchResults) - не се
+    // сваля целият каталог наведнъж, за да не се бави сайтът.
+    const firstPage = await convex.query("products:getPage", { cursor: null });
+    const dbProducts = firstPage.page;
     if (dbProducts && dbProducts.length > 0) {
       PRODUCTS = dbProducts;
+      cacheProducts(dbProducts);
       try {
         localStorage.setItem("caseking_cached_products", JSON.stringify(dbProducts));
       } catch (cacheErr) {
-        // Каталогът може да е твърде голям за localStorage - продължаваме
-        // без локален кеш, вместо да чупим цялото зареждане на данни.
-        console.warn("Could not cache products locally (catalog too large for localStorage).", cacheErr);
+        console.warn("Could not cache products locally.", cacheErr);
       }
     }
 
@@ -665,26 +692,28 @@ function hideSearchSuggestions() {
   }
 }
 
+let searchSuggestionsDebounceTimer = null;
+
 function renderSearchSuggestions() {
   const box = document.getElementById("search-suggestions");
   if (!box) return;
-  
+
   if (!searchQuery || searchQuery.length < 2) {
     box.style.display = "none";
+    clearTimeout(searchSuggestionsDebounceTimer);
     return;
   }
-  
-  box.innerHTML = "";
+
   const queries = getSearchQueries(searchQuery);
   let matchesHtml = "";
   let matchCount = 0;
-  
-  // 1. Matches in Categories
+
+  // 1. Matches in Categories (малък локален масив - без мрежа)
   const matchedCats = CATEGORIES.filter(c => {
     const catName = c.name.toLowerCase();
     return queries.some(q => catName.includes(q));
   });
-  
+
   matchedCats.forEach(cat => {
     if (matchCount >= 4) return;
     matchCount++;
@@ -697,13 +726,13 @@ function renderSearchSuggestions() {
       </div>
     `;
   });
-  
-  // 2. Matches in Models
+
+  // 2. Matches in Models (малък локален масив - без мрежа)
   const matchedModels = MODELS.filter(m => {
     const modelName = getCleanModelName(m.name).toLowerCase();
     return queries.some(q => modelName.includes(q));
   });
-  
+
   const seenModels = new Set();
   matchedModels.forEach(m => {
     const cleanName = getCleanModelName(m.name);
@@ -719,61 +748,66 @@ function renderSearchSuggestions() {
       </div>
     `;
   });
-  
-  // 3. Matches in Products
-  const matchedProducts = PRODUCTS.filter(p => {
-    if (p.isDeleted) return false;
-    const pName = p.name.toLowerCase();
-    const pModel = (p.model || "").toLowerCase();
-    const pBrand = p.brand.toLowerCase();
-    const pCategory = p.category.toLowerCase();
-    return queries.some(q => 
-      pName.includes(q) || 
-      pModel.includes(q) || 
-      pBrand.includes(q) || 
-      pCategory.includes(q)
-    );
-  });
-  
-  // Sort matchedProducts from lower price to higher price
-  const isB2B = currentUser && currentUser.clientType === "B2B";
-  matchedProducts.sort((a, b) => {
-    const priceA = isB2B ? (a.priceB2B ?? a.price ?? 0) : (a.priceB2C ?? a.price ?? 0);
-    const priceB = isB2B ? (b.priceB2B ?? b.price ?? 0) : (b.priceB2C ?? b.price ?? 0);
-    return priceA - priceB;
-  });
-  
-  matchedProducts.slice(0, 5).forEach(product => {
-    if (matchCount >= 12) return;
-    matchCount++;
-    const slug = getProductSlug(product.name + " " + (product.model || ""));
-    const price = currentUser && currentUser.clientType === "B2B" ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
-    
-    matchesHtml += `
-      <div class="search-suggestion-item" onclick="selectSuggestion('product', '${slug}')" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1.2rem; cursor: pointer; transition: background 0.2s; border-top: 1px solid rgba(15,23,42,0.04);">
-        <img src="${getProductImageUrl(product.image, product.name, product.model)}" style="width: 35px; height: 35px; object-fit: contain; border-radius: 4px; background: var(--bg-light);" onerror="this.src='/assets/logo.webp'">
-        <div style="flex: 1; min-width: 0;">
-          <div style="font-weight: 600; font-size: 0.85rem; color: var(--primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${product.name}</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted);">${product.brand} ${product.model || ""}</div>
-        </div>
-        <div style="font-weight: 700; font-size: 0.85rem; color: var(--gold);">${formatPrice(price)}</div>
-      </div>
-    `;
-  });
-  
-  if (matchCount === 0) {
-    box.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Няма намерени резултати</div>`;
-  } else {
-    // Append "See all results" button at the bottom
-    matchesHtml += `
-      <div class="search-suggestion-item see-all-results" onclick="selectSuggestion('see_all', '')" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.2rem; cursor: pointer; transition: background 0.2s; border-top: 1px solid rgba(15,23,42,0.08); background: var(--bg-light); text-align: center;">
-        <span style="font-weight: 700; font-size: 0.9rem; color: var(--gold);">Виж всички резултати за "${searchQuery}"</span>
-        <i class="fas fa-arrow-right" style="color: var(--gold); font-size: 0.85rem;"></i>
-      </div>
-    `;
-    box.innerHTML = matchesHtml;
-  }
+
+  // Покажи веднага каквото имаме (категории/модели), докато продуктовото
+  // търсене (мрежова заявка) приключи с малко закъснение по-долу.
+  box.innerHTML = matchesHtml || `<div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Търсене...</div>`;
   box.style.display = "block";
+
+  // 3. Matches in Products - през Convex, изчакано (debounce), за да не
+  // праща заявка на всеки натиснат клавиш.
+  clearTimeout(searchSuggestionsDebounceTimer);
+  searchSuggestionsDebounceTimer = setTimeout(async () => {
+    const queryAtRequestTime = searchQuery;
+    let matchedProducts = [];
+    try {
+      matchedProducts = await fetchSearchResults(queryAtRequestTime);
+      cacheProducts(matchedProducts);
+    } catch (err) {
+      console.error("Search suggestions fetch failed:", err);
+    }
+    // Ако потребителят е продължил да пише междувременно, изхвърляме
+    // остарелия резултат.
+    if (searchQuery !== queryAtRequestTime) return;
+
+    const isB2B = currentUser && currentUser.clientType === "B2B";
+    matchedProducts.sort((a, b) => {
+      const priceA = isB2B ? (a.priceB2B ?? a.price ?? 0) : (a.priceB2C ?? a.price ?? 0);
+      const priceB = isB2B ? (b.priceB2B ?? b.price ?? 0) : (b.priceB2C ?? b.price ?? 0);
+      return priceA - priceB;
+    });
+
+    matchedProducts.slice(0, 5).forEach(product => {
+      if (matchCount >= 12) return;
+      matchCount++;
+      const slug = getProductSlug(product.name + " " + (product.model || ""));
+      const price = currentUser && currentUser.clientType === "B2B" ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
+
+      matchesHtml += `
+        <div class="search-suggestion-item" onclick="selectSuggestion('product', '${slug}')" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1.2rem; cursor: pointer; transition: background 0.2s; border-top: 1px solid rgba(15,23,42,0.04);">
+          <img src="${getProductImageUrl(product.image, product.name, product.model)}" style="width: 35px; height: 35px; object-fit: contain; border-radius: 4px; background: var(--bg-light);" onerror="this.src='/assets/logo.webp'">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; font-size: 0.85rem; color: var(--primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${product.name}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">${product.brand} ${product.model || ""}</div>
+          </div>
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--gold);">${formatPrice(price)}</div>
+        </div>
+      `;
+    });
+
+    if (matchCount === 0) {
+      box.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Няма намерени резултати</div>`;
+    } else {
+      matchesHtml += `
+        <div class="search-suggestion-item see-all-results" onclick="selectSuggestion('see_all', '')" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.2rem; cursor: pointer; transition: background 0.2s; border-top: 1px solid rgba(15,23,42,0.08); background: var(--bg-light); text-align: center;">
+          <span style="font-weight: 700; font-size: 0.9rem; color: var(--gold);">Виж всички резултати за "${searchQuery}"</span>
+          <i class="fas fa-arrow-right" style="color: var(--gold); font-size: 0.85rem;"></i>
+        </div>
+      `;
+      box.innerHTML = matchesHtml;
+    }
+    box.style.display = "block";
+  }, 250);
 }
 
 window.selectSuggestion = function(type, id) {
@@ -839,61 +873,76 @@ function renderCategories() {
   });
 }
 
-function renderCatalog() {
+// Търси в неколко варианта на заявката (оригинал, фонетично map-нат,
+// транслитериран на латиница) успоредно през Convex search индекса и
+// обединява резултатите - за да продължи да работи търсене на кирилица
+// за латински имена на продукти (напр. "самсунг" -> "samsung"), както
+// правеше старото търсене в целия локален масив с продукти.
+async function fetchSearchResults(query) {
+  const variants = [...new Set(getSearchQueries(query))].filter(Boolean);
+  const resultsByVariant = await Promise.all(
+    variants.map((v) => convex.query("products:searchProducts", { query: v }).catch(() => []))
+  );
+  const merged = new Map();
+  for (const list of resultsByVariant) {
+    for (const p of list) merged.set(p._id, p);
+  }
+  return Array.from(merged.values()).slice(0, 60);
+}
+
+async function renderCatalog(loadMore = false) {
   const grid = document.getElementById("product-grid");
   const catalogTitle = document.getElementById("catalog-main-title");
   if (!grid) return;
-  
-  grid.innerHTML = "";
-  
-  let filteredProducts = PRODUCTS.filter(p => !p.isDeleted);
-  const isFiltered = !!(selectedBrand || selectedCategory || searchQuery);
 
-  if (selectedBrand) {
-    if (selectedModel) {
-      const normSelected = normalizeModel(selectedModel);
-      filteredProducts = filteredProducts.filter(p => normalizeModel(p.model) === normSelected || p.brand === "Всички");
-      if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedModel}`;
-    } else {
-      filteredProducts = filteredProducts.filter(p => p.brand === selectedBrand || p.brand === "Всички");
-      if (catalogTitle) catalogTitle.textContent = `Аксесоари за ${selectedBrand}`;
-    }
-  } else if (selectedCategory) {
-    filteredProducts = filteredProducts.filter(p => p.category === selectedCategory);
-    const catObj = CATEGORIES.find(c => c.id === selectedCategory);
-    if (catalogTitle && catObj) catalogTitle.textContent = catObj.name;
-  } else if (searchQuery) {
-    // handled below
-  } else {
-    if (catalogTitle) catalogTitle.textContent = "Препоръчани продукти";
+  const isFiltered = !!(selectedBrand || searchQuery);
+
+  if (!loadMore) {
+    catalogAccumulated = [];
+    catalogCursor = null;
+    catalogIsDone = true;
+    grid.innerHTML = `<div class="no-products-message">Зареждане...</div>`;
   }
+  if (catalogLoading) return;
+  catalogLoading = true;
 
-  // Filter by search query if set
-  if (searchQuery) {
-    const queries = getSearchQueries(searchQuery);
-    filteredProducts = filteredProducts.filter(p => {
-      const pName = p.name.toLowerCase();
-      const pModel = (p.model || "").toLowerCase();
-      const pBrand = p.brand.toLowerCase();
-      const pCategory = p.category.toLowerCase();
-      return queries.some(q => 
-        pName.includes(q) || 
-        pModel.includes(q) || 
-        pBrand.includes(q) || 
-        pCategory.includes(q)
-      );
-    });
-    
-    if (catalogTitle) {
-      if (selectedModel) {
-        catalogTitle.textContent = `Резултати за "${searchQuery}" за ${selectedModel}`;
-      } else if (selectedBrand) {
-        catalogTitle.textContent = `Резултати за "${searchQuery}" за ${selectedBrand}`;
-      } else {
-        catalogTitle.textContent = `Резултати от търсенето за: "${searchQuery}"`;
+  try {
+    if (selectedBrand) {
+      if (catalogTitle) {
+        catalogTitle.textContent = selectedModel ? `Аксесоари за ${selectedModel}` : `Аксесоари за ${selectedBrand}`;
       }
+      const page = await convex.query("products:getByBrand", {
+        brand: selectedBrand,
+        model: selectedModel || undefined,
+        cursor: loadMore ? catalogCursor : null,
+      });
+      catalogAccumulated = loadMore ? catalogAccumulated.concat(page.page) : page.page;
+      catalogIsDone = page.isDone;
+      catalogCursor = page.continueCursor;
+      cacheProducts(page.page);
+    } else if (searchQuery) {
+      if (catalogTitle) catalogTitle.textContent = `Резултати от търсенето за: "${searchQuery}"`;
+      catalogAccumulated = await fetchSearchResults(searchQuery);
+      catalogIsDone = true;
+      catalogCursor = null;
+      cacheProducts(catalogAccumulated);
+    } else {
+      if (catalogTitle) catalogTitle.textContent = "Препоръчани продукти";
+      // Малка първоначална извадка от каталога (виж loadData), достатъчна
+      // за препоръчаните 8 най-евтини продукта на началния изглед.
+      catalogAccumulated = PRODUCTS.filter((p) => !p.isDeleted);
+      catalogIsDone = true;
+      catalogCursor = null;
     }
+  } catch (err) {
+    console.error("Could not load catalog products:", err);
+    grid.innerHTML = `<div class="no-products-message">Грешка при зареждане на продуктите. Опитайте отново.</div>`;
+    catalogLoading = false;
+    return;
   }
+  catalogLoading = false;
+
+  let filteredProducts = catalogAccumulated.filter((p) => !p.isDeleted);
 
   // Always sort by price (from cheapest to most expensive)
   const isB2B = currentUser && currentUser.clientType === "B2B";
@@ -917,12 +966,14 @@ function renderCatalog() {
       subtitle.textContent = "Изберете марка и модел от филтрите по-горе, за да видите пълния каталог";
     }
   }
-  
+
+  grid.innerHTML = "";
+
   if (filteredProducts.length === 0) {
     grid.innerHTML = `<div class="no-products-message">Няма намерени продукти за избрания филтър.</div>`;
     return;
   }
-  
+
   filteredProducts.forEach(product => {
     const card = document.createElement("div");
     card.className = "product-card";
@@ -973,6 +1024,15 @@ function renderCatalog() {
     `;
     grid.appendChild(card);
   });
+
+  if (!catalogIsDone) {
+    const loadMoreBtn = document.createElement("button");
+    loadMoreBtn.className = "btn-card-buy";
+    loadMoreBtn.style.cssText = "grid-column: 1/-1; max-width: 280px; margin: 1.5rem auto 0; display: block;";
+    loadMoreBtn.textContent = "Зареди още продукти";
+    loadMoreBtn.onclick = () => renderCatalog(true);
+    grid.appendChild(loadMoreBtn);
+  }
 }
 
 // Helper to update active image in details page gallery
@@ -999,8 +1059,7 @@ function updateProductPageImage(index) {
 }
 
 // --- PRODUCT PAGE ROUTE HANDLER ---
-function renderProductPage(productId) {
-  const p = PRODUCTS.find(item => item._id === productId);
+function renderProductPage(p) {
   if (!p) {
     history.replaceState("", document.title, window.location.pathname + window.location.search);
     handleRouting();
@@ -1167,9 +1226,10 @@ function animateFlyToCart(imgEl) {
   });
 }
 
-window.addToCart = function(productId, quantity = 1, event = null) {
-  // Find product details
-  const product = PRODUCTS.find(p => p._id === productId);
+window.addToCart = async function(productId, quantity = 1, event = null) {
+  // Find product details (instant if it was just rendered on screen,
+  // otherwise falls back to a direct lookup - see getProductById above)
+  const product = await getProductById(productId);
   if (!product) return;
   
   // Determine pricing to store in cart (to lock B2B/B2C state)
@@ -1275,7 +1335,7 @@ function triggerCartConfetti(colors = ['#167aff', '#0f172a', '#ffffff', '#e8f1ff
   }, 400);
 }
 
-function renderCartItems() {
+async function renderCartItems() {
   const itemsContainer = document.getElementById("cart-items");
   const subtotalEl = document.getElementById("cart-subtotal");
   const promoBanner = document.getElementById("cart-promo-banner");
@@ -1322,7 +1382,7 @@ function renderCartItems() {
   
   if (giftPromo && giftPromo.giftProductId) {
     if (subtotal >= giftPromo.threshold) {
-      const giftProduct = PRODUCTS.find(p => p._id === giftPromo.giftProductId);
+      const giftProduct = await getProductById(giftPromo.giftProductId);
       if (giftProduct) {
         // Inject gift product to cart
         cart.push({
@@ -1346,7 +1406,7 @@ function renderCartItems() {
     } else {
       giftThresholdReached = false;
       const diff = giftPromo.threshold - subtotal;
-      const giftProduct = PRODUCTS.find(p => p._id === giftPromo.giftProductId);
+      const giftProduct = await getProductById(giftPromo.giftProductId);
       const giftName = giftProduct ? giftProduct.name : "подарък";
       giftPromoText = `Добавете още ${formatPrice(diff)} за ПОДАРЪК: ${giftName}!`;
     }
@@ -1524,7 +1584,7 @@ window.toggleCheckoutVatCheckbox = function() {
   cb.checked = !cb.checked;
 };
 
-function renderCheckoutSummary() {
+async function renderCheckoutSummary() {
   const container = document.getElementById("checkout-summary-items");
   const subtotalEl = document.getElementById("checkout-sum-subtotal");
   const shippingEl = document.getElementById("checkout-sum-shipping");
@@ -1554,7 +1614,7 @@ function renderCheckoutSummary() {
   cart = cart.filter(item => !item.isGift);
   const giftPromo = activePromos.find(p => p.type === "gift");
   if (giftPromo && giftPromo.giftProductId && subtotal >= giftPromo.threshold) {
-    const giftProduct = PRODUCTS.find(p => p._id === giftPromo.giftProductId);
+    const giftProduct = await getProductById(giftPromo.giftProductId);
     if (giftProduct) {
       cart.push({
         id: giftProduct._id,
@@ -2172,7 +2232,7 @@ function updateSEO(pageKey, dynamicTitle = null, dynamicDesc = null) {
 }
 
 // --- CLIENT-SIDE ROUTER ---
-function handleRouting() {
+async function handleRouting() {
   let path = window.location.pathname;
   let hash = window.location.hash;
   
@@ -2229,8 +2289,13 @@ function handleRouting() {
   let product = null;
   if (path.startsWith("/produkt/")) {
     const slug = path.substring("/produkt/".length);
-    product = PRODUCTS.find(p => getProductSlug(p.name + " " + (p.model || "")) === slug);
-    if (!product && isDataLoaded) {
+    try {
+      product = await convex.query("products:getBySlug", { slug });
+      if (product) cacheProducts([product]);
+    } catch (err) {
+      console.error("Could not look up product by slug:", err);
+    }
+    if (!product) {
       // Clean up invalid product URL
       history.replaceState(null, "", "/");
       path = "/";
@@ -2262,7 +2327,7 @@ function handleRouting() {
     categoriesListView.style.display = "none";
     categoryDetailView.style.display = "none";
     
-    renderProductPage(product._id);
+    renderProductPage(product);
     window.scrollTo(0, 0);
     updateSEO(null, product.name + " " + (product.model || ""), product.description);
   } else if (hash === "#checkout") {
@@ -2378,8 +2443,9 @@ function renderCategoriesListPage() {
       handleRouting();
     };
     
-    // Count active products in this category
-    const count = PRODUCTS.filter(p => p.category === cat.id && !p.isDeleted).length;
+    // Кеширан брой продукти (виж meta:countProductsByCategory) - не
+    // изисква сваляне на целия каталог само за да преброим една плочка.
+    const count = cat.productCount || 0;
     const countText = count === 1 ? "1 продукт" : `${count} продукта`;
     
     card.innerHTML = `
@@ -2474,7 +2540,7 @@ function renderCategoryDetailBrands(catId) {
   }
 }
 
-function renderCategoryDetailPage(catId) {
+async function renderCategoryDetailPage(catId, loadMore = false) {
   const category = CATEGORIES.find(c => c.id === catId);
   const nameEl = document.getElementById("category-detail-name");
   if (nameEl && category) {
@@ -2519,30 +2585,55 @@ function renderCategoryDetailPage(catId) {
 
   const grid = document.getElementById("category-detail-product-grid");
   if (!grid) return;
-  grid.innerHTML = "";
-  
-  let filteredProducts = PRODUCTS.filter(p => p.category === catId && !p.isDeleted);
-  
-  // Apply phone model filtering if specific and active
-  if (isModelSpecific) {
-    if (categoryDetailSelectedBrand) {
-      filteredProducts = filteredProducts.filter(p => p.brand === categoryDetailSelectedBrand);
-    }
-    if (categoryDetailSelectedModel) {
-      filteredProducts = filteredProducts.filter(p => {
-        const pModelClean = getCleanModelName(p.model || "");
-        return normalizeModel(pModelClean) === normalizeModel(categoryDetailSelectedModel);
-      });
-    }
+
+  const brandFilter = isModelSpecific ? categoryDetailSelectedBrand : null;
+  const modelFilter = isModelSpecific ? categoryDetailSelectedModel : null;
+
+  if (!loadMore) {
+    categoryDetailAccumulated = [];
+    categoryDetailCursor = null;
+    categoryDetailIsDone = true;
+    grid.innerHTML = `<div class="no-products-message" style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">Зареждане...</div>`;
   }
-  
-  // Update count in detail header
+  if (categoryDetailLoading) return;
+  categoryDetailLoading = true;
+
+  try {
+    const page = await convex.query("products:getByCategory", {
+      category: catId,
+      brand: brandFilter || undefined,
+      model: modelFilter || undefined,
+      cursor: loadMore ? categoryDetailCursor : null,
+    });
+    categoryDetailAccumulated = loadMore ? categoryDetailAccumulated.concat(page.page) : page.page;
+    categoryDetailIsDone = page.isDone;
+    categoryDetailCursor = page.continueCursor;
+    cacheProducts(page.page);
+  } catch (err) {
+    console.error("Could not load category products:", err);
+    grid.innerHTML = `<div class="no-products-message" style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">Грешка при зареждане. Опитайте отново.</div>`;
+    categoryDetailLoading = false;
+    return;
+  }
+  categoryDetailLoading = false;
+
+  let filteredProducts = categoryDetailAccumulated.filter(p => !p.isDeleted);
+
+  // Update count in detail header - use the cached exact category count
+  // when nothing is narrowed further (matches the "load everything" case),
+  // otherwise the count of what's actually been loaded so far.
   const countEl = document.getElementById("category-detail-product-count");
   if (countEl) {
-    const count = filteredProducts.length;
-    countEl.textContent = count === 1 ? "1 продукт" : `${count} продукта`;
+    let count;
+    if (!brandFilter && !modelFilter && category) {
+      count = category.productCount || filteredProducts.length;
+    } else {
+      count = filteredProducts.length;
+    }
+    const suffix = !categoryDetailIsDone && (brandFilter || modelFilter) ? "+" : "";
+    countEl.textContent = count === 1 && !suffix ? "1 продукт" : `${count}${suffix} продукта`;
   }
-  
+
   // Always sort by price (from cheapest to most expensive)
   const isB2B = currentUser && currentUser.clientType === "B2B";
   filteredProducts.sort((a, b) => {
@@ -2551,11 +2642,13 @@ function renderCategoryDetailPage(catId) {
     return priceA - priceB;
   });
 
+  grid.innerHTML = "";
+
   if (filteredProducts.length === 0) {
     grid.innerHTML = `<div class="no-products-message" style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">Няма намерени продукти в тази категория.</div>`;
     return;
   }
-  
+
   filteredProducts.forEach(product => {
     const card = document.createElement("div");
     card.className = "product-card";
@@ -2601,6 +2694,15 @@ function renderCategoryDetailPage(catId) {
     `;
     grid.appendChild(card);
   });
+
+  if (!categoryDetailIsDone) {
+    const loadMoreBtn = document.createElement("button");
+    loadMoreBtn.className = "btn-card-buy";
+    loadMoreBtn.style.cssText = "grid-column: 1/-1; max-width: 280px; margin: 1.5rem auto 0; display: block;";
+    loadMoreBtn.textContent = "Зареди още продукти";
+    loadMoreBtn.onclick = () => renderCategoryDetailPage(catId, true);
+    grid.appendChild(loadMoreBtn);
+  }
 }
 
 window.backToCategories = function() {

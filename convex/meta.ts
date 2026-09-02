@@ -126,6 +126,40 @@ export const updateCategory = mutation({
   },
 });
 
+// Преброява активните продукти по категория и записва резултата в
+// categories.productCount, за да не се налага страницата "Категории" да
+// сваля целия каталог само за да покаже брой продукти на всяка плочка.
+// Странирано (като backfillMatchKeys) - вика се на цикъл от скрипт с
+// countsSoFar от предишния отговор, докато isDone стане true; на
+// последната страница записва финалните числа в categories.
+export const countProductsByCategory = mutation({
+  args: {
+    cursor: v.union(v.string(), v.null()),
+    countsSoFar: v.record(v.string(), v.number()),
+  },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("products").paginate({
+      cursor: args.cursor ?? null,
+      numItems: 500,
+    });
+
+    const counts: Record<string, number> = { ...args.countsSoFar };
+    for (const doc of result.page) {
+      if (doc.isDeleted) continue;
+      counts[doc.category] = (counts[doc.category] || 0) + 1;
+    }
+
+    if (result.isDone) {
+      const categories = await ctx.db.query("categories").collect();
+      for (const cat of categories) {
+        await ctx.db.patch(cat._id, { productCount: counts[cat.id] || 0 });
+      }
+    }
+
+    return { counts, isDone: result.isDone, continueCursor: result.continueCursor };
+  },
+});
+
 export const removeCategory = mutation({
   args: { id: v.string() },
   handler: async (ctx, args) => {

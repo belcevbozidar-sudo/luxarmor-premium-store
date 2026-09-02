@@ -7,6 +7,52 @@ function buildMatchKey(name: string, brand: string, model: string, category: str
   return `${name.trim().toLowerCase()}|${brand.trim().toLowerCase()}|${model.trim().toLowerCase()}|${category.trim().toLowerCase()}`;
 }
 
+// Точно копие на normalizeModel() от app.js - за да може избраният от
+// клиента модел да се търси индексирано (by_brand_model / by_category_brand_model)
+// вместо да се сваля цялата марка/категория и да се филтрира в браузъра.
+function normalizeModel(name: string | null | undefined): string {
+  if (!name) return "";
+  return name
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/rt-\d+/gi, "")
+    .replace(/4g/gi, "")
+    .replace(/5g/gi, "")
+    .replace(/galaxy/gi, "")
+    .replace(/samsung/gi, "")
+    .replace(/[-_]/g, "")
+    .trim();
+}
+
+const BG_TRANSLIT_MAP: Record<string, string> = {
+  "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ж": "zh",
+  "з": "z", "и": "i", "й": "y", "к": "k", "л": "l", "м": "m", "н": "n",
+  "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f",
+  "х": "h", "ц": "ts", "ч": "ch", "ш": "sh", "щ": "sht", "ъ": "a", "ь": "y",
+  "ю": "yu", "я": "ya",
+  "А": "A", "Б": "B", "В": "V", "Г": "G", "Д": "D", "Е": "E", "Ж": "Zh",
+  "З": "Z", "И": "I", "Й": "Y", "К": "K", "Л": "L", "М": "M", "Н": "N",
+  "О": "O", "П": "P", "Р": "R", "С": "S", "Т": "T", "У": "U", "Ф": "F",
+  "Х": "H", "Ц": "Ts", "Ч": "Ch", "Ш": "Sh", "Щ": "Sht", "Ъ": "A", "Ь": "Y",
+  "Ю": "Yu", "Я": "Ya",
+};
+
+// Точно копие на getProductSlug() от app.js - за да могат директни/споделени
+// линкове към продукт (/produkt/:slug) да се намират индексирано.
+function buildSlug(name: string, model: string | null | undefined): string {
+  const combined = `${name} ${model || ""}`.toLowerCase();
+  const transliterated = combined
+    .split("")
+    .map((ch) => BG_TRANSLIT_MAP[ch] || ch)
+    .join("");
+  return transliterated
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 // Еднократна миграция - попълва matchKey на всички съществуващи продукти
 // (създадени преди тази промяна), странирано на малки партиди. Вика се
 // повторно (с cursor-а от предния отговор), докато isDone стане true.
@@ -24,6 +70,35 @@ export const backfillMatchKeys = mutation({
         await ctx.db.patch(doc._id, {
           matchKey: buildMatchKey(doc.name, doc.brand, doc.model, doc.category),
         });
+        updated++;
+      }
+    }
+
+    return {
+      updated,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
+// Еднократна миграция - попълва slug и normalizedModel на всички
+// съществуващи продукти, странирано, за да не удари лимитите на Convex.
+export const backfillDerivedFields = mutation({
+  args: { cursor: v.union(v.string(), v.null()) },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("products").paginate({
+      cursor: args.cursor ?? null,
+      numItems: 200,
+    });
+
+    let updated = 0;
+    for (const doc of result.page) {
+      const patch: Record<string, string> = {};
+      if (!doc.slug) patch.slug = buildSlug(doc.name, doc.model);
+      if (doc.normalizedModel === undefined) patch.normalizedModel = normalizeModel(doc.model);
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(doc._id, patch);
         updated++;
       }
     }
@@ -74,6 +149,107 @@ export const getPage = query({
   },
 });
 
+const notDeleted = (f: any) =>
+  f.or(f.eq(f.field("isDeleted"), undefined), f.eq(f.field("isDeleted"), false));
+
+// Продукти в дадена категория (по избор - и от дадена марка/модел), чрез
+// индекс - връща само нужната порция, вместо целия каталог. Използва се
+// от страницата на категория (напр. /keysove-i-kalufi).
+export const getByCategory = query({
+  args: {
+    category: v.string(),
+    brand: v.optional(v.string()),
+    model: v.optional(v.string()),
+    cursor: v.union(v.string(), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const paginationOpts = { cursor: args.cursor ?? null, numItems: 60 };
+
+    if (args.brand && args.model) {
+      const normModel = normalizeModel(args.model);
+      return await ctx.db
+        .query("products")
+        .withIndex("by_category_brand_model", (idx) =>
+          idx.eq("category", args.category).eq("brand", args.brand as string).eq("normalizedModel", normModel)
+        )
+        .filter(notDeleted)
+        .paginate(paginationOpts);
+    }
+    if (args.brand) {
+      return await ctx.db
+        .query("products")
+        .withIndex("by_category_brand", (idx) =>
+          idx.eq("category", args.category).eq("brand", args.brand as string)
+        )
+        .filter(notDeleted)
+        .paginate(paginationOpts);
+    }
+    return await ctx.db
+      .query("products")
+      .withIndex("by_category", (idx) => idx.eq("category", args.category))
+      .filter(notDeleted)
+      .paginate(paginationOpts);
+  },
+});
+
+// Продукти от дадена марка (по избор - и от даден модел), през всички
+// категории - използва се от Стъпка 1/2 избор на марка/модел на началната
+// страница.
+export const getByBrand = query({
+  args: {
+    brand: v.string(),
+    model: v.optional(v.string()),
+    cursor: v.union(v.string(), v.null()),
+  },
+  handler: async (ctx, args) => {
+    const paginationOpts = { cursor: args.cursor ?? null, numItems: 200 };
+
+    if (args.model) {
+      const normModel = normalizeModel(args.model);
+      return await ctx.db
+        .query("products")
+        .withIndex("by_brand_model", (idx) => idx.eq("brand", args.brand).eq("normalizedModel", normModel))
+        .filter(notDeleted)
+        .paginate(paginationOpts);
+    }
+    return await ctx.db
+      .query("products")
+      .withIndex("by_brand", (idx) => idx.eq("brand", args.brand))
+      .filter(notDeleted)
+      .paginate(paginationOpts);
+  },
+});
+
+// Единичен продукт по URL slug - за директни/споделени линкове
+// (/produkt/:slug), индексирано вместо сканиране на цялата таблица.
+export const getBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const doc = await ctx.db
+      .query("products")
+      .withIndex("by_slug", (idx) => idx.eq("slug", args.slug))
+      .first();
+    if (!doc || doc.isDeleted) return null;
+    return doc;
+  },
+});
+
+// Текстово търсене по име на продукт, чрез Convex search индекс - връща
+// най-релевантните до 60 резултата, вместо да сканира целия каталог за
+// всяко натиснато клавиш в търсачката.
+export const searchProducts = query({
+  args: { query: v.string() },
+  handler: async (ctx, args) => {
+    const trimmed = args.query.trim();
+    if (!trimmed) return [];
+    return await ctx.db
+      .query("products")
+      .withSearchIndex("search_name", (q) => q.search("name", trimmed))
+      .filter(notDeleted)
+      .take(60);
+  },
+});
+
 export const getById = query({
   args: { id: v.string() },
   handler: async (ctx, args) => {
@@ -115,6 +291,8 @@ export const create = mutation({
     return await ctx.db.insert("products", {
       ...args,
       matchKey: buildMatchKey(args.name, args.brand, args.model, args.category),
+      slug: buildSlug(args.name, args.model),
+      normalizedModel: normalizeModel(args.model),
     });
   },
 });
@@ -149,6 +327,8 @@ export const update = mutation({
     await ctx.db.patch(dbId, {
       ...data,
       matchKey: buildMatchKey(data.name, data.brand, data.model, data.category),
+      slug: buildSlug(data.name, data.model),
+      normalizedModel: normalizeModel(data.model),
     });
     return "Product updated successfully";
   },
@@ -236,6 +416,8 @@ export const seed = mutation({
         priceB2B: pB2B,
         oldPriceB2B: oldPB2B,
         matchKey: buildMatchKey(p.name, p.brand, p.model, p.category),
+        slug: buildSlug(p.name, p.model),
+        normalizedModel: normalizeModel(p.model),
       });
     }
     return "Seeded successfully";
@@ -293,6 +475,8 @@ export const createBatch = mutation({
       await ctx.db.insert("products", {
         ...p,
         matchKey: buildMatchKey(p.name, p.brand, p.model, p.category),
+        slug: buildSlug(p.name, p.model),
+        normalizedModel: normalizeModel(p.model),
       });
       count++;
     }
@@ -450,6 +634,8 @@ export const upsertBatch = mutation({
     for (const p of args.products) {
       const { id, ...data } = p;
       const matchKey = buildMatchKey(data.name, data.brand, data.model, data.category);
+      const slug = buildSlug(data.name, data.model);
+      const normalizedModel = normalizeModel(data.model);
 
       let existing: any = null;
 
@@ -476,10 +662,10 @@ export const upsertBatch = mutation({
       }
 
       if (existing) {
-        await ctx.db.patch(existing._id, { ...data, matchKey, isDeleted: false });
+        await ctx.db.patch(existing._id, { ...data, matchKey, slug, normalizedModel, isDeleted: false });
         updatedCount++;
       } else {
-        await ctx.db.insert("products", { ...data, matchKey });
+        await ctx.db.insert("products", { ...data, matchKey, slug, normalizedModel });
         createdCount++;
       }
     }
