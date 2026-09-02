@@ -270,14 +270,36 @@ async function hashPassword(password) {
 }
 
 // --- CONVEX DATA ACTIONS ---
+// Зарежда целия продуктов каталог на порции (products:getPage), вместо на
+// един удар (products:get), за да не удари лимита на Convex за брой
+// байтове/документи в една заявка, когато продуктите станат много.
+async function fetchAllProducts() {
+  const allProducts = [];
+  let cursor = null;
+  let isDone = false;
+  while (!isDone) {
+    const page = await convex.query("products:getPage", { cursor });
+    allProducts.push(...page.page);
+    isDone = page.isDone;
+    cursor = page.continueCursor;
+  }
+  return allProducts;
+}
+
 async function loadData() {
   try {
-    const dbProducts = await convex.query("products:get");
+    const dbProducts = await fetchAllProducts();
     if (dbProducts && dbProducts.length > 0) {
       PRODUCTS = dbProducts;
-      localStorage.setItem("caseking_cached_products", JSON.stringify(dbProducts));
+      try {
+        localStorage.setItem("caseking_cached_products", JSON.stringify(dbProducts));
+      } catch (cacheErr) {
+        // Каталогът може да е твърде голям за localStorage - продължаваме
+        // без локален кеш, вместо да чупим цялото зареждане на данни.
+        console.warn("Could not cache products locally (catalog too large for localStorage).", cacheErr);
+      }
     }
-    
+
     const dbCats = await convex.query("meta:getCategories");
     if (dbCats && dbCats.length > 0) {
       CATEGORIES = dbCats;
@@ -370,7 +392,7 @@ function renderBrands() {
     
     const logoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `assets/${brand.logo || 'logo.webp'}`;
     btn.innerHTML = `
-      <img src="${logoSrc}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
+      <img src="${logoSrc}" alt="${brand.name}" class="brand-card-img" onerror="this.onerror=null;this.src='assets/logo.webp'">
       <span class="brand-card-text">${brand.name}</span>
     `;
     container.appendChild(btn);
@@ -382,7 +404,7 @@ function renderBrands() {
       mBtn.onclick = () => selectMobileBrand(brand.name, mBtn);
       const mLogoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `assets/${brand.logo || 'logo.webp'}`;
       mBtn.innerHTML = `
-        <img src="${mLogoSrc}" class="menu-brand-img" onerror="this.style.display='none'">
+        <img src="${mLogoSrc}" class="menu-brand-img" onerror="this.onerror=null;this.src='assets/logo.webp'">
         <span>${brand.name}</span>
       `;
       mobileContainer.appendChild(mBtn);
@@ -2394,7 +2416,7 @@ function renderCategoryDetailBrands(catId) {
     };
     const logoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `/assets/${brand.logo || 'logo.webp'}`;
     btn.innerHTML = `
-      <img src="${logoSrc}" alt="${brand.name}" class="brand-card-img" onerror="this.style.display='none'">
+      <img src="${logoSrc}" alt="${brand.name}" class="brand-card-img" onerror="this.onerror=null;this.src='/assets/logo.webp'">
       <span class="brand-card-text">${brand.name}</span>
     `;
     container.appendChild(btn);

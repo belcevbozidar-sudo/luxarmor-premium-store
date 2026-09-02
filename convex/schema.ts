@@ -28,7 +28,11 @@ export default defineSchema({
     priceB2B: v.optional(v.number()),
     oldPriceB2B: v.optional(v.union(v.number(), v.null())),
     isDeleted: v.optional(v.boolean()),
-  }),
+
+    // Ключ за бързо (индексирано) търсене на дубликати при upsertBatch,
+    // вместо да се зарежда цялата products таблица при всяко извикване.
+    matchKey: v.optional(v.string()),
+  }).index("by_matchKey", ["matchKey"]),
 
   orders: defineTable({
     orderNumber: v.string(),

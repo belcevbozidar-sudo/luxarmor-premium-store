@@ -2,6 +2,22 @@ import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/bro
 
 const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
 
+// Зарежда целия продуктов каталог на порции (products:getPage), вместо на
+// един удар (products:get), за да не удари лимита на Convex за брой
+// байтове/документи в една заявка, когато продуктите станат много.
+async function fetchAllProducts() {
+  const allProducts = [];
+  let cursor = null;
+  let isDone = false;
+  while (!isDone) {
+    const page = await convex.query("products:getPage", { cursor });
+    allProducts.push(...page.page);
+    isDone = page.isDone;
+    cursor = page.continueCursor;
+  }
+  return allProducts;
+}
+
 let adminToken = localStorage.getItem("caseking_admin_token") || null;
 let allProducts = [];
 let allBrands = [];
@@ -261,7 +277,7 @@ window.toggleAdminMobileMenu = function() {
 // --- DATA FETCHING & RENDERING ---
 async function loadDashboardData() {
   try {
-    allProducts = await convex.query("products:get");
+    allProducts = await fetchAllProducts();
     allBrands = await convex.query("meta:getBrands");
     allModels = await convex.query("meta:getModels");
     
@@ -733,7 +749,7 @@ function renderBrandsAndModels() {
     const brandLogoSrc = (b.logo && b.logo.startsWith('data:')) ? b.logo : `assets/${b.logo || 'logo.webp'}`;
     div.innerHTML = `
       <div class="meta-item-info" style="flex:1; display:flex; align-items:center; gap:0.75rem;">
-        <img src="${brandLogoSrc}" class="meta-logo-preview" onerror="this.style.display='none'">
+        <img src="${brandLogoSrc}" class="meta-logo-preview" onerror="this.onerror=null;this.src='assets/logo.webp'">
         <strong>${b.name}</strong>
       </div>
       <button class="btn-icon delete" onclick="event.stopPropagation(); deleteBrand('${b._id}')" title="Изтрий марка"><i class="fas fa-trash"></i></button>
@@ -2170,7 +2186,7 @@ window.confirmCSVImport = async function() {
 
 window.exportProductsToExcel = async function() {
   try {
-    const products = await convex.query("products:get");
+    const products = await fetchAllProducts();
     if (products.length === 0) {
       alert("Няма налични продукти за експортиране!");
       return;
