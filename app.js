@@ -315,9 +315,16 @@ async function loadData() {
     // категория/търсене си теглят точно нужните продукти при избор (виж
     // renderCatalog, renderCategoryDetailPage, fetchSearchResults) - не се
     // сваля целият каталог наведнъж, за да не се бави сайтът.
+    // Забележка: винаги вярваме на УСПЕШЕН отговор от Convex, дори да е
+    // празен масив (напр. каталогът е нарочно изчистен по средата на
+    // внос) - "празно" не е "грешка". Ако заявката наистина е гръмнала,
+    // изпълнението скача в catch по-долу и там пази старите/статични
+    // данни вместо да ги трие. По-рано тук имаше проверка "> 0", която
+    // третираше легитимно празен резултат като провал и оставяше стари
+    // кеширани марки/модели да висят завинаги на екрана.
     const firstPage = await convex.query("products:getPage", { cursor: null });
     const dbProducts = firstPage.page;
-    if (dbProducts && dbProducts.length > 0) {
+    if (Array.isArray(dbProducts)) {
       PRODUCTS = dbProducts;
       cacheProducts(dbProducts);
       try {
@@ -328,19 +335,19 @@ async function loadData() {
     }
 
     const dbCats = await convex.query("meta:getCategories");
-    if (dbCats && dbCats.length > 0) {
+    if (Array.isArray(dbCats)) {
       CATEGORIES = dbCats;
       localStorage.setItem("caseking_cached_categories", JSON.stringify(dbCats));
     }
-    
+
     const dbBrands = await convex.query("meta:getBrands");
-    if (dbBrands && dbBrands.length > 0) {
+    if (Array.isArray(dbBrands)) {
       BRANDS = dbBrands;
       localStorage.setItem("caseking_cached_brands", JSON.stringify(dbBrands));
     }
-    
+
     const dbModels = await convex.query("meta:getModels");
-    if (dbModels && dbModels.length > 0) {
+    if (Array.isArray(dbModels)) {
       MODELS = dbModels;
       localStorage.setItem("caseking_cached_models", JSON.stringify(dbModels));
     }
