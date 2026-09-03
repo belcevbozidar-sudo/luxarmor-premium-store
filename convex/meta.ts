@@ -21,6 +21,21 @@ export const addBrand = mutation({
   },
 });
 
+// ⚠️ НЕОБРАТИМО: трие ВСИЧКИ марки, независимо от source. Ползва се само
+// при пълен рестарт на каталога (full wipe), при който импортният скрипт
+// веднага след това пресъздава марките. За целенасочено изтриване само на
+// синхронизирани марки използвай deleteBrandsBySource по-долу.
+export const clearAllBrands = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("brands").collect();
+    for (const doc of all) {
+      await ctx.db.delete(doc._id);
+    }
+    return { deleted: all.length };
+  },
+});
+
 // Изтрива марки от даден произход (виж products:deleteProductsBySource) -
 // таблицата е малка, така че обикновен filter е достатъчен.
 export const deleteBrandsBySource = mutation({
@@ -64,6 +79,21 @@ export const addModel = mutation({
       .first();
     if (existing) return existing._id;
     return await ctx.db.insert("models", args);
+  },
+});
+
+// ⚠️ НЕОБРАТИМО: трие ВСИЧКИ модели, независимо от source. Ползва се само
+// при пълен рестарт на каталога (full wipe), при който импортният скрипт
+// веднага след това пресъздава моделите. За целенасочено изтриване само на
+// синхронизирани модели използвай deleteModelsBySource по-долу.
+export const clearAllModels = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("models").collect();
+    for (const doc of all) {
+      await ctx.db.delete(doc._id);
+    }
+    return { deleted: all.length };
   },
 });
 

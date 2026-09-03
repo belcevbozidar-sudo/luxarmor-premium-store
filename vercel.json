@@ -28,6 +28,7 @@
     { "source": "/selfi-stikove", "destination": "/index" },
     { "source": "/popsoket-i-vrazki", "destination": "/index" },
     { "source": "/vanshni-baterii", "destination": "/index" },
+    { "source": "/aksesoari_chasovnici", "destination": "/index" },
     { "source": "/headphones", "destination": "/index" },
     { "source": "/memory_cards", "destination": "/index" },
     { "source": "/hydrogel_film", "destination": "/index" },

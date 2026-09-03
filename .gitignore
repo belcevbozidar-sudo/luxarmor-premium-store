@@ -8,3 +8,6 @@ node_modules/
 scratch/
 scratch
 
+
+# Локални резервни копия на базата - не влизат в repo-то
+backups/

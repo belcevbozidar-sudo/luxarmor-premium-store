@@ -600,6 +600,35 @@ export const inspect = query({
   }
 });
 
+// ⚠️ НЕОБРАТИМО: трие ВСИЧКИ продукти от базата, независимо от source и
+// от isDeleted - не "скрива", а изтрива завинаги. Ползва се само за
+// пълен рестарт на каталога (full wipe), при който веднага след това се
+// качва целият каталог наново от импортния скрипт. Странирано - вика се
+// повторно (с cursor от предния отговор), докато isDone стане true.
+//
+// Преди да се пусне: направи резервно копие (виж backups/ в проекта).
+// За целенасочено, безопасно изтриване само на синхронизирани продукти
+// използвай deleteProductsBySource по-долу вместо тази функция.
+export const deleteAllProductsPaginated = mutation({
+  args: { cursor: v.union(v.string(), v.null()) },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("products").paginate({
+      cursor: args.cursor ?? null,
+      numItems: 200,
+    });
+
+    for (const doc of result.page) {
+      await ctx.db.delete(doc._id);
+    }
+
+    return {
+      deleted: result.page.length,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
 // Странирано изтриване на продукти по source - за безопасно премахване
 // само на автоматично синхронизираните продукти (напр. при повторен чист
 // импорт от даден доставчик), без да пипа ръчно въведени продукти. Вика
