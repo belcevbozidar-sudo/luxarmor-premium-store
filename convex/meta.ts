@@ -10,7 +10,7 @@ export const getBrands = query({
 });
 
 export const addBrand = mutation({
-  args: { name: v.string(), logo: v.string() },
+  args: { name: v.string(), logo: v.string(), source: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("brands")
@@ -18,6 +18,22 @@ export const addBrand = mutation({
       .first();
     if (existing) return existing._id;
     return await ctx.db.insert("brands", args);
+  },
+});
+
+// Изтрива марки от даден произход (виж products:deleteProductsBySource) -
+// таблицата е малка, така че обикновен filter е достатъчен.
+export const deleteBrandsBySource = mutation({
+  args: { source: v.string() },
+  handler: async (ctx, args) => {
+    const toDelete = await ctx.db
+      .query("brands")
+      .filter((q) => q.eq(q.field("source"), args.source))
+      .collect();
+    for (const doc of toDelete) {
+      await ctx.db.delete(doc._id);
+    }
+    return { deleted: toDelete.length };
   },
 });
 
@@ -40,7 +56,7 @@ export const getModels = query({
 });
 
 export const addModel = mutation({
-  args: { name: v.string(), brand: v.string() },
+  args: { name: v.string(), brand: v.string(), source: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("models")
@@ -48,6 +64,22 @@ export const addModel = mutation({
       .first();
     if (existing) return existing._id;
     return await ctx.db.insert("models", args);
+  },
+});
+
+// Изтрива модели от даден произход (виж products:deleteProductsBySource) -
+// таблицата е малка, така че обикновен filter е достатъчен.
+export const deleteModelsBySource = mutation({
+  args: { source: v.string() },
+  handler: async (ctx, args) => {
+    const toDelete = await ctx.db
+      .query("models")
+      .filter((q) => q.eq(q.field("source"), args.source))
+      .collect();
+    for (const doc of toDelete) {
+      await ctx.db.delete(doc._id);
+    }
+    return { deleted: toDelete.length };
   },
 });
 

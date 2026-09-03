@@ -600,6 +600,30 @@ export const inspect = query({
   }
 });
 
+// Странирано изтриване на продукти по source - за безопасно премахване
+// само на автоматично синхронизираните продукти (напр. при повторен чист
+// импорт от даден доставчик), без да пипа ръчно въведени продукти. Вика
+// се повторно (с cursor от предния отговор), докато isDone стане true.
+export const deleteProductsBySource = mutation({
+  args: { source: v.string(), cursor: v.union(v.string(), v.null()) },
+  handler: async (ctx, args) => {
+    const result = await ctx.db
+      .query("products")
+      .withIndex("by_source", (q) => q.eq("source", args.source))
+      .paginate({ cursor: args.cursor ?? null, numItems: 200 });
+
+    for (const doc of result.page) {
+      await ctx.db.delete(doc._id);
+    }
+
+    return {
+      deleted: result.page.length,
+      isDone: result.isDone,
+      continueCursor: result.continueCursor,
+    };
+  },
+});
+
 export const upsertBatch = mutation({
   args: {
     products: v.array(
@@ -624,6 +648,7 @@ export const upsertBatch = mutation({
         oldPriceB2C: v.union(v.number(), v.null()),
         priceB2B: v.number(),
         oldPriceB2B: v.union(v.number(), v.null()),
+        source: v.optional(v.string()),
       })
     ),
   },

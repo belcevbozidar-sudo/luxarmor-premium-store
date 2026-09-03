@@ -42,6 +42,12 @@ export default defineSchema({
     // може стъпка "избери модел" да намери точните продукти индексирано,
     // вместо да сваля цялата марка/категория и да филтрира в браузъра.
     normalizedModel: v.optional(v.string()),
+
+    // Произход на записа (напр. "koff-sync") - позволява безопасно,
+    // целенасочено изтриване само на автоматично синхронизирани продукти
+    // (виж products:deleteProductsBySource), без да засяга ръчно
+    // въведени продукти през админ панела.
+    source: v.optional(v.string()),
   })
     .index("by_matchKey", ["matchKey"])
     .index("by_category", ["category"])
@@ -50,6 +56,7 @@ export default defineSchema({
     .index("by_category_brand_model", ["category", "brand", "normalizedModel"])
     .index("by_brand_model", ["brand", "normalizedModel"])
     .index("by_slug", ["slug"])
+    .index("by_source", ["source"])
     .searchIndex("search_name", { searchField: "name" }),
 
   orders: defineTable({
@@ -123,11 +130,13 @@ export default defineSchema({
   brands: defineTable({
     name: v.string(),
     logo: v.string(),
+    source: v.optional(v.string()),
   }),
 
   models: defineTable({
     name: v.string(),
     brand: v.string(),
+    source: v.optional(v.string()),
   }),
 
   categories: defineTable({
