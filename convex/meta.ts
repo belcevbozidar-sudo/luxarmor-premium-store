@@ -10,7 +10,7 @@ export const getBrands = query({
 });
 
 export const addBrand = mutation({
-  args: { name: v.string(), logo: v.string(), source: v.optional(v.string()) },
+  args: { name: v.string(), logo: v.string(), source: v.optional(v.string()), type: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("brands")
@@ -71,7 +71,7 @@ export const getModels = query({
 });
 
 export const addModel = mutation({
-  args: { name: v.string(), brand: v.string(), source: v.optional(v.string()) },
+  args: { name: v.string(), brand: v.string(), source: v.optional(v.string()), type: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("models")

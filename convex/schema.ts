@@ -131,12 +131,17 @@ export default defineSchema({
     name: v.string(),
     logo: v.string(),
     source: v.optional(v.string()),
+    // "phone" (по подразбиране, ако липсва) или "watch" - определя в кой
+    // поток се показва марката: телефонния (началната страница) или
+    // часовниковия (категорията "Аксесоари за часовници").
+    type: v.optional(v.string()),
   }),
 
   models: defineTable({
     name: v.string(),
     brand: v.string(),
     source: v.optional(v.string()),
+    type: v.optional(v.string()),
   }),
 
   categories: defineTable({
