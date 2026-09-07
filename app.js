@@ -2693,7 +2693,16 @@ async function renderCategoryDetailPage(catId, loadMore = false) {
   }
   
   // Handle Category Filtering Panel
-  const isModelSpecific = ["keysove-i-kalufi", "protektori-za-ekran", "hydrogel_film"].includes(catId);
+  // Категории с двустъпков филтър "марка -> модел". Часовниковите
+  // аксесоари са тук: избираш Apple Watch -> Series 9 и виждаш всичко
+  // за този модел. renderCategoryDetailBrands сама подава ЧАСОВНИКОВИТЕ
+  // марки за WATCH_CATEGORY_ID.
+  const isModelSpecific = [
+    "keysove-i-kalufi",
+    "protektori-za-ekran",
+    "hydrogel_film",
+    WATCH_CATEGORY_ID
+  ].includes(catId);
   const accessoryMode = isAccessoryCategory(catId);
   const hasBrandFilter = isModelSpecific || accessoryMode;
   const filterPanel = document.getElementById("category-detail-filter-panel");
