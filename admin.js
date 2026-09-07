@@ -754,7 +754,10 @@ function renderBrandsAndModels() {
         <img src="${brandLogoSrc}" class="meta-logo-preview" onerror="this.onerror=null;this.src='assets/logo.webp'">
         <strong>${b.name}</strong>
       </div>
-      <button class="btn-icon delete" onclick="event.stopPropagation(); deleteBrand('${b._id}')" title="Изтрий марка"><i class="fas fa-trash"></i></button>
+      <div style="display:flex; gap:0.25rem;">
+        <button class="btn-icon" onclick="event.stopPropagation(); openBrandModal('${b._id}')" title="Редактирай марка"><i class="fas fa-edit"></i></button>
+        <button class="btn-icon delete" onclick="event.stopPropagation(); deleteBrand('${b._id}')" title="Изтрий марка"><i class="fas fa-trash"></i></button>
+      </div>
     `;
     
     div.addEventListener("click", () => {
@@ -886,14 +889,42 @@ function getBase64Image(fileInput, maxWidth = 400, maxHeight = 400) {
   });
 }
 
-window.openBrandModal = function() {
-  document.getElementById("brand-name-input").value = "";
+// Отваря модала за марка. Без аргумент - режим "Добавяне".
+// С _id на съществуваща марка - режим "Редакция" (име и/или ново лого).
+window.openBrandModal = function(brandId) {
+  const brand = brandId ? allBrands.find(b => b._id === brandId) : null;
+  const isEdit = Boolean(brand);
+
+  document.getElementById("brand-edit-id").value = isEdit ? brand._id : "";
+  document.getElementById("brand-name-input").value = isEdit ? brand.name : "";
   document.getElementById("brand-logo-input").value = "";
+  document.getElementById("brand-modal-title").textContent = isEdit ? "Редакция на Марка" : "Добавяне на Марка";
+  document.getElementById("brand-modal-submit").textContent = isEdit ? "Запази" : "Добави";
+  document.getElementById("brand-modal-submit").disabled = false;
+  document.getElementById("brand-logo-hint").textContent = isEdit
+    ? "Изберете ново лого само ако искате да смените текущото"
+    : "Изберете лого или го издърпайте тук";
+
+  const warning = document.getElementById("brand-rename-warning");
+  if (warning) warning.style.display = isEdit ? "block" : "none";
+
+  const progress = document.getElementById("brand-save-progress");
+  if (progress) { progress.style.display = "none"; progress.textContent = ""; }
+
   const previewDiv = document.getElementById("brand-logo-preview");
+  const previewLabel = document.getElementById("brand-logo-preview-label");
   if (previewDiv) {
-    previewDiv.style.display = "none";
-    previewDiv.querySelector("img").src = "";
+    if (isEdit) {
+      previewDiv.style.display = "block";
+      previewDiv.querySelector("img").src = resolveBrandLogo(brand, 'assets/');
+      if (previewLabel) previewLabel.textContent = "Текущо лого";
+    } else {
+      previewDiv.style.display = "none";
+      previewDiv.querySelector("img").src = "";
+      if (previewLabel) previewLabel.textContent = "";
+    }
   }
+
   document.getElementById("brand-modal").classList.add("active");
 };
 window.closeBrandModal = function() {
@@ -901,11 +932,62 @@ window.closeBrandModal = function() {
 };
 window.saveBrand = async function(event) {
   event.preventDefault();
+  const editId = document.getElementById("brand-edit-id").value;
   const name = document.getElementById("brand-name-input").value.trim();
   const logoInput = document.getElementById("brand-logo-input");
-  
+  const submitBtn = document.getElementById("brand-modal-submit");
+  const progress = document.getElementById("brand-save-progress");
+
+  if (!name) {
+    alert("Моля, въведете име на марката!");
+    return;
+  }
+
+  const setProgress = (text) => {
+    if (!progress) return;
+    progress.style.display = text ? "block" : "none";
+    progress.textContent = text || "";
+  };
+
+  submitBtn.disabled = true;
   try {
     const logoBase64 = await getBase64Image(logoInput, 300, 300);
+
+    // --- РЕЖИМ РЕДАКЦИЯ ---
+    if (editId) {
+      setProgress("Запазване на марката...");
+      const payload = { id: editId, name };
+      if (logoBase64) payload.logo = logoBase64;
+      const result = await convex.mutation("meta:updateBrand", payload);
+
+      // При смяна на името продуктите се обновяват на партиди, за да не
+      // се удари лимитът на Convex за една мутация.
+      if (result && result.renamed) {
+        let total = 0;
+        let isDone = false;
+        let guard = 0;
+        while (!isDone && guard < 400) {
+          const step = await convex.mutation("meta:renameBrandOnProducts", {
+            oldName: result.oldName,
+            newName: result.newName,
+            batchSize: 200,
+          });
+          total += step.updated;
+          isDone = step.isDone;
+          guard++;
+          setProgress(`Обновяване на продуктите... ${total}`);
+        }
+        setProgress("");
+        alert(`Марката е преименувана на "${result.newName}".\nОбновени: ${result.renamedModels} модела и ${total} продукта.`);
+      }
+
+      setProgress("");
+      closeBrandModal();
+      loadDashboardData();
+      return;
+    }
+
+    // --- РЕЖИМ ДОБАВЯНЕ ---
     if (!logoBase64) {
       alert("Моля, изберете лого за марката!");
       return;
@@ -914,7 +996,10 @@ window.saveBrand = async function(event) {
     closeBrandModal();
     loadDashboardData();
   } catch (err) {
-    alert("Грешка при добавяне на марка: " + err.message);
+    setProgress("");
+    alert("Грешка при запазване на марка: " + err.message);
+  } finally {
+    submitBtn.disabled = false;
   }
 };
 window.deleteBrand = async function(brandId) {
@@ -1521,6 +1606,8 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.onload = (ev) => {
           previewDiv.querySelector("img").src = ev.target.result;
           previewDiv.style.display = "block";
+          const label = document.getElementById("brand-logo-preview-label");
+          if (label) label.textContent = "Ново лого";
         };
         reader.readAsDataURL(file);
       }
