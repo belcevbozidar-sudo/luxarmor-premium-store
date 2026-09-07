@@ -414,18 +414,86 @@ async function verifySession() {
 // ЧАСОВНИКОВИТЕ марки/модели, а не телефонните.
 const WATCH_CATEGORY_ID = "aksesoari_chasovnici";
 
+// Категории, в които филтърът е по марка на САМИЯ аксесоар (Mcdodo,
+// Baseus, Anker...), а не по модел телефон. Списъкът съвпада с
+// ACCESSORY_CATEGORY_SLUGS в скрейпъра (sync-caseking.mjs).
+const ACCESSORY_CATEGORY_IDS = new Set([
+  "zaryadni-ustroystva",
+  "kabeli-za-zaryadane",
+  "bezzhichni-zaryadni",
+  "vanshni-baterii",
+  "headphones",
+  "memory_cards",
+  "audio_cables",
+  "postavki-za-byuro",
+  "selfi-stikove",
+  "popsoket-i-vrazki",
+  "aksesoari-za-avtomobili"
+]);
+
+function isAccessoryCategory(catId) {
+  return ACCESSORY_CATEGORY_IDS.has(catId);
+}
+
 // Марките без изрично зададен type се третират като телефонни, за да
 // продължат съществуващите записи да работят непроменени.
 function isWatchBrand(brand) {
   return brand.type === "watch";
 }
 
+function isAccessoryBrand(brand) {
+  return brand.type === "accessory";
+}
+
+// ВАЖНО: телефонните марки трябва да изключват И часовниковите, И
+// аксесоарните - иначе Mcdodo/Baseus изскачат на началната страница
+// между Apple и Samsung.
 function phoneBrands() {
-  return BRANDS.filter(b => !isWatchBrand(b));
+  return BRANDS.filter(b => !isWatchBrand(b) && !isAccessoryBrand(b));
 }
 
 function watchBrands() {
   return BRANDS.filter(b => isWatchBrand(b));
+}
+
+function accessoryBrands() {
+  return BRANDS.filter(b => isAccessoryBrand(b));
+}
+
+// Кеш: слъг на категория -> Set с имената на марките, които РЕАЛНО имат
+// продукти там. Без него всяка аксесоарна категория би показала всички
+// аксесоарни марки, включително такива без нито един продукт в нея
+// (напр. SanDisk в "Слушалки").
+const accessoryBrandsByCategory = new Map();
+
+async function loadAccessoryBrandsForCategory(catId) {
+  if (accessoryBrandsByCategory.has(catId)) {
+    return accessoryBrandsByCategory.get(catId);
+  }
+  const found = new Set();
+  try {
+    let cursor = null;
+    let isDone = false;
+    let guard = 0;
+    while (!isDone && guard < 40) {
+      const page = await convex.query("products:getByCategory", {
+        category: catId,
+        cursor
+      });
+      page.page.forEach(p => {
+        if (p.isDeleted) return;
+        if (!p.brand || p.brand === "Всички марки") return;
+        found.add(p.brand);
+      });
+      isDone = page.isDone;
+      cursor = page.continueCursor;
+      guard++;
+    }
+  } catch (err) {
+    console.warn("Could not load accessory brands for", catId, err);
+  }
+  accessoryBrandsByCategory.set(catId, found);
+  return found;
 }
 
 function renderBrands() {
@@ -2494,9 +2562,28 @@ function renderCategoryDetailBrands(catId) {
   if (!container) return;
   container.innerHTML = "";
   
+  const accessoryMode = isAccessoryCategory(catId);
+  
   // В категорията с часовникови аксесоари показваме ЧАСОВНИКОВИТЕ марки
-  // (Apple Watch, Garmin...), навсякъде другаде - телефонните.
-  const brandsToShow = catId === WATCH_CATEGORY_ID ? watchBrands() : phoneBrands();
+  // (Apple Watch, Garmin...); в аксесоарните категории - марките на
+  // производителите на аксесоари, стеснени до тези с реални продукти в
+  // конкретната категория; навсякъде другаде - телефонните.
+  let brandsToShow;
+  if (catId === WATCH_CATEGORY_ID) {
+    brandsToShow = watchBrands();
+  } else if (accessoryMode) {
+    const present = accessoryBrandsByCategory.get(catId);
+    brandsToShow = accessoryBrands();
+    if (present && present.size > 0) {
+      brandsToShow = brandsToShow.filter(b => present.has(b.name));
+    }
+    brandsToShow = brandsToShow
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+  } else {
+    brandsToShow = phoneBrands();
+  }
+  
   brandsToShow.forEach(brand => {
     const btn = document.createElement("button");
     btn.className = "brand-pill-btn";
@@ -2522,7 +2609,12 @@ function renderCategoryDetailBrands(catId) {
   const step2Title = document.getElementById("cat-detail-step2-title");
   const modelList = document.getElementById("cat-detail-models-list");
   if (step2Title && modelList) {
-    if (categoryDetailSelectedBrand) {
+    // При аксесоарите няма втора стъпка - зарядно или кабел не се избира
+    // по модел телефон.
+    if (accessoryMode) {
+      step2Title.style.display = "none";
+      modelList.style.display = "none";
+    } else if (categoryDetailSelectedBrand) {
       step2Title.style.display = "block";
       step2Title.textContent = `Избери модел за ${categoryDetailSelectedBrand.toUpperCase()}:`;
       modelList.style.display = "grid";
@@ -2602,11 +2694,20 @@ async function renderCategoryDetailPage(catId, loadMore = false) {
   
   // Handle Category Filtering Panel
   const isModelSpecific = ["keysove-i-kalufi", "protektori-za-ekran", "hydrogel_film"].includes(catId);
+  const accessoryMode = isAccessoryCategory(catId);
+  const hasBrandFilter = isModelSpecific || accessoryMode;
   const filterPanel = document.getElementById("category-detail-filter-panel");
   if (filterPanel) {
-    if (isModelSpecific) {
+    if (hasBrandFilter) {
       filterPanel.style.display = "block";
       renderCategoryDetailBrands(catId);
+      if (accessoryMode && !accessoryBrandsByCategory.has(catId)) {
+        // Списъкът с марки за тази категория още не е известен - зарежда
+        // се на заден план и панелът се пречертава, щом е готов.
+        loadAccessoryBrandsForCategory(catId).then(() => {
+          renderCategoryDetailBrands(catId);
+        });
+      }
     } else {
       filterPanel.style.display = "none";
       categoryDetailSelectedBrand = null;
@@ -2617,7 +2718,7 @@ async function renderCategoryDetailPage(catId, loadMore = false) {
   const grid = document.getElementById("category-detail-product-grid");
   if (!grid) return;
 
-  const brandFilter = isModelSpecific ? categoryDetailSelectedBrand : null;
+  const brandFilter = hasBrandFilter ? categoryDetailSelectedBrand : null;
   const modelFilter = isModelSpecific ? categoryDetailSelectedModel : null;
 
   if (!loadMore) {
