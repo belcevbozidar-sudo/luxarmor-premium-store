@@ -140,12 +140,32 @@ const CATEGORY_IMAGE_OVERRIDES = {
   "kabeli-za-zaryadane": "assets/ck_cat_cables.webp",
   "postavki-za-byuro": "assets/ck_cat_deskstand.webp",
   "selfi-stikove": "assets/ck_cat_selfie.webp",
-  "popsoket-i-vrazki": "assets/ck_cat_accessories.webp",
-  "vanshni-baterii": "assets/ck_cat_powerbank.webp"
+  "popsoket-i-vrazki": "assets/ck_cat_popsocket.webp",
+  "vanshni-baterii": "assets/ck_cat_powerbank.webp",
+  "headphones": "assets/ck_cat_headphones.webp",
+  "memory_cards": "assets/ck_cat_memory.webp",
+  "audio_cables": "assets/ck_cat_audiocables.webp",
+  "aksesoari_chasovnici": "assets/ck_cat_smartwatch.webp"
 };
 function getCategoryImage(cat) {
   if (!cat) return "assets/ck_cat_accessories.webp";
   return CATEGORY_IMAGE_OVERRIDES[cat.id] || "assets/ck_cat_accessories.webp";
+}
+
+// --- ANNOUNCEMENT BAR (admin-editable via pageMetadata pageKey="announcement") ---
+function renderAnnouncementBar() {
+  try {
+    const entry = (typeof pageSeoMetadata !== "undefined" && Array.isArray(pageSeoMetadata))
+      ? pageSeoMetadata.find(m => m.pageKey === "announcement")
+      : null;
+    const text = entry && entry.title && entry.title.trim();
+    if (!text) return; // keep the default text already in the HTML
+    document.querySelectorAll(".announcement-bar span").forEach(el => {
+      el.textContent = text;
+    });
+  } catch (e) {
+    console.warn("Could not render announcement bar:", e);
+  }
 }
 
 const STATIC_BRANDS = [
@@ -408,6 +428,7 @@ async function loadData() {
       const dbSeo = await convex.query("settings:getAllPageMetadata");
       if (dbSeo) {
         pageSeoMetadata = dbSeo;
+        renderAnnouncementBar();
         handleRouting();
       }
     } catch (seoErr) {
@@ -663,6 +684,108 @@ function selectModel(modelName) {
   
   renderCatalog();
   
+  const catalogSection = document.getElementById("catalog");
+  if (catalogSection) {
+    catalogSection.scrollIntoView({ behavior: "smooth" });
+  }
+}
+
+// --- PHONE FINDER DROPDOWNS (Brand + Model) ---
+function finderToast(msg) {
+  let wrap = document.getElementById("ck-toast-wrap");
+  if (!wrap) {
+    wrap = document.createElement("div");
+    wrap.id = "ck-toast-wrap";
+    document.body.appendChild(wrap);
+  }
+  const t = document.createElement("div");
+  t.className = "ck-toast error";
+  t.innerHTML = `<i class="fas fa-circle-exclamation"></i><span>${msg}</span>`;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 400); }, 2600);
+}
+
+function populateFinderBrands() {
+  const brandSelect = document.getElementById("finder-brand-select");
+  if (!brandSelect) return;
+  const brands = phoneBrands();
+  brandSelect.innerHTML = '<option value="">Избери марка</option>';
+  brands.forEach(brand => {
+    const opt = document.createElement("option");
+    opt.value = brand.name;
+    opt.textContent = brand.name;
+    brandSelect.appendChild(opt);
+  });
+}
+
+// Returns the unique, cleaned, sorted list of models for a brand (same logic
+// used by the old step grid) so the dropdown matches what getByBrand expects.
+function getUniqueModelsForBrand(brandName) {
+  const brandModels = MODELS.filter(m => m.brand === brandName);
+  const seen = new Set();
+  const uniqueModels = [];
+  brandModels.forEach(model => {
+    const cleanName = getCleanModelName(model.name);
+    const norm = normalizeModel(cleanName);
+    if (!seen.has(norm)) {
+      seen.add(norm);
+      uniqueModels.push(cleanName);
+    }
+  });
+  uniqueModels.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+  return uniqueModels;
+}
+
+function onFinderBrandChange() {
+  const brandSelect = document.getElementById("finder-brand-select");
+  const modelSelect = document.getElementById("finder-model-select");
+  if (!brandSelect || !modelSelect) return;
+  const brandName = brandSelect.value;
+
+  modelSelect.innerHTML = '<option value="">Избери модел</option>';
+  if (!brandName) {
+    modelSelect.disabled = true;
+    return;
+  }
+
+  const models = getUniqueModelsForBrand(brandName);
+  models.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    modelSelect.appendChild(opt);
+  });
+  modelSelect.disabled = models.length === 0;
+}
+
+function finderSearch() {
+  const brandSelect = document.getElementById("finder-brand-select");
+  const modelSelect = document.getElementById("finder-model-select");
+  if (!brandSelect) return;
+  const brandName = brandSelect.value;
+  const modelName = modelSelect ? modelSelect.value : "";
+
+  if (!brandName) {
+    finderToast("Моля, изберете марка телефон.");
+    brandSelect.focus();
+    return;
+  }
+
+  // Reset search state and apply the brand/model filter, then show the catalog.
+  const input = document.getElementById("smart-search-input");
+  if (input) input.value = "";
+  searchQuery = "";
+  const clearBtn = document.getElementById("search-clear-btn");
+  if (clearBtn) clearBtn.style.display = "none";
+
+  selectedBrand = brandName;
+  selectedModel = modelName || null;
+  selectedCategory = null;
+
+  document.querySelectorAll(".category-card").forEach(card => card.classList.remove("active"));
+
+  renderCatalog();
+
   const catalogSection = document.getElementById("catalog");
   if (catalogSection) {
     catalogSection.scrollIntoView({ behavior: "smooth" });
@@ -1020,13 +1143,13 @@ function buildCategoryCard(cat, extraClass) {
 function renderCategories() {
   const container = document.getElementById("categories-grid");
   if (!container) return;
-  container.className = "categories-grid ck-cat-editorial";
+  container.className = "categories-grid ck-cat-uniform";
   container.innerHTML = "";
 
-  // Homepage shows an editorial layout: 1 large feature card + up to 4 smaller
-  const list = CATEGORIES.slice(0, 5);
-  list.forEach((cat, i) => {
-    container.appendChild(buildCategoryCard(cat, i === 0 ? "ck-cat-feature" : ""));
+  // Homepage shows a clean, uniform grid of equal-sized category cards.
+  const list = CATEGORIES.slice(0, 6);
+  list.forEach((cat) => {
+    container.appendChild(buildCategoryCard(cat, ""));
   });
 }
 
@@ -3365,6 +3488,7 @@ async function initApp() {
   // Render views immediately with cached or static dataset (instant mount!)
   renderHeroSettings();
   renderBrands();
+  populateFinderBrands();
   renderCategories();
   renderCatalog();
   updateCartCount();
@@ -3382,6 +3506,7 @@ async function initApp() {
   loadData().then(() => {
     // Re-render views with fresh database values once loaded
     renderBrands();
+    populateFinderBrands();
     renderCategories();
     renderCatalog();
     renderCartItems();
@@ -3544,6 +3669,9 @@ window.applyPromoCode = applyPromoCode;
 window.handleRouting = handleRouting;
 window.acceptCookies = acceptCookies;
 window.handleContactSubmit = handleContactSubmit;
+window.onFinderBrandChange = onFinderBrandChange;
+window.finderSearch = finderSearch;
+window.populateFinderBrands = populateFinderBrands;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);

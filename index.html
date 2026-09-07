@@ -145,7 +145,7 @@
       </div>
     </section>
 
-    <!-- --- PHONE FINDER BAR --- -->
+    <!-- --- PHONE FINDER BAR (Brand + Model dropdowns) --- -->
     <section class="ck-finder-section">
       <div class="container">
         <div class="ck-finder-bar">
@@ -153,31 +153,35 @@
             <i class="fas fa-mobile-screen-button"></i>
             <span>Намери идеалния кейс за твоя телефон</span>
           </div>
-          <button class="ck-finder-cta" onclick="document.getElementById('brands-list').scrollIntoView({behavior:'smooth', block:'center'});">
+          <div class="ck-finder-field">
+            <span class="ck-finder-step">1</span>
+            <div class="ck-finder-select-wrap">
+              <label for="finder-brand-select">Избери марка</label>
+              <select id="finder-brand-select" onchange="onFinderBrandChange()">
+                <option value="">Избери марка</option>
+              </select>
+            </div>
+          </div>
+          <div class="ck-finder-field">
+            <span class="ck-finder-step">2</span>
+            <div class="ck-finder-select-wrap">
+              <label for="finder-model-select">Избери модел</label>
+              <select id="finder-model-select" disabled>
+                <option value="">Избери модел</option>
+              </select>
+            </div>
+          </div>
+          <button class="ck-finder-cta" onclick="finderSearch()">
             <i class="fas fa-search"></i> Търси
           </button>
         </div>
       </div>
     </section>
-    <!-- --- STEP 1: CHOOSE PHONE BRAND --- -->
-    <section class="step-section">
-      <div class="container">
-        <h2 class="step-title">СТЪПКА 1 - ИЗБЕРИ МАРКА ТЕЛЕФОН:</h2>
-        <div class="brands-list-container" id="brands-list">
-          <!-- Dynamically loaded -->
-        </div>
-      </div>
-    </section>
 
-    <!-- --- STEP 2: CHOOSE PHONE MODEL --- -->
-    <section class="step-section">
-      <div class="container">
-        <h2 class="step-title" id="step2-title" style="display: none;">СТЪПКА 2 - ИЗБЕРИ МОДЕЛ:</h2>
-        <div class="models-list-container" id="models-list" style="display: none;">
-          <!-- Dynamically loaded when brand is selected -->
-        </div>
-      </div>
-    </section>
+    <!-- Hidden legacy containers kept so existing JS references stay safe -->
+    <div id="brands-list" style="display: none;"></div>
+    <div id="models-list" style="display: none;"></div>
+    <h2 id="step2-title" style="display: none;"></h2>
 
     <!-- --- CATEGORIES GRID --- -->
     <section class="categories-section">
@@ -634,7 +638,7 @@
           <li><strong>Право на възражение:</strong> Да се противопоставите на обработването за целите на директния маркетинг.</li>
         </ul>
         <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
-          За да упражните някое от тези права, можете да се свържете с нас на имейл: <a href="/cdn-cgi/l/email-protection#84e7e5f7e1aaefedeae3aae6e3c4e3e9e5ede8aae7ebe9" style="color: var(--gold); text-decoration: underline;"><span class="__cf_email__" data-cfemail="3a595b495f145153545d14585d7a5d575b535614595557">[email&#160;protected]</span></a>.
+          За да упражните някое от тези права, можете да се свържете с нас на имейл: <a href="mailto:case.king.bg@gmail.com" style="color: var(--gold); text-decoration: underline;">case.king.bg@gmail.com</a>.
         </p>
         
         <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">6. Сигурност на данните</h2>
@@ -686,7 +690,7 @@
         <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
           <li>Стоката да бъде в оригиналния си търговски вид, неразпечатана, неизползвана и без увреждания.</li>
           <li>Разходите за връщане на стоката са изцяло за сметка на потребителя.</li>
-          <li>За да стартирате процес на връщане, се свържете с нас на имейл: <a href="/cdn-cgi/l/email-protection#32515341571c595b5c551c505572555f535b5e1c515d5f" style="color: var(--gold); text-decoration: underline;"><span class="__cf_email__" data-cfemail="9af9fbe9ffb4f1f3f4fdb4f8fddafdf7fbf3f6b4f9f5f7">[email&#160;protected]</span></a>.</li>
+          <li>За да стартирате процес на връщане, се свържете с нас на имейл: <a href="mailto:case.king.bg@gmail.com" style="color: var(--gold); text-decoration: underline;">case.king.bg@gmail.com</a>.</li>
         </ul>
         
         <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">5. Ограничаване на отговорността</h2>
@@ -696,7 +700,7 @@
         
         <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">6. Контакт с нас</h2>
         <p style="margin-bottom: 1.5rem; line-height: 1.7; color: var(--primary);">
-          За всякакви въпроси, оплаквания или запитвания относно Общите условия, можете да се свържете с нашия екип на имейл: <a href="/cdn-cgi/l/email-protection#791a180a1c571210171e571b1e391e14181015571a1614" style="color: var(--gold); text-decoration: underline;"><span class="__cf_email__" data-cfemail="e784869482c98c8e8980c98580a7808a868e8bc984888a">[email&#160;protected]</span></a>.
+          За всякакви въпроси, оплаквания или запитвания относно Общите условия, можете да се свържете с нашия екип на имейл: <a href="mailto:case.king.bg@gmail.com" style="color: var(--gold); text-decoration: underline;">case.king.bg@gmail.com</a>.
         </p>
       </div>
     </div>
@@ -788,7 +792,7 @@
               </div>
               <div>
                 <h4 style="color: var(--primary); font-weight: 700; margin-bottom: 0.25rem; font-size: 1.05rem;">Имейл адрес</h4>
-                <a href="/cdn-cgi/l/email-protection#32515341571c595b5c551c505572555f535b5e1c515d5f" style="color: var(--accent); text-decoration: none; font-weight: 600; font-size: 1.15rem; transition: var(--transition-fast);" onmouseover="this.style.color='var(--accent-hover)'" onmouseout="this.style.color='var(--accent)'"><span class="__cf_email__" data-cfemail="bcdfddcfd992d7d5d2db92dedbfcdbd1ddd5d092dfd3d1">[email&#160;protected]</span></a>
+                <a href="mailto:case.king.bg@gmail.com" style="color: var(--accent); text-decoration: none; font-weight: 600; font-size: 1.15rem; transition: var(--transition-fast);" onmouseover="this.style.color='var(--accent-hover)'" onmouseout="this.style.color='var(--accent)'">case.king.bg@gmail.com</a>
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Отговаряме в рамките на няколко часа.</p>
               </div>
             </div>
@@ -868,7 +872,7 @@
       <div>
         <h4 class="footer-title">За контакти</h4>
         <div class="footer-contact-row">
-          <a href="/cdn-cgi/l/email-protection#ed8e8c9e88c38684838ac38f8aad8a808c8481c38e8280" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'"><span class="__cf_email__" data-cfemail="adceccdec883c6c4c3ca83cfcaedcac0ccc4c183cec2c0">[email&#160;protected]</span></a>
+          <a href="mailto:case.king.bg@gmail.com" style="color: var(--text-muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-muted)'">case.king.bg@gmail.com</a>
         </div>
       </div>
     </div>
@@ -1116,8 +1120,8 @@
   </div>
 
   <!-- Javascript -->
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script type="module" src="/app.js?v=1.4.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script type="module" src="/app.js?v=1.5.0"></script>
 
   <!-- Sticky header scroll effect (adds .scrolled class for glassmorphism intensity) -->
   <script>
@@ -1142,6 +1146,5 @@
       onScroll();
     })();
   </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"f0f03d0605bf45f1a3b17cf7d5e6861f","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>

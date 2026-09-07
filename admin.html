@@ -1242,6 +1242,20 @@
         </div>
 
         <div class="meta-panel" style="padding: 2rem; max-width: 600px; margin-top: 2rem;">
+          <h3 style="margin-bottom: 1.5rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem;"><i class="fas fa-bullhorn" style="color: var(--gold); margin-right: 0.5rem;"></i> Лента с обявление (най-горе на сайта)</h3>
+
+          <form id="announcement-settings-form" onsubmit="saveAnnouncementSettings(event)">
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label for="announcement-input" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #fff;">Текст на лентата:</label>
+              <input type="text" id="announcement-input" required style="width: 100%; padding: 0.75rem; border-radius: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff;" placeholder="напр. 🔥 ПРОЛЕТНА РАЗПРОДАЖБА ДО -50% 🔥">
+              <small style="display: block; margin-top: 0.5rem; color: rgba(255,255,255,0.5);">Този текст се показва в жълтата лента най-горе на всяка страница.</small>
+            </div>
+
+            <button type="submit" class="btn-action" style="background: var(--gold); color: #000; padding: 0.75rem 1.5rem; font-weight: 600; cursor: pointer;"><i class="fas fa-save"></i> Запази обявлението</button>
+          </form>
+        </div>
+
+        <div class="meta-panel" style="padding: 2rem; max-width: 600px; margin-top: 2rem;">
           <h3 style="margin-bottom: 1.5rem; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem;"><i class="fas fa-search" style="color: var(--gold); margin-right: 0.5rem;"></i> SEO Мета Данни на Страниците</h3>
           
           <form id="seo-settings-form" onsubmit="savePageSeoSettings(event)">

@@ -3624,6 +3624,69 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .ck-finder-cta:hover { background: var(--ck-accent-hover); transform: translateY(-1px); }
 
+/* Finder brand/model dropdown fields */
+.ck-finder-lead { flex-shrink: 0; }
+.ck-finder-field {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.ck-finder-step {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--ck-accent);
+  color: var(--ck-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.ck-finder-select-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.ck-finder-select-wrap label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ck-text-muted);
+}
+.ck-finder-select-wrap select {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+  background: var(--ck-surface-3, rgba(255,255,255,0.05));
+  border: 1px solid var(--ck-border-strong);
+  color: var(--ck-text);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23F5C518' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  transition: border-color var(--transition-fast);
+}
+.ck-finder-select-wrap select:focus { border-color: var(--ck-accent); }
+.ck-finder-select-wrap select:disabled { opacity: 0.5; cursor: not-allowed; }
+.ck-finder-select-wrap select option { background: var(--ck-surface-2); color: var(--ck-text); }
+@media (max-width: 900px) {
+  .ck-finder-bar { flex-wrap: wrap; }
+  .ck-finder-lead { flex: 1 1 100%; }
+  .ck-finder-field { flex: 1 1 45%; }
+}
+
 /* ---------- SECTION HEADERS ---------- */
 .ck-section-head {
   display: flex;
@@ -3653,11 +3716,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ck-section-link:hover { gap: 0.7rem; }
 
 /* ---------- EDITORIAL CATEGORIES ---------- */
-.categories-grid.ck-cat-editorial {
+.categories-grid.ck-cat-editorial,
+.categories-grid.ck-cat-uniform {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
+}
+.categories-grid.ck-cat-uniform .ck-cat-card {
+  min-height: 220px;
 }
 .ck-cat-card {
   position: relative;
@@ -4095,6 +4161,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .ck-pdp-trust { grid-template-columns: repeat(2, 1fr); }
   .ck-tab-desc-grid { grid-template-columns: 1fr; gap: 1.75rem; }
   .categories-grid.ck-cat-editorial { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .categories-grid.ck-cat-uniform { grid-template-columns: 1fr 1fr; }
   .ck-cat-card.ck-cat-feature { grid-row: auto; grid-column: 1 / -1; min-height: 240px; }
 }
 @media (max-width: 640px) {
@@ -4104,6 +4171,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .ck-trust-row { grid-template-columns: 1fr; }
   .ck-pdp-trust { grid-template-columns: 1fr; }
   .categories-grid.ck-cat-editorial { grid-template-columns: 1fr; }
+  .categories-grid.ck-cat-uniform { grid-template-columns: 1fr; }
   .ck-cat-card.ck-cat-feature { grid-column: auto; }
   .ck-about-title { font-size: 1.9rem; }
 }

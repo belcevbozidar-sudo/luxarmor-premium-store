@@ -333,6 +333,7 @@ async function loadDashboardData() {
     try {
       allPageMetadata = await convex.query("settings:getAllPageMetadata");
       loadPageSeoValues();
+      loadAnnouncementValue();
     } catch (seoErr) {
       console.warn("Could not load SEO page metadata from db:", seoErr);
     }
@@ -2820,6 +2821,45 @@ window.deleteBlogPost = async function(postId) {
       loadDashboardData();
     } catch (err) {
       alert("Грешка при изтриване: " + err.message);
+    }
+  }
+};
+
+window.loadAnnouncementValue = function() {
+  const input = document.getElementById("announcement-input");
+  if (!input) return;
+  const entry = allPageMetadata.find(m => m.pageKey === "announcement");
+  if (entry && entry.title) input.value = entry.title;
+};
+
+window.saveAnnouncementSettings = async function(event) {
+  event.preventDefault();
+  const input = document.getElementById("announcement-input");
+  const text = input.value.trim();
+
+  const submitBtn = event.target.querySelector("button[type='submit']");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Запазване...';
+  }
+
+  try {
+    await convex.mutation("settings:updatePageMetadata", { pageKey: "announcement", title: text, description: "" });
+
+    const existingIdx = allPageMetadata.findIndex(m => m.pageKey === "announcement");
+    if (existingIdx !== -1) {
+      allPageMetadata[existingIdx].title = text;
+    } else {
+      allPageMetadata.push({ pageKey: "announcement", title: text, description: "" });
+    }
+
+    alert("Обявлението е запазено успешно!");
+  } catch (err) {
+    alert("Грешка при запазване: " + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Запази обявлението';
     }
   }
 };
