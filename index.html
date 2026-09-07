@@ -52,7 +52,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
   
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=1.4.0">
   
   <!-- Google Sign-In SDK client -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -83,7 +83,7 @@
         <a href="tel:0878202823" class="header-btn" title="Обадете се сега">
           <i class="fas fa-phone" style="font-size: 1rem;"></i>
         </a>
-        <button class="header-btn" onclick="openCartSidebar()" title="Преглед на количката">
+        <button class="header-btn" onclick="openCartPage()" title="Преглед на количката">
           <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
           </svg>
@@ -116,40 +116,46 @@
   <!-- === STOREFRONT HOME VIEW === -->
   <div id="storefront-home-view">
     <!-- --- HERO / SEO INTRO SECTION --- -->
-    <section id="hero-section" class="hero-seo-section" style="padding: 4rem 0 2rem; text-align: center; background: radial-gradient(circle at center, rgba(22, 122, 255, 0.08) 0%, transparent 70%); border-bottom: 1px solid rgba(15,23,42,0.04); margin-bottom: 2rem;">
-      <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 1.5rem;">
-        <div class="hero-eyebrow">ПРЕМИУМ АКСЕСОАРИ ЗА ТЕЛЕФОНИ</div>
-        <h1 id="homepage-hero-title" style="font-size: 2.75rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem; letter-spacing: -0.5px; line-height: 1.2;">
-          CaseKing - Премиум <span style="color: var(--gold);">Аксесоари за Телефони</span>
-        </h1>
-        <p id="homepage-hero-subtitle" style="font-size: 1.15rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem;">
-          В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с доставка за 3-4 работни дни!
-        </p>
-
-        <!-- Hero call-to-action buttons -->
-        <div class="hero-cta-row">
-          <button class="hero-cta-primary" onclick="document.getElementById('brands-list').scrollIntoView({behavior:'smooth', block:'center'});">
-            <i class="fas fa-mobile-screen-button"></i> ИЗБЕРИ ПО МОДЕЛ
-          </button>
-          <button class="hero-cta-secondary" onclick="history.pushState(null, '', '/aksesoari'); handleRouting();">
-            РАЗГЛЕДАЙ КОЛЕКЦИЯТА
-          </button>
+    <section id="hero-section" class="ck-hero">
+      <div class="container ck-hero-inner">
+        <div class="ck-hero-text">
+          <div class="hero-eyebrow">PREMIUM PHONE PROTECTION</div>
+          <h1 id="homepage-hero-title" class="ck-hero-title">
+            Вашият телефон. Вашият стил. <span>Нашата грижа.</span>
+          </h1>
+          <p id="homepage-hero-subtitle" class="ck-hero-sub">
+            Премиум кейсове, протектори и аксесоари за всички популярни марки и модели.
+          </p>
+          <div class="hero-cta-row">
+            <button class="hero-cta-primary" onclick="history.pushState(null, '', '/aksesoari'); handleRouting();">
+              Разгледай колекцията <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="hero-cta-secondary" onclick="document.getElementById('brands-list').scrollIntoView({behavior:'smooth', block:'center'});">
+              Избери по модел
+            </button>
+          </div>
         </div>
-        
-        <!-- Subtle trust badges -->
-        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 1.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-            <i class="fas fa-truck" style="color: var(--gold);"></i>
-            <span>Бърза доставка</span>
+        <div class="ck-hero-media">
+          <img src="assets/ck_hero.webp" alt="Премиум кейсове за телефони CaseKing" loading="eager">
+          <div class="ck-hero-badge">
+            <i class="fas fa-crown"></i>
+            <span>PREMIUM<br>CASES FOR A<br>BETTER<br>TOMORROW</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-            <i class="fas fa-shield-alt" style="color: var(--gold);"></i>
-            <span>Преглед</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- --- PHONE FINDER BAR --- -->
+    <section class="ck-finder-section">
+      <div class="container">
+        <div class="ck-finder-bar">
+          <div class="ck-finder-lead">
+            <i class="fas fa-mobile-screen-button"></i>
+            <span>Намери идеалния кейс за твоя телефон</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-            <i class="fas fa-handshake" style="color: var(--gold);"></i>
-            <span>B2B цени за партньори</span>
-          </div>
+          <button class="ck-finder-cta" onclick="document.getElementById('brands-list').scrollIntoView({behavior:'smooth', block:'center'});">
+            <i class="fas fa-search"></i> Търси
+          </button>
         </div>
       </div>
     </section>
@@ -176,7 +182,10 @@
     <!-- --- CATEGORIES GRID --- -->
     <section class="categories-section">
       <div class="container">
-        <h2 class="step-title text-center">КАТЕГОРИИ</h2>
+        <div class="ck-section-head">
+          <h2 class="ck-section-title">Нашите категории</h2>
+          <a href="/aksesoari" class="ck-section-link" onclick="event.preventDefault(); history.pushState(null, '', '/aksesoari'); handleRouting();">Разгледай всички <i class="fas fa-arrow-right"></i></a>
+        </div>
         <div class="categories-grid" id="categories-grid">
           <!-- Dynamically loaded -->
         </div>
@@ -196,31 +205,38 @@
       </div>
     </section>
 
-    <!-- --- ABOUT US / TRUST SECTION --- -->
-    <section class="about-us-section" style="padding: 4rem 0; background: var(--ck-surface); border-top: 1px solid rgba(255,255,255,0.06); margin-top: 3rem;">
-      <div class="container" style="max-width: 1100px; margin: 0 auto; padding: 0 1.5rem;">
-        <div class="about-grid">
-          <div>
-            <h2 style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-bottom: 1.25rem;">
-              Защо да изберете <span style="color: var(--gold);">CaseKing</span>?
-            </h2>
-            <p style="color: var(--text-muted); line-height: 1.7; margin-bottom: 1rem; font-size: 0.95rem;">
-              CaseKing е водещ онлайн магазин за аксесоари за мобилни телефони в България. Нашата мисия е да предоставим на клиентите си продукти от най-висок клас, съчетаващи изключителен премиум дизайн, здравина и надеждна защита.
-            </p>
-            <p style="color: var(--text-muted); line-height: 1.7; margin-bottom: 1rem; font-size: 0.95rem;">
-              Ние се стремим да улесним максимално избора ви. Нашата интуитивна система за филтрация ви помага бързо да намерите съвместими продукти точно за вашата марка и модел телефон. Всички поръчки се изпращат с опция за преглед преди плащане.
-            </p>
+    <!-- --- TRUST ROW --- -->
+    <section class="ck-trust-section">
+      <div class="container">
+        <div class="ck-trust-row">
+          <div class="ck-trust-item"><i class="fas fa-shield-halved"></i><div><strong>Гарантиран произход</strong><span>100% оригинални продукти</span></div></div>
+          <div class="ck-trust-item"><i class="fas fa-truck-fast"></i><div><strong>Доставка 3–4 дни</strong><span>Бързо и надеждно</span></div></div>
+          <div class="ck-trust-item"><i class="fas fa-box-open"></i><div><strong>Преглед преди плащане</strong><span>Без риск, без притеснения</span></div></div>
+          <div class="ck-trust-item"><i class="fas fa-gem"></i><div><strong>Premium качество</strong><span>Само най-добрите брандове</span></div></div>
+          <div class="ck-trust-item"><i class="fas fa-handshake"></i><div><strong>B2B цени</strong><span>За бизнеса и партньорите</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- --- ABOUT US SECTION --- -->
+    <section class="about-us-section ck-about">
+      <div class="container">
+        <div class="ck-about-grid">
+          <div class="ck-about-media">
+            <img src="assets/ck_about.webp" alt="За CaseKing" loading="lazy">
+            <div class="ck-about-words">
+              <span>СТИЛ</span><span>ЗАЩИТА</span><span>КАЧЕСТВО</span><span>ДОВЕРИЕ</span>
+            </div>
           </div>
-          <div style="background: var(--bg-light); border: 1.5px solid rgba(15,23,42,0.06); border-radius: 16px; padding: 2.25rem; box-shadow: var(--shadow-sm);">
-            <h3 style="font-size: 1.35rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-              <i class="fas fa-handshake" style="color: var(--gold);"></i> B2B Партньорска Програма
-            </h3>
-            <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.9rem; margin-bottom: 1.25rem;">
-              Вие сте търговец или имате физически магазин? CaseKing предлага специални B2B цени на едро с <strong>голяма партньорска отстъпка</strong> от крайните цени за всички регистрирани партньори, както и облекчени условия за доставка и гаранция.
-            </p>
-            <a href="#" onclick="openAuthModal(); toggleAuthPanel('register'); switchRegType('B2B'); return false;" style="display: inline-flex; align-items: center; justify-content: center; color: #fff; background: var(--accent); padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: background 0.2s; box-shadow: 0 4px 12px rgba(22, 122, 255, 0.25);">
-              Регистрирайте B2B профил
-            </a>
+          <div class="ck-about-text">
+            <div class="hero-eyebrow">ЗА CASEKING</div>
+            <h2 class="ck-about-title">Повече от <span>защита.</span></h2>
+            <p>CaseKing е създаден с една мисия – да направи твоя телефон по-стилен, по-защитен и по-уникален. Предлагаме премиум аксесоари от най-добрите марки, с внимание към всеки детайл.</p>
+            <p>Нашата интуитивна система за филтрация ви помага бързо да намерите съвместими продукти точно за вашата марка и модел телефон. Всички поръчки се изпращат с опция за преглед преди плащане.</p>
+            <div class="ck-about-cta">
+              <a href="/about" class="hero-cta-primary" onclick="event.preventDefault(); history.pushState(null, '', '/about'); handleRouting();">Научи повече <i class="fas fa-arrow-right"></i></a>
+              <a href="#" class="hero-cta-secondary" onclick="openAuthModal(); toggleAuthPanel('register'); switchRegType('B2B'); return false;">Регистрирай B2B профил</a>
+            </div>
           </div>
         </div>
       </div>
@@ -278,7 +294,137 @@
             </div>
             <button class="btn-premium" id="product-page-add-to-cart" style="flex: 1; padding: 0.85rem 2rem;">Добави в Количката</button>
           </div>
+
+          <div class="ck-pdp-ship-bar">
+            <i class="fas fa-truck-fast"></i>
+            <span>Безплатна доставка при поръчки над 100 лв.</span>
+          </div>
         </div>
+      </div>
+
+      <!-- Trust row -->
+      <div class="ck-pdp-trust">
+        <div class="ck-pdp-trust-item"><i class="fas fa-shield-halved"></i><div><strong>Оригинални продукти</strong><span>Гаранция за автентичност</span></div></div>
+        <div class="ck-pdp-trust-item"><i class="fas fa-truck-fast"></i><div><strong>Бърза доставка</strong><span>3–4 работни дни</span></div></div>
+        <div class="ck-pdp-trust-item"><i class="fas fa-lock"></i><div><strong>Сигурно плащане</strong><span>Наложен платеж / карта</span></div></div>
+        <div class="ck-pdp-trust-item"><i class="fas fa-headset"></i><div><strong>Професионална поддръжка</strong><span>Отговор до 1 час</span></div></div>
+      </div>
+
+      <!-- === PRODUCT TABS === -->
+      <div class="ck-pdp-tabs-wrap">
+        <div class="ck-pdp-tabs" id="ck-pdp-tabs" role="tablist">
+          <button class="ck-pdp-tab active" data-tab="desc" onclick="switchProductTab('desc')">Описание</button>
+          <button class="ck-pdp-tab" data-tab="specs" onclick="switchProductTab('specs')">Характеристики</button>
+          <button class="ck-pdp-tab" data-tab="compat" onclick="switchProductTab('compat')">Съвместимост</button>
+          <button class="ck-pdp-tab" data-tab="delivery" onclick="switchProductTab('delivery')">Доставка</button>
+          <button class="ck-pdp-tab" data-tab="warranty" onclick="switchProductTab('warranty')">Гаранция</button>
+          <button class="ck-pdp-tab" data-tab="reviews" onclick="switchProductTab('reviews')">Отзиви</button>
+        </div>
+        <div class="ck-pdp-tab-panels">
+          <div class="ck-pdp-panel active" data-panel="desc" id="ck-tab-desc"></div>
+          <div class="ck-pdp-panel" data-panel="specs" id="ck-tab-specs"></div>
+          <div class="ck-pdp-panel" data-panel="compat" id="ck-tab-compat"></div>
+          <div class="ck-pdp-panel" data-panel="delivery" id="ck-tab-delivery"></div>
+          <div class="ck-pdp-panel" data-panel="warranty" id="ck-tab-warranty"></div>
+          <div class="ck-pdp-panel" data-panel="reviews" id="ck-tab-reviews"></div>
+        </div>
+      </div>
+
+      <!-- === RELATED PRODUCTS === -->
+      <div class="ck-pdp-related" id="ck-pdp-related" style="display:none;">
+        <h2 class="section-title">Може да ви хареса</h2>
+        <div class="product-grid" id="ck-pdp-related-grid"></div>
+      </div>
+
+      <!-- Bottom banner -->
+      <div class="ck-pdp-banner">
+        <img src="assets/ck_banner.webp" alt="Надеждна защита">
+        <div class="ck-pdp-banner-overlay">
+          <h3>Надеждна защита за твоя телефон.</h3>
+          <p>Оригинални кейсове и аксесоари от водещи брандове.</p>
+          <button class="hero-cta-secondary" onclick="history.pushState(null, '', '/aksesoari'); handleRouting();">Разгледай всички кейсове</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === STOREFRONT CART PAGE VIEW === -->
+  <section class="ck-cart-section" id="cart-page-view" style="display: none;">
+    <div class="container">
+      <button class="ck-cart-back" onclick="history.pushState(null,'','/'); handleRouting();">
+        <i class="fas fa-arrow-left"></i> Продължи с пазаруването
+      </button>
+
+      <div class="ck-cart-head">
+        <div>
+          <h1 class="ck-cart-title">Количка</h1>
+          <p class="ck-cart-sub">Вашите избрани продукти са тук.</p>
+        </div>
+        <div class="ck-cart-trust">
+          <div class="ck-cart-trust-item"><i class="fas fa-truck-fast"></i><div><strong>Безплатна доставка</strong><span>при поръчки над праговата сума</span></div></div>
+          <div class="ck-cart-trust-item"><i class="fas fa-lock"></i><div><strong>Сигурно плащане</strong><span>с карта или наложен платеж</span></div></div>
+          <div class="ck-cart-trust-item"><i class="fas fa-box"></i><div><strong>Гаранция</strong><span>на всички продукти</span></div></div>
+        </div>
+      </div>
+
+      <div class="ck-cart-layout">
+        <!-- LEFT: items -->
+        <div class="ck-cart-main">
+          <div class="ck-cart-empty" id="ck-cart-empty" style="display:none;">
+            <i class="fas fa-cart-shopping"></i>
+            <p>Вашата количка е празна.</p>
+            <button class="hero-cta-secondary" onclick="history.pushState(null,'','/'); handleRouting();">Разгледай продуктите</button>
+          </div>
+          <div class="ck-cart-table" id="ck-cart-table">
+            <div class="ck-cart-table-head">
+              <span>Продукт</span>
+              <span>Цена</span>
+              <span>Количество</span>
+              <span>Общо</span>
+              <span></span>
+            </div>
+            <div id="ck-cart-rows"></div>
+            <div class="ck-cart-table-foot">
+              <button class="ck-cart-clear" onclick="clearCartPage()"><i class="fas fa-trash-can"></i> Изчисти количката</button>
+              <div class="ck-cart-foot-total"><span id="ck-cart-count">0 продукта</span> <strong id="ck-cart-foot-total">0.00 лв.</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: summary -->
+        <aside class="ck-cart-aside" id="ck-cart-aside">
+          <div class="ck-cart-summary">
+            <h3>Общо</h3>
+            <div class="ck-cart-sum-row"><span>Стойност на продуктите</span><span id="ck-cart-sum-products">0.00 лв.</span></div>
+            <div class="ck-cart-sum-row"><span>Доставка</span><span id="ck-cart-sum-shipping">—</span></div>
+            <div class="ck-cart-sum-total"><span>Общо</span><strong id="ck-cart-sum-total">0.00 лв.</strong></div>
+            <button class="ck-cart-checkout-btn" onclick="proceedToCheckout()"><i class="fas fa-lock"></i> Премини към поръчка <i class="fas fa-arrow-right"></i></button>
+            <button class="ck-cart-continue-btn" onclick="history.pushState(null,'','/'); handleRouting();">Продължи с пазаруването</button>
+          </div>
+
+          <div class="ck-cart-ship-card" id="ck-cart-ship-card" style="display:none;">
+            <div class="ck-cart-ship-top"><i class="fas fa-truck-fast"></i> <span id="ck-cart-ship-text">Безплатна доставка</span></div>
+            <div class="ck-cart-ship-bar"><div class="ck-cart-ship-fill" id="ck-cart-ship-fill"></div></div>
+            <div class="ck-cart-ship-nums" id="ck-cart-ship-nums"></div>
+          </div>
+
+          <div class="ck-cart-pay">
+            <span>Приемаме плащания с:</span>
+            <div class="ck-cart-pay-badges">
+              <div class="ck-pay-badge">VISA</div>
+              <div class="ck-pay-badge">MC</div>
+              <div class="ck-pay-badge"><i class="fab fa-apple"></i>Pay</div>
+              <div class="ck-pay-badge"><i class="fab fa-google"></i>Pay</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Recommended -->
+      <div class="ck-cart-reco" id="ck-cart-reco" style="display:none;">
+        <h2 class="ck-cart-reco-title">Може би ще харесате и тези</h2>
+        <p class="ck-cart-reco-sub">Популярни продукти, които допълват вашата покупка.</p>
+        <div class="product-grid" id="ck-cart-reco-grid"></div>
       </div>
     </div>
   </section>
@@ -361,7 +507,6 @@
           <div style="border-top: 1px solid var(--border-color); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Продукти:</span><span id="checkout-sum-subtotal" style="color: var(--primary); font-weight:500;">0.00 € (0.00 лв.)</span></div>
             <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">Доставка:</span><span id="checkout-sum-shipping" style="color: var(--primary); font-weight:500;">2.50 € (4.89 лв.)</span></div>
-            <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">ДДС (20%):</span><span id="checkout-sum-vat" style="color: var(--primary); font-weight:500;">0.00 € (0.00 лв.)</span></div>
             <div id="checkout-sum-discount-row" style="display: none; justify-content: space-between; color: #2ecc71;"><span style="font-weight: 500;">Отстъпка:</span><span id="checkout-sum-discount" style="font-weight: 500;">-0.00 € (0.00 лв.)</span></div>
             
             <!-- Promo Code Input Section -->
@@ -972,7 +1117,7 @@
 
   <!-- Javascript -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script type="module" src="/app.js?v=1.1.0"></script>
+  <script type="module" src="/app.js?v=1.4.0"></script>
 
   <!-- Sticky header scroll effect (adds .scrolled class for glassmorphism intensity) -->
   <script>

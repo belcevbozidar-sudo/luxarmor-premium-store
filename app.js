@@ -128,6 +128,26 @@ const STATIC_CATEGORIES = [
   { id: "vanshni-baterii", name: "Външни батерии", image: "assets/cat_power_bank.webp" }
 ];
 
+// Frontend override for category imagery (DB images are stale/base64; we do NOT
+// change the Convex backend). Keyed by category id — falls back to a premium
+// generic image so no old/base64 image is ever shown.
+const CATEGORY_IMAGE_OVERRIDES = {
+  "keysove-i-kalufi": "assets/ck_cat_cases.webp",
+  "protektori-za-ekran": "assets/ck_cat_protectors.webp",
+  "aksesoari-za-avtomobili": "assets/ck_cat_car.webp",
+  "bezzhichni-zaryadni": "assets/ck_cat_wireless.webp",
+  "zaryadni-ustroystva": "assets/ck_cat_chargers.webp",
+  "kabeli-za-zaryadane": "assets/ck_cat_cables.webp",
+  "postavki-za-byuro": "assets/ck_cat_deskstand.webp",
+  "selfi-stikove": "assets/ck_cat_selfie.webp",
+  "popsoket-i-vrazki": "assets/ck_cat_accessories.webp",
+  "vanshni-baterii": "assets/ck_cat_powerbank.webp"
+};
+function getCategoryImage(cat) {
+  if (!cat) return "assets/ck_cat_accessories.webp";
+  return CATEGORY_IMAGE_OVERRIDES[cat.id] || "assets/ck_cat_accessories.webp";
+}
+
 const STATIC_BRANDS = [
   { name: "Apple", logo: "logo_apple.webp" },
   { name: "Samsung", logo: "logo_samsung.webp" },
@@ -154,8 +174,8 @@ let MODELS = [...STATIC_MODELS];
 let PROMOTIONS = [];
 let isDataLoaded = false;
 let pageSeoMetadata = [];
-let heroTitleText = `CaseKing - Премиум <span style="color: var(--gold);">Аксесоари за Телефони</span>`;
-let heroSubtitleText = "В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с доставка за 3-4 работни дни!";
+let heroTitleText = `Вашият телефон. Вашият стил. <span>Нашата грижа.</span>`;
+let heroSubtitleText = "Премиум кейсове, протектори и аксесоари за всички популярни марки и модели.";
 
 function renderHeroSettings() {
   const tEl = document.getElementById("homepage-hero-title");
@@ -268,14 +288,25 @@ function getProductSlug(name) {
     .replace(/-+/g, '-');
 }
 
-// Image proxy URL helper
+// Image URL helper.
+// NOTE: External product images (e.g. koff.ro CDN) are served DIRECTLY.
+// A Vercel serverless proxy (/api/image via sharp) was tried previously but is
+// unreliable on Vercel (sharp binary / cold-start / timeout failures), which
+// caused product images to disappear. The koff.ro CDN already serves fast,
+// cache-friendly images with no hotlink protection, so we load them directly.
 function getProductImageUrl(url, name, model) {
   if (!url) return "";
-  // Local assets — serve directly
+  // Local assets and already-proxied URLs — serve as-is
   if (url.startsWith("/assets") || url.startsWith("assets/")) return url;
-  // External images — route through Vercel image proxy for WebP + caching
-  const params = new URLSearchParams({ url, name: name || "", model: model || "" });
-  return `/api/image?${params}`;
+  // If some legacy data already stored a proxied URL, unwrap it to the original
+  if (url.includes("/api/image") && url.includes("url=")) {
+    try {
+      const original = new URLSearchParams(url.split("?")[1]).get("url");
+      if (original) return original;
+    } catch (e) { /* fall through */ }
+  }
+  // External images — load directly (most reliable)
+  return url;
 }
 
 // --- PASS HASH UTILITY ---
@@ -950,26 +981,52 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// Short editorial subtitles for the homepage category cards (by id)
+const CATEGORY_SUBTITLES = {
+  "keysove-i-kalufi": "Стил и защита в едно",
+  "protektori-za-ekran": "Максимална защита за дисплея",
+  "zaryadni-ustroystva": "Бързо и сигурно зареждане",
+  "bezzhichni-zaryadni": "Безжична технология",
+  "kabeli-za-zaryadane": "Надеждни връзки всеки ден",
+  "aksesoari-za-avtomobili": "Комфорт зад волана",
+  "vanshni-baterii": "Енергия в движение",
+  "postavki-za-byuro": "Ред на бюрото",
+  "selfi-stikove": "Перфектният кадър",
+  "popsoket-i-vrazki": "Малки детайли, голямо удобство"
+};
+
+function buildCategoryCard(cat, extraClass) {
+  const card = document.createElement("div");
+  card.className = "category-card ck-cat-card" + (extraClass ? " " + extraClass : "");
+  card.style.cursor = "pointer";
+  card.onclick = () => {
+    history.pushState(null, "", "/" + cat.id);
+    handleRouting();
+  };
+  const sub = CATEGORY_SUBTITLES[cat.id] || "Разгледай продуктите";
+  card.innerHTML = `
+    <img src="${getCategoryImage(cat)}" alt="${cat.name}" class="category-card-img" loading="lazy">
+    <div class="ck-cat-overlay">
+      <div class="ck-cat-text">
+        <span class="ck-cat-title">${cat.name}</span>
+        <span class="ck-cat-sub">${sub}</span>
+      </div>
+      <span class="ck-cat-arrow"><i class="fas fa-arrow-right"></i></span>
+    </div>
+  `;
+  return card;
+}
+
 function renderCategories() {
   const container = document.getElementById("categories-grid");
   if (!container) return;
+  container.className = "categories-grid ck-cat-editorial";
   container.innerHTML = "";
-  
-  CATEGORIES.forEach(cat => {
-    const card = document.createElement("div");
-    card.className = "category-card";
-    card.style.cursor = "pointer";
-    card.onclick = () => {
-      history.pushState(null, "", "/" + cat.id);
-      handleRouting();
-    };
-    card.innerHTML = `
-      <img src="${cat.image}" alt="${cat.name}" class="category-card-img" loading="lazy">
-      <div class="category-card-overlay">
-        <span class="category-card-title">${cat.name}</span>
-      </div>
-    `;
-    container.appendChild(card);
+
+  // Homepage shows an editorial layout: 1 large feature card + up to 4 smaller
+  const list = CATEGORIES.slice(0, 5);
+  list.forEach((cat, i) => {
+    container.appendChild(buildCategoryCard(cat, i === 0 ? "ck-cat-feature" : ""));
   });
 }
 
@@ -1288,6 +1345,172 @@ function renderProductPage(p) {
       "availability": "https://schema.org/InStock"
     }
   });
+
+  // === Populate product detail tabs + related products ===
+  populateProductTabs(p);
+  renderRelatedProducts(p);
+  switchProductTab("desc");
+}
+
+// Populate the 6 product-detail tabs with REAL product data only (no fabricated reviews/counts).
+function populateProductTabs(p) {
+  const esc = (s) => (s == null ? "" : String(s));
+  const imgs = (p.images && p.images.length ? p.images : [p.image]).slice(0, 3);
+
+  // --- Описание ---
+  const descEl = document.getElementById("ck-tab-desc");
+  if (descEl) {
+    const featureImgs = imgs.map((u, i) =>
+      `<div class="ck-tab-feat-img"><img src="${getProductImageUrl(u, p.name, p.model)}" alt="${esc(p.name)}" loading="lazy" onerror="this.src='/assets/logo.webp'"></div>`
+    ).join("");
+    descEl.innerHTML = `
+      <div class="ck-tab-desc-grid">
+        <div class="ck-tab-desc-text">
+          <h3>Създаден за твоя ${esc(p.model || p.brand)}.</h3>
+          <p>${esc(p.description)}</p>
+          <ul class="ck-tab-checks">
+            <li><i class="fas fa-check"></i> Оригинален продукт от ${esc(p.brand)}</li>
+            <li><i class="fas fa-check"></i> Прецизно изработен за ${esc(p.model || "твоя модел")}</li>
+            <li><i class="fas fa-check"></i> Материал: ${esc(p.specs && p.specs.material)}</li>
+            <li><i class="fas fa-check"></i> Гаранция за автентичност</li>
+          </ul>
+          <button class="hero-cta-secondary" onclick="switchProductTab('specs')">Виж всички характеристики <i class="fas fa-arrow-right"></i></button>
+        </div>
+        <div class="ck-tab-feat-grid">${featureImgs}</div>
+      </div>`;
+  }
+
+  // --- Характеристики ---
+  const specsEl = document.getElementById("ck-tab-specs");
+  if (specsEl) {
+    const s = p.specs || {};
+    const rows = [
+      ["Марка", p.brand],
+      ["Модел", p.model],
+      ["Материал", s.material],
+      ["Тегло", s.weight],
+      ["Произход", s.origin],
+      ["Категория", p.category],
+    ].filter(r => r[1]);
+    specsEl.innerHTML = `
+      <table class="ck-tab-spec-table">
+        ${rows.map(r => `<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join("")}
+      </table>`;
+  }
+
+  // --- Съвместимост ---
+  const compatEl = document.getElementById("ck-tab-compat");
+  if (compatEl) {
+    compatEl.innerHTML = `
+      <div class="ck-tab-info">
+        <p><i class="fas fa-mobile-screen"></i> Този продукт е съвместим с <strong>${esc(p.brand)} ${esc(p.model || "")}</strong>.</p>
+        <p class="ck-tab-note">Преди покупка проверете точния модел на вашето устройство, за да гарантирате перфектно прилягане.</p>
+      </div>`;
+  }
+
+  // --- Доставка ---
+  const delEl = document.getElementById("ck-tab-delivery");
+  if (delEl) {
+    const dtxt = ((p.specs && p.specs.delivery) || "").replace(/\s*\(без тест\)\s*/gi, " ").trim();
+    delEl.innerHTML = `
+      <div class="ck-tab-info">
+        ${dtxt ? `<p><i class="fas fa-truck-fast"></i> ${esc(dtxt)}</p>` : `<p><i class="fas fa-truck-fast"></i> Доставка до 3–4 работни дни в цялата страна.</p>`}
+        <p><i class="fas fa-box-open"></i> Доставка с куриер до адрес или до офис на куриерска фирма.</p>
+        <p><i class="fas fa-money-bill-wave"></i> Плащане с карта или наложен платеж при доставка.</p>
+      </div>`;
+  }
+
+  // --- Гаранция ---
+  const warEl = document.getElementById("ck-tab-warranty");
+  if (warEl) {
+    warEl.innerHTML = `
+      <div class="ck-tab-info">
+        <p><i class="fas fa-shield-halved"></i> Всички продукти в CaseKing са <strong>100% оригинални</strong> и с гаранция за автентичност.</p>
+        <p><i class="fas fa-rotate-left"></i> 14 дни право на връщане съгласно Закона за защита на потребителите.</p>
+        <p><i class="fas fa-headset"></i> Поддръжка и съдействие при въпроси относно продукта.</p>
+      </div>`;
+  }
+
+  // --- Отзиви (real rating only, no fabricated reviews) ---
+  const revEl = document.getElementById("ck-tab-reviews");
+  if (revEl) {
+    let stars = "";
+    for (let i = 1; i <= 5; i++) stars += `<i class="${i <= p.rating ? 'fas' : 'far'} fa-star"></i>`;
+    revEl.innerHTML = `
+      <div class="ck-tab-reviews">
+        <div class="ck-tab-rating-big">
+          <span class="ck-rating-num">${(p.rating || 0).toFixed(1)}</span>
+          <div class="ck-rating-stars">${stars}</div>
+        </div>
+        <p class="ck-tab-note">Все още няма писани отзиви за този продукт. Бъдете първите, които ще споделят мнение след покупка.</p>
+      </div>`;
+  }
+}
+
+// Switch active tab in the product detail page
+window.switchProductTab = function(name) {
+  document.querySelectorAll(".ck-pdp-tab").forEach(t => {
+    t.classList.toggle("active", t.getAttribute("data-tab") === name);
+  });
+  document.querySelectorAll(".ck-pdp-panel").forEach(p => {
+    p.classList.toggle("active", p.getAttribute("data-panel") === name);
+  });
+};
+
+// Render related products (same category, real products only)
+function renderRelatedProducts(p) {
+  const wrap = document.getElementById("ck-pdp-related");
+  const grid = document.getElementById("ck-pdp-related-grid");
+  if (!wrap || !grid) return;
+
+  const pool = Array.isArray(catalogAccumulated) ? catalogAccumulated : [];
+  let related = pool.filter(x => x._id !== p._id && x.category === p.category);
+  if (related.length < 4) {
+    // Fill with other real products if the same category is small
+    const extra = pool.filter(x => x._id !== p._id && !related.includes(x));
+    related = related.concat(extra);
+  }
+  related = related.slice(0, 5);
+
+  if (related.length === 0) {
+    wrap.style.display = "none";
+    return;
+  }
+
+  grid.innerHTML = "";
+  related.forEach(product => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.style.cursor = "pointer";
+    card.onclick = (e) => {
+      if (e.target.classList.contains("btn-card-buy") || e.target.closest(".btn-card-buy")) return;
+      const slug = getProductSlug(product.name + " " + (product.model || ""));
+      history.pushState(null, "", "/produkt/" + slug);
+      handleRouting();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    const tagHtml = product.tag ? `<span class="badge-tag sale">${product.tag}</span>` : "";
+    const isB2B = currentUser && currentUser.clientType === "B2B";
+    const price = isB2B ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
+    const oldPrice = isB2B ? product.oldPriceB2B : (product.oldPriceB2C ?? product.oldPrice);
+    const priceHtml = oldPrice
+      ? `<span class="product-price old-price">${formatPrice(oldPrice)}</span>
+         <span class="product-price" style="color: var(--accent);">${formatPrice(price)}</span>`
+      : `<span class="product-price">${formatPrice(price)}</span>`;
+    card.innerHTML = `
+      ${tagHtml}
+      <div class="product-image-container">
+        <img class="product-img" src="${getProductImageUrl(product.image, product.name, product.model)}" alt="${product.name}" loading="lazy" onerror="this.src='/assets/logo.webp'">
+      </div>
+      <div class="product-info">
+        <span class="product-category">${product.brand}</span>
+        <h3 class="product-name">${product.name}</h3>
+        <div class="product-price-box">${priceHtml}</div>
+        <button class="btn-card-buy" onclick="addToCart('${product._id}', 1, event)">Добави в количката</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+  wrap.style.display = "block";
 }
 
 // --- CART CALCULATIONS & RENDERING ---
@@ -1617,6 +1840,199 @@ window.closeCartSidebar = function() {
   document.getElementById("cart-overlay").classList.remove("active");
 };
 
+// --- FULL-PAGE CART VIEW ---
+window.openCartPage = function() {
+  if (window.location.hash !== "#cart") {
+    history.pushState(null, "", window.location.pathname + "#cart");
+  }
+  handleRouting();
+};
+
+window.clearCartPage = function() {
+  cart = cart.filter(item => item.isGift); // remove all non-gift items
+  cart = [];
+  saveCart();
+  renderCartPage();
+};
+
+window.updateCartPageQty = function(id, newQty) {
+  window.updateCartItemQty(id, newQty);
+  renderCartPage();
+};
+
+window.removeFromCartPage = function(id) {
+  window.removeFromCart(id);
+  renderCartPage();
+};
+
+async function renderCartPage() {
+  const rowsEl = document.getElementById("ck-cart-rows");
+  const tableEl = document.getElementById("ck-cart-table");
+  const emptyEl = document.getElementById("ck-cart-empty");
+  const asideEl = document.getElementById("ck-cart-aside");
+  if (!rowsEl) return;
+
+  // Work only with real (non-gift) items on this overview page
+  const items = cart.filter(item => !item.isGift);
+
+  let subtotal = 0;
+  items.forEach(item => { subtotal += item.price * item.quantity; });
+
+  const pool = Array.isArray(catalogAccumulated) ? catalogAccumulated : [];
+
+  // Empty state
+  if (items.length === 0) {
+    if (tableEl) tableEl.style.display = "none";
+    if (asideEl) asideEl.style.display = "none";
+    if (emptyEl) emptyEl.style.display = "flex";
+  } else {
+    if (tableEl) tableEl.style.display = "block";
+    if (asideEl) asideEl.style.display = "flex";
+    if (emptyEl) emptyEl.style.display = "none";
+  }
+
+  // Rows
+  rowsEl.innerHTML = "";
+  items.forEach(item => {
+    const id = item.id || item._id;
+    const full = pool.find(x => x._id === id);
+    const isB2B = currentUser && currentUser.clientType === "B2B";
+    const oldPrice = full ? (isB2B ? full.oldPriceB2B : (full.oldPriceB2C ?? full.oldPrice)) : null;
+    const model = (full && full.model) ? full.model : "";
+    const brand = item.brand || (full && full.brand) || "";
+    const tag = full && full.tag ? full.tag : (oldPrice ? "ПРОМО" : "");
+
+    const lineTotal = item.price * item.quantity;
+    const priceCell = oldPrice
+      ? `<span class="ck-cart-oldp">${formatPrice(oldPrice)}</span><span class="ck-cart-newp">${formatPrice(item.price)}</span>`
+      : `<span class="ck-cart-newp">${formatPrice(item.price)}</span>`;
+
+    const row = document.createElement("div");
+    row.className = "ck-cart-row";
+    row.innerHTML = `
+      <div class="ck-cart-prod">
+        <div class="ck-cart-thumb"><img src="${getProductImageUrl(item.image, item.name, model)}" alt="${item.name}" onerror="this.src='/assets/logo.webp'"></div>
+        <div class="ck-cart-prod-info">
+          <span class="ck-cart-avail"><i class="fas fa-circle-check"></i> Наличен</span>
+          <h4>${item.name}</h4>
+          ${model ? `<span class="ck-cart-prod-sub">${model}</span>` : ""}
+          ${brand ? `<span class="ck-cart-prod-meta">Марка: ${brand}</span>` : ""}
+        </div>
+      </div>
+      <div class="ck-cart-price" data-label="Цена">${priceCell}</div>
+      <div class="ck-cart-qty" data-label="Количество">
+        <div class="ck-cart-qty-box">
+          <button onclick="updateCartPageQty('${id}', ${item.quantity - 1})" aria-label="Намали">−</button>
+          <span>${item.quantity}</span>
+          <button onclick="updateCartPageQty('${id}', ${item.quantity + 1})" aria-label="Увеличи">+</button>
+        </div>
+      </div>
+      <div class="ck-cart-line" data-label="Общо">${formatPrice(lineTotal)}</div>
+      <div class="ck-cart-del">
+        <button onclick="removeFromCartPage('${id}')" title="Премахни" aria-label="Премахни">
+          <i class="fas fa-trash-can"></i>
+        </button>
+      </div>`;
+    rowsEl.appendChild(row);
+  });
+
+  // Foot count/total
+  const cntEl = document.getElementById("ck-cart-count");
+  const footTotalEl = document.getElementById("ck-cart-foot-total");
+  const totalUnits = items.reduce((n, it) => n + it.quantity, 0);
+  if (cntEl) cntEl.textContent = `${items.length} ${items.length === 1 ? "продукт" : "продукта"}`;
+  if (footTotalEl) footTotalEl.textContent = formatPrice(subtotal);
+
+  // Shipping calc (reuse promo logic, NO VAT)
+  const clientType = currentUser ? currentUser.clientType : "B2C";
+  const activePromos = PROMOTIONS.filter(p => p.clientType === clientType && p.active);
+  const shippingPromo = activePromos.find(p => p.type === "free_shipping");
+  let shippingCost = 2.50;
+  let isFreeShip = false;
+  if (shippingPromo && subtotal >= shippingPromo.threshold) { shippingCost = 0.00; isFreeShip = true; }
+  if (items.length === 0) shippingCost = 0.00;
+
+  const sumProductsEl = document.getElementById("ck-cart-sum-products");
+  const sumShippingEl = document.getElementById("ck-cart-sum-shipping");
+  const sumTotalEl = document.getElementById("ck-cart-sum-total");
+  if (sumProductsEl) sumProductsEl.textContent = formatPrice(subtotal);
+  if (sumShippingEl) {
+    if (isFreeShip) {
+      sumShippingEl.innerHTML = `<span style="color: var(--success, #2ecc71); font-weight:700;">Безплатна</span>`;
+    } else {
+      sumShippingEl.textContent = formatPrice(shippingCost);
+    }
+  }
+  if (sumTotalEl) sumTotalEl.textContent = formatPrice(subtotal + shippingCost);
+
+  // Free-shipping progress card
+  const shipCard = document.getElementById("ck-cart-ship-card");
+  if (shipCard && shippingPromo && items.length > 0) {
+    const threshold = shippingPromo.threshold;
+    const textEl = document.getElementById("ck-cart-ship-text");
+    const fillEl = document.getElementById("ck-cart-ship-fill");
+    const numsEl = document.getElementById("ck-cart-ship-nums");
+    const pct = Math.min(100, Math.round((subtotal / threshold) * 100));
+    if (fillEl) fillEl.style.width = pct + "%";
+    if (isFreeShip) {
+      if (textEl) textEl.textContent = "Имате безплатна доставка! 🎉";
+    } else {
+      const diff = threshold - subtotal;
+      if (textEl) textEl.textContent = `Още ${formatPrice(diff)} до безплатна доставка!`;
+    }
+    if (numsEl) numsEl.textContent = `${formatPrice(subtotal)} / ${formatPrice(threshold)}`;
+    shipCard.style.display = "block";
+  } else if (shipCard) {
+    shipCard.style.display = "none";
+  }
+
+  // Recommended products (real products, exclude items already in cart)
+  const reco = document.getElementById("ck-cart-reco");
+  const recoGrid = document.getElementById("ck-cart-reco-grid");
+  if (reco && recoGrid) {
+    const inCart = new Set(items.map(it => it.id || it._id));
+    const recs = pool.filter(x => !inCart.has(x._id)).slice(0, 5);
+    if (recs.length === 0) {
+      reco.style.display = "none";
+    } else {
+      recoGrid.innerHTML = "";
+      recs.forEach(product => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.style.cursor = "pointer";
+        card.onclick = (e) => {
+          if (e.target.classList.contains("btn-card-buy") || e.target.closest(".btn-card-buy")) return;
+          const slug = getProductSlug(product.name + " " + (product.model || ""));
+          history.pushState(null, "", "/produkt/" + slug);
+          handleRouting();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+        const tagHtml = product.tag ? `<span class="badge-tag sale">${product.tag}</span>` : "";
+        const isB2B = currentUser && currentUser.clientType === "B2B";
+        const price = isB2B ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
+        const oldPrice = isB2B ? product.oldPriceB2B : (product.oldPriceB2C ?? product.oldPrice);
+        const priceHtml = oldPrice
+          ? `<span class="product-price old-price">${formatPrice(oldPrice)}</span>
+             <span class="product-price" style="color: var(--accent);">${formatPrice(price)}</span>`
+          : `<span class="product-price">${formatPrice(price)}</span>`;
+        card.innerHTML = `
+          ${tagHtml}
+          <div class="product-image-container">
+            <img class="product-img" src="${getProductImageUrl(product.image, product.name, product.model)}" alt="${product.name}" loading="lazy" onerror="this.src='/assets/logo.webp'">
+          </div>
+          <div class="product-info">
+            <span class="product-category">${product.brand}</span>
+            <h3 class="product-name">${product.name}</h3>
+            <div class="product-price-box">${priceHtml}</div>
+            <button class="btn-card-buy" onclick="addToCart('${product._id}', 1, event)">Добави в количката</button>
+          </div>`;
+        recoGrid.appendChild(card);
+      });
+      reco.style.display = "block";
+    }
+  }
+}
+
 // --- CHECKOUT FUNNEL ---
 window.proceedToCheckout = function() {
   const regularItems = cart.filter(item => !item.isGift);
@@ -1781,17 +2197,11 @@ async function renderCheckoutSummary() {
     }
   }
   
-  const baseForVat = Math.max(0, subtotal - discountAmount);
-  const vatAmount = baseForVat * 0.20;
-  const total = subtotal + shippingCost - discountAmount + vatAmount;
+  // ДДС не се начислява – цените са крайни. (VAT removed per request)
+  const total = subtotal + shippingCost - discountAmount;
   
   subtotalEl.textContent = formatPrice(subtotal);
   shippingEl.textContent = shippingCost === 0 ? "Безплатна" : formatPrice(shippingCost);
-  
-  const vatEl = document.getElementById("checkout-sum-vat");
-  if (vatEl) {
-    vatEl.textContent = formatPrice(vatAmount);
-  }
   
   totalEl.textContent = formatPrice(total);
 
@@ -1879,10 +2289,10 @@ window.submitCheckout = async function(event) {
     }
   }
   
-  const baseForVat = Math.max(0, subtotal - discountAmount);
-  const vatAmount = baseForVat * 0.20;
+  // ДДС не се начислява – цените са крайни. (VAT removed per request)
+  const vatAmount = 0;
   const totalWithoutVat = subtotal + shippingCost - discountAmount;
-  const total = totalWithoutVat + vatAmount;
+  const total = totalWithoutVat;
   const orderNum = "CK-" + Math.floor(100000 + Math.random() * 900000);
   
   const orderPayload = {
@@ -2399,12 +2809,28 @@ async function handleRouting() {
   const termsView = document.getElementById("terms-page-view");
   const zaNasView = document.getElementById("za-nas-page-view");
   const kontaktiView = document.getElementById("kontakti-page-view");
+  const cartPageView = document.getElementById("cart-page-view");
   if (!homeView || !productView || !checkoutView || !categoriesListView || !categoryDetailView) return;
 
   if (privacyView) privacyView.style.display = "none";
   if (termsView) termsView.style.display = "none";
   if (zaNasView) zaNasView.style.display = "none";
   if (kontaktiView) kontaktiView.style.display = "none";
+  if (cartPageView) cartPageView.style.display = "none";
+
+  // Full-page cart view (takes priority over product/category lookups)
+  if (hash === "#cart") {
+    homeView.style.display = "none";
+    productView.style.display = "none";
+    checkoutView.style.display = "none";
+    categoriesListView.style.display = "none";
+    categoryDetailView.style.display = "none";
+    if (cartPageView) cartPageView.style.display = "block";
+    renderCartPage();
+    window.scrollTo(0, 0);
+    updateSEO(null, "Количка | CaseKing", "Вашата пазарска количка в CaseKing. Прегледайте продуктите и завършете поръчката си.");
+    return;
+  }
   
   // Check if the route is a product detail path
   let product = null;
@@ -2570,7 +2996,7 @@ function renderCategoriesListPage() {
     const countText = count === 1 ? "1 продукт" : `${count} продукта`;
     
     card.innerHTML = `
-      <img src="${cat.image}" alt="${cat.name}" class="category-card-img" loading="lazy">
+      <img src="${getCategoryImage(cat)}" alt="${cat.name}" class="category-card-img" loading="lazy">
       <div class="category-card-overlay">
         <div class="category-card-info">
           <span class="category-card-title">${cat.name}</span>
