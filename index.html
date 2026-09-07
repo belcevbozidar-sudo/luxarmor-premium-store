@@ -17,17 +17,36 @@
   <link rel="preload" href="/assets/logo.webp" as="image" type="image/webp">
 
   <!-- Google Fonts loaded in parallel -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Premium Preview Meta Tags -->
   <meta property="og:title" content="CaseKing - Премиум Кейсове и Аксесоари за Телефони">
   <meta property="og:description" content="Най-големият избор на премиум кейсове, протектори и аксесоари. Изберете марка, модел и поръчайте с бърза доставка и преглед!">
-  <meta property="og:image" content="https://luxarmor-premium-store.vercel.app/assets/logo.webp">
+  <meta property="og:image" content="https://case-king.bg/assets/logo.webp">
+  <meta property="og:url" content="https://case-king.bg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://luxarmor-premium-store.vercel.app/assets/logo.webp">
+  <meta name="twitter:image" content="https://case-king.bg/assets/logo.webp">
+
+  <!-- Organization Structured Data (SEO JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "CaseKing",
+    "url": "https://case-king.bg",
+    "logo": "https://case-king.bg/assets/logo.webp",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+359-878-202-823",
+      "contactType": "customer service",
+      "areaServed": "BG",
+      "availableLanguage": "Bulgarian"
+    }
+  }
+  </script>
 
   <!-- Non-render-blocking FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
@@ -46,7 +65,7 @@
   </div>
 
   <!-- --- PREMIUM NAVIGATION HEADER --- -->
-  <header>
+  <header id="site-header">
     <div class="container header-container">
       <a href="/" class="logo" onclick="event.preventDefault(); goToHome();">
         <img src="/assets/logo.webp" alt="CaseKing Logo" class="logo-img">
@@ -99,22 +118,33 @@
     <!-- --- HERO / SEO INTRO SECTION --- -->
     <section id="hero-section" class="hero-seo-section" style="padding: 4rem 0 2rem; text-align: center; background: radial-gradient(circle at center, rgba(22, 122, 255, 0.08) 0%, transparent 70%); border-bottom: 1px solid rgba(15,23,42,0.04); margin-bottom: 2rem;">
       <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 1.5rem;">
+        <div class="hero-eyebrow">ПРЕМИУМ АКСЕСОАРИ ЗА ТЕЛЕФОНИ</div>
         <h1 id="homepage-hero-title" style="font-size: 2.75rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem; letter-spacing: -0.5px; line-height: 1.2;">
           CaseKing - Премиум <span style="color: var(--gold);">Аксесоари за Телефони</span>
         </h1>
         <p id="homepage-hero-subtitle" style="font-size: 1.15rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem;">
-          В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с доставка за 3-4 работни дни и опция преглед (без тест)!
+          В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с доставка за 3-4 работни дни!
         </p>
+
+        <!-- Hero call-to-action buttons -->
+        <div class="hero-cta-row">
+          <button class="hero-cta-primary" onclick="document.getElementById('brands-list').scrollIntoView({behavior:'smooth', block:'center'});">
+            <i class="fas fa-mobile-screen-button"></i> ИЗБЕРИ ПО МОДЕЛ
+          </button>
+          <button class="hero-cta-secondary" onclick="history.pushState(null, '', '/aksesoari'); handleRouting();">
+            РАЗГЛЕДАЙ КОЛЕКЦИЯТА
+          </button>
+        </div>
         
         <!-- Subtle trust badges -->
-        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem; border-top: 1px dashed rgba(15,23,42,0.1); padding-top: 1.5rem;">
+        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 1.5rem; border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 1.5rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
             <i class="fas fa-truck" style="color: var(--gold);"></i>
             <span>Бърза доставка</span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
             <i class="fas fa-shield-alt" style="color: var(--gold);"></i>
-            <span>Преглед (без тест)</span>
+            <span>Преглед</span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
             <i class="fas fa-handshake" style="color: var(--gold);"></i>
@@ -167,7 +197,7 @@
     </section>
 
     <!-- --- ABOUT US / TRUST SECTION --- -->
-    <section class="about-us-section" style="padding: 4rem 0; background: #fff; border-top: 1px solid rgba(15,23,42,0.04); margin-top: 3rem;">
+    <section class="about-us-section" style="padding: 4rem 0; background: var(--ck-surface); border-top: 1px solid rgba(255,255,255,0.06); margin-top: 3rem;">
       <div class="container" style="max-width: 1100px; margin: 0 auto; padding: 0 1.5rem;">
         <div class="about-grid">
           <div>
@@ -231,7 +261,7 @@
             <span id="product-page-client-badge" class="admin-badge" style="display:none; font-size: 0.7rem; border-color: var(--gold); color: var(--gold); background: rgba(22, 122, 255, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px;"></span>
           </div>
           
-          <p id="product-page-desc" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem; font-size: 1rem;"></p>
+          <p id="product-page-desc" style="color: var(--text-muted); line-height: 1.7; margin-bottom: 2rem; font-size: 0.95rem; white-space: pre-wrap; overflow-wrap: break-word;"></p>
           
           <div class="modal-specs-list" style="margin-bottom: 2rem; background: rgba(15,23,42,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem;">
             <div class="modal-spec-row" style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); font-size: 0.9rem;"><span class="modal-spec-label" style="color: var(--text-muted);">Материал:</span><span class="modal-spec-val" id="product-page-spec-material" style="color: var(--primary); font-weight: 500;"></span></div>
@@ -437,7 +467,7 @@
           Ние споделяме Вашите данни единствено с доверени партньори, ангажирани с доставката на Вашата поръчка:
         </p>
         <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
-          <li><strong>Куриерски фирми (Еконт / Спиди):</strong> За целите на доставката, с опция за преглед (без тест) преди плащане.</li>
+          <li><strong>Куриерски фирми (Еконт / Спиди):</strong> За целите на доставката, с опция за преглед преди плащане.</li>
           <li><strong>Счетоводни софтуери и услуги:</strong> При издаване на фактура за законова отчетност.</li>
         </ul>
         
@@ -500,7 +530,7 @@
         <h2 style="font-family: var(--font-sans); color: var(--primary); font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem;">3. Доставка и Преглед</h2>
         <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; list-style-type: disc; line-height: 1.7; color: var(--primary);">
           <li>Доставките се извършват от нашия склад в Букурещ, Румъния на територията на Република България чрез лицензирани куриерски услуги (Еконт или Спиди) в рамките на 3-4 работни дни.</li>
-          <li>Всички пратки се изпращат с включена безплатна опция за <strong>Преглед (без тест)</strong> преди заплащане.</li>
+          <li>Всички пратки се изпращат с включена безплатна опция за <strong>Преглед</strong> преди заплащане.</li>
           <li>Клиентът е длъжен да огледа стоката в присъствието на куриера. В случай на установено транспортно увреждане или липса, се попълва двустранен протокол за рекламация на място.</li>
         </ul>
         
@@ -677,7 +707,7 @@
         <a href="/" onclick="event.preventDefault(); goToHome();" style="display: inline-block; margin-bottom: 1rem;">
           <img src="/assets/logo.webp" alt="CaseKing Logo" class="logo-img-footer" style="margin-bottom: 0;">
         </a>
-        <p class="footer-desc">Най-добрите аксесоари за мобилни телефони на едно място. Професионално обслужване, качество и доставка за 3-4 работни дни с опция за преглед (без тест).</p>
+        <p class="footer-desc">Най-добрите аксесоари за мобилни телефони на едно място. Професионално обслужване, качество и доставка за 3-4 работни дни с опция за преглед.</p>
       </div>
       <div>
         <h4 class="footer-title">Информация</h4>
@@ -942,6 +972,30 @@
 
   <!-- Javascript -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script type="module" src="/app.js?v=1.0.9"></script>
+  <script type="module" src="/app.js?v=1.1.0"></script>
+
+  <!-- Sticky header scroll effect (adds .scrolled class for glassmorphism intensity) -->
+  <script>
+    (function () {
+      var header = document.getElementById('site-header');
+      if (!header) return;
+      var ticking = false;
+      function onScroll() {
+        if (!ticking) {
+          window.requestAnimationFrame(function () {
+            if (window.scrollY > 20) {
+              header.classList.add('scrolled');
+            } else {
+              header.classList.remove('scrolled');
+            }
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    })();
+  </script>
 </body>
 </html>

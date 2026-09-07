@@ -2001,7 +2001,7 @@ function processCSVData(rows) {
         material,
         weight,
         origin: originIdx !== -1 && row[originIdx] ? row[originIdx].toString().trim() : "Румъния",
-        delivery: delIdx !== -1 && row[delIdx] ? row[delIdx].toString().trim() : "Доставка 3-4 работни дни с преглед (без тест)"
+        delivery: delIdx !== -1 && row[delIdx] ? row[delIdx].toString().trim() : "Доставка 3-4 работни дни с преглед"
       },
       image,
       images

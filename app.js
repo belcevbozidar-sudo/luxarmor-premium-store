@@ -47,7 +47,7 @@ const STATIC_PRODUCTS = [
     rating: 5,
     tag: "БЕСТСЕЛЪР",
     description: "Луксозен калъф от естествена селектирана телешка кожа с вградена MagSafe технология. Изключително фино усещане и защита.",
-    specs: { material: "Естествена кожа", weight: "30г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед (без тест)" }
+    specs: { material: "Естествена кожа", weight: "30г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед" }
   },
   {
     _id: "prod_2",
@@ -63,7 +63,7 @@ const STATIC_PRODUCTS = [
     rating: 5,
     tag: "ХИТ",
     description: "Ултратънък и изключително здрав кейс от 100% арамидни влакна (Kevlar). Военен клас на защита, дебелина само 0.6 мм.",
-    specs: { material: "Карбонов кевлар", weight: "12г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед (без тест)" }
+    specs: { material: "Карбонов кевлар", weight: "12г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед" }
   },
   {
     _id: "prod_3",
@@ -79,7 +79,7 @@ const STATIC_PRODUCTS = [
     rating: 5,
     tag: "НОВО",
     description: "Мек и удобен силиконов кейс с микрофибърна подплата отвътре за максимална защита от надраскване и падане.",
-    specs: { material: "Премиум течен силикон", weight: "25г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед (без тест)" }
+    specs: { material: "Премиум течен силикон", weight: "25г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед" }
   },
   {
     _id: "prod_4",
@@ -95,7 +95,7 @@ const STATIC_PRODUCTS = [
     rating: 4,
     tag: null,
     description: "Напълно прозрачен кейс, който не пожълтява. Разкрива оригиналния дизайн на вашия телефон, защитавайки го перфектно.",
-    specs: { material: "Поликарбонат и TPU", weight: "22г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед (без тест)" }
+    specs: { material: "Поликарбонат и TPU", weight: "22г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед" }
   },
   {
     _id: "prod_5",
@@ -111,7 +111,7 @@ const STATIC_PRODUCTS = [
     rating: 5,
     tag: "БЕСТСЕЛЪР",
     description: "Ултратънък магнитен външен акумулатор. Бързо безжично зареждане и перфектно сцепление с MagSafe.",
-    specs: { material: "Поликарбонат & Алуминий", weight: "190г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед (без тест)" }
+    specs: { material: "Поликарбонат & Алуминий", weight: "190г", origin: "Румъния", delivery: "Доставка 3-4 работни дни с преглед" }
   }
 ];
 
@@ -155,7 +155,7 @@ let PROMOTIONS = [];
 let isDataLoaded = false;
 let pageSeoMetadata = [];
 let heroTitleText = `CaseKing - Премиум <span style="color: var(--gold);">Аксесоари за Телефони</span>`;
-let heroSubtitleText = "В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с доставка за 3-4 работни дни и опция преглед (без тест)!";
+let heroSubtitleText = "В CaseKing ще намерите най-добрите аксесоари за телефони – висококачествени кейсове, изключително здрави протектори, зарядни устройства и бързи кабели с гарантиран произход. Пазарувайте с доставка за 3-4 работни дни!";
 
 function renderHeroSettings() {
   const tEl = document.getElementById("homepage-hero-title");
@@ -271,7 +271,11 @@ function getProductSlug(name) {
 // Image proxy URL helper
 function getProductImageUrl(url, name, model) {
   if (!url) return "";
-  return url;
+  // Local assets — serve directly
+  if (url.startsWith("/assets") || url.startsWith("assets/")) return url;
+  // External images — route through Vercel image proxy for WebP + caching
+  const params = new URLSearchParams({ url, name: name || "", model: model || "" });
+  return `/api/image?${params}`;
 }
 
 // --- PASS HASH UTILITY ---
@@ -1086,11 +1090,6 @@ async function renderCatalog(loadMore = false) {
       handleRouting();
     };
     
-    let ratingStars = "";
-    for (let i = 1; i <= 5; i++) {
-      ratingStars += `<i class="${i <= product.rating ? 'fas' : 'far'} fa-star"></i>`;
-    }
-    
     const tagHtml = product.tag ? `<span class="badge-tag sale">${product.tag}</span>` : "";
     
     // Choose active price (B2B vs B2C)
@@ -1106,12 +1105,11 @@ async function renderCatalog(loadMore = false) {
     card.innerHTML = `
       ${tagHtml}
       <div class="product-image-container">
-        <img class="product-img" src="${getProductImageUrl(product.image, product.name, product.model)}" alt="${product.name}" loading="lazy">
+        <img class="product-img" src="${getProductImageUrl(product.image, product.name, product.model)}" alt="${product.name}" loading="lazy" onerror="this.src='/assets/logo.webp'">
       </div>
-      <div class="product-details">
+      <div class="product-info">
         <span class="product-category">${product.brand}</span>
         <h3 class="product-name">${product.name}</h3>
-        <div class="product-rating">${ratingStars}</div>
         <div class="product-price-box">
           ${priceHtml}
         </div>
@@ -1137,8 +1135,10 @@ function updateProductPageImage(index) {
   currentProductImageIndex = index;
   
   const mainImgUrl = currentProductImagesList[index];
-  document.getElementById("product-page-image").src = getProductImageUrl(mainImgUrl, currentProductImageName, currentProductImageModel);
-  document.getElementById("product-page-image").alt = currentProductImageName;
+  const mainImgEl = document.getElementById("product-page-image");
+  mainImgEl.onerror = function() { this.onerror = null; this.src = "/assets/logo.webp"; };
+  mainImgEl.src = getProductImageUrl(mainImgUrl, currentProductImageName, currentProductImageModel);
+  mainImgEl.alt = currentProductImageName;
   
   // Update thumbnail borders
   const thumbnailsContainer = document.getElementById("product-page-thumbnails");
@@ -1184,6 +1184,7 @@ function renderProductPage(p) {
     if (currentProductImagesList.length > 1) {
       currentProductImagesList.forEach((imgUrl, imgIdx) => {
         const thumb = document.createElement("img");
+        thumb.onerror = function() { this.onerror = null; this.src = "/assets/logo.webp"; };
         thumb.src = getProductImageUrl(imgUrl, p.name, p.model);
         thumb.alt = `${p.name} - ${imgIdx + 1}`;
         thumb.style.cssText = "width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; transition: border-color 0.2s; flex-shrink: 0;";
@@ -1216,7 +1217,9 @@ function renderProductPage(p) {
   document.getElementById("product-page-spec-material").textContent = p.specs.material;
   document.getElementById("product-page-spec-weight").textContent = p.specs.weight;
   document.getElementById("product-page-spec-origin").textContent = p.specs.origin;
-  document.getElementById("product-page-spec-delivery").textContent = p.specs.delivery;
+  // Sanitize delivery text: strip any unwanted "(без тест)" note that may exist in stored data
+  document.getElementById("product-page-spec-delivery").textContent =
+    (p.specs.delivery || "").replace(/\s*\(без тест\)\s*/gi, " ").trim();
   
   // Stars
   let ratingStars = "";
@@ -1263,6 +1266,28 @@ function renderProductPage(p) {
   document.getElementById("product-page-add-to-cart").onclick = (e) => {
     addToCart(p._id, activeProductPageQty, e);
   };
+
+  // Update or create product structured data (SEO JSON-LD)
+  let ldScript = document.getElementById("product-ld-json");
+  if (!ldScript) {
+    ldScript = document.createElement("script");
+    ldScript.type = "application/ld+json";
+    ldScript.id = "product-ld-json";
+    document.head.appendChild(ldScript);
+  }
+  ldScript.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": p.name,
+    "description": p.description,
+    "brand": { "@type": "Brand", "name": p.brand },
+    "offers": {
+      "@type": "Offer",
+      "price": p.priceB2C || p.price,
+      "priceCurrency": "BGN",
+      "availability": "https://schema.org/InStock"
+    }
+  });
 }
 
 // --- CART CALCULATIONS & RENDERING ---
@@ -1536,7 +1561,7 @@ async function renderCartItems() {
         </button>`;
 
     itemRow.innerHTML = `
-      <img class="cart-item-img" src="${getProductImageUrl(item.image, item.name)}" alt="${item.name}">
+      <img class="cart-item-img" src="${getProductImageUrl(item.image, item.name)}" alt="${item.name}" onerror="this.src='/assets/logo.webp'">
       <div class="cart-item-details">
         <h4 class="cart-item-name">${item.name}</h4>
         <span class="cart-item-price">${item.price === 0 ? "0.00 € (0.00 лв.)" : formatPrice(item.price)}</span>
@@ -2301,11 +2326,11 @@ function updateSEO(pageKey, dynamicTitle = null, dynamicDesc = null) {
   }
   
   if (!description) {
-    if (pageKey === "home") description = "Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с доставка за 3-4 работни дни и преглед (без тест)!";
+    if (pageKey === "home") description = "Добре дошли в CaseKing - най-големият избор на премиум кейсове, протектори и аксесоари за мобилни телефони. Изберете марка, модел и поръчайте с доставка за 3-4 работни дни и преглед!";
     else if (pageKey === "za-nas") description = "Научете повече за CaseKing, нашата визия и мисията ни да осигурим безкомпромисно качество и доставка за 3-4 работни дни на премиум телефонни аксесоари.";
     else if (pageKey === "kontakti") description = "Свържете се с CaseKing. Изпратете ни запитване през нашата контактна форма или се обадете на 0878 202 823 за консултация.";
     else if (pageKey === "aksesoari") description = "Разгледайте нашите категории аксесоари за мобилни телефони - кейсове, калъфи, стъклени протектори, зарядни устройства и много други.";
-    else description = "Най-добрите аксесоари за мобилни телефони на едно място. Професионално обслужване, качество и доставка за 3-4 работни дни с опция за преглед (без тест).";
+    else description = "Най-добрите аксесоари за мобилни телефони на едно място. Професионално обслужване, качество и доставка за 3-4 работни дни с опция за преглед.";
   }
   
   // Apply to DOM
@@ -2803,11 +2828,6 @@ async function renderCategoryDetailPage(catId, loadMore = false) {
       handleRouting();
     };
     
-    let ratingStars = "";
-    for (let i = 1; i <= 5; i++) {
-      ratingStars += `<i class="${i <= product.rating ? 'fas' : 'far'} fa-star"></i>`;
-    }
-    
     const tagHtml = product.tag ? `<span class="badge-tag sale">${product.tag}</span>` : "";
     const isB2B = currentUser && currentUser.clientType === "B2B";
     const price = isB2B ? (product.priceB2B ?? product.price) : (product.priceB2C ?? product.price);
@@ -2820,13 +2840,12 @@ async function renderCategoryDetailPage(catId, loadMore = false) {
       
     card.innerHTML = `
       ${tagHtml}
-      <div class="product-image-container" style="padding: 0.75rem;">
-        <img class="product-img" style="object-fit: contain; width: 100%; height: 100%;" src="${getProductImageUrl(product.image, product.name, product.model)}" alt="${product.name}" loading="lazy">
+      <div class="product-image-container">
+        <img class="product-img" src="${getProductImageUrl(product.image, product.name, product.model)}" alt="${product.name}" loading="lazy" onerror="this.src='/assets/logo.webp'">
       </div>
-      <div class="product-details">
+      <div class="product-info">
         <span class="product-category">${product.brand}</span>
         <h3 class="product-name">${product.name}</h3>
-        <div class="product-rating">${ratingStars}</div>
         <div class="product-price-box">
           ${priceHtml}
         </div>
