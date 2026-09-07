@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/browser/+esm";
+import { resolveBrandLogo } from "./brand-logos.js?v=1.0.0";
 
 const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
 
@@ -569,7 +570,7 @@ function renderBrands() {
     if (selectedBrand === brand.name) btn.classList.add("active");
     btn.onclick = () => selectBrand(brand.name);
     
-    const logoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `assets/${brand.logo || 'logo.webp'}`;
+    const logoSrc = resolveBrandLogo(brand, 'assets/');
     btn.innerHTML = `
       <img src="${logoSrc}" alt="${brand.name}" class="brand-card-img" onerror="this.onerror=null;this.src='assets/logo.webp'">
       <span class="brand-card-text">${brand.name}</span>
@@ -581,7 +582,7 @@ function renderBrands() {
       const mBtn = document.createElement("button");
       mBtn.className = "menu-brand-item";
       mBtn.onclick = () => selectMobileBrand(brand.name, mBtn);
-      const mLogoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `assets/${brand.logo || 'logo.webp'}`;
+      const mLogoSrc = resolveBrandLogo(brand, 'assets/');
       mBtn.innerHTML = `
         <img src="${mLogoSrc}" class="menu-brand-img" onerror="this.onerror=null;this.src='assets/logo.webp'">
         <span>${brand.name}</span>
@@ -3172,7 +3173,7 @@ function renderCategoryDetailBrands(catId) {
       }
       renderCategoryDetailPage(catId);
     };
-    const logoSrc = (brand.logo && brand.logo.startsWith('data:')) ? brand.logo : `/assets/${brand.logo || 'logo.webp'}`;
+    const logoSrc = resolveBrandLogo(brand, '/assets/');
     btn.innerHTML = `
       <img src="${logoSrc}" alt="${brand.name}" class="brand-card-img" onerror="this.onerror=null;this.src='/assets/logo.webp'">
       <span class="brand-card-text">${brand.name}</span>

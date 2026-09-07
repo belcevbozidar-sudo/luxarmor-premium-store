@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/browser/+esm";
+import { resolveBrandLogo } from "./brand-logos.js?v=1.0.0";
 
 const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
 
@@ -747,7 +748,7 @@ function renderBrandsAndModels() {
     const div = document.createElement("div");
     div.className = "meta-item" + (selectedBrandFilter === b.name ? " selected" : "");
     div.style.cursor = "pointer";
-    const brandLogoSrc = (b.logo && b.logo.startsWith('data:')) ? b.logo : `assets/${b.logo || 'logo.webp'}`;
+    const brandLogoSrc = resolveBrandLogo(b, 'assets/');
     div.innerHTML = `
       <div class="meta-item-info" style="flex:1; display:flex; align-items:center; gap:0.75rem;">
         <img src="${brandLogoSrc}" class="meta-logo-preview" onerror="this.onerror=null;this.src='assets/logo.webp'">

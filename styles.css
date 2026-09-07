@@ -3513,23 +3513,45 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
    CASEKING 2.0 — REDESIGN COMPONENTS (mockup match)
    ============================================================ */
 
-/* ---------- SPLIT HERO ---------- */
+/* ---------- FULL-BLEED HERO ---------- */
 .ck-hero {
   position: relative;
-  padding: 3rem 0 2rem;
-  background:
-    radial-gradient(70% 90% at 75% 30%, rgba(245,197,24,0.10) 0%, transparent 60%),
-    linear-gradient(180deg, var(--ck-bg) 0%, var(--ck-surface) 100%);
+  display: flex;
+  align-items: center;
+  min-height: clamp(460px, 58vh, 640px);
+  padding: 4.5rem 0;
+  background: var(--ck-bg);
   border-bottom: 1px solid var(--ck-border);
   overflow: hidden;
+  isolation: isolate;
+}
+/* Background image fills the whole section */
+.ck-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.ck-hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% center;
+  display: block;
+}
+/* Readability overlay so the copy always stays legible */
+.ck-hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(8,9,12,0.92) 0%, rgba(8,9,12,0.78) 34%, rgba(8,9,12,0.35) 60%, rgba(8,9,12,0.15) 100%),
+    linear-gradient(180deg, rgba(8,9,12,0.45) 0%, rgba(8,9,12,0) 35%, rgba(8,9,12,0.55) 100%);
 }
 .ck-hero-inner {
-  display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  align-items: center;
-  gap: 2.5rem;
+  position: relative;
+  z-index: 1;
 }
-.ck-hero-text { text-align: left; }
+.ck-hero-text { text-align: left; max-width: 40rem; }
 .ck-hero-title {
   font-size: 3.4rem;
   font-weight: 800;
@@ -3538,46 +3560,34 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   color: var(--ck-text);
   margin: 0.4rem 0 1rem;
 }
+.ck-hero-title { text-shadow: 0 2px 24px rgba(0,0,0,0.75); }
 .ck-hero-title span { color: var(--ck-accent); }
 .ck-hero-sub {
   font-size: 1.1rem;
-  color: var(--ck-text-2);
+  color: rgba(255,255,255,0.86);
   line-height: 1.6;
-  margin-bottom: 1.75rem;
+  margin-bottom: 0;
   max-width: 33rem;
+  text-shadow: 0 1px 14px rgba(0,0,0,0.7);
 }
 .ck-hero .hero-cta-row { justify-content: flex-start; margin: 0; }
+.ck-hero .hero-cta-row { margin-top: 1.75rem; }
 .ck-hero .hero-cta-primary,
 .ck-hero .hero-cta-secondary { text-transform: none; font-size: 0.95rem; letter-spacing: 0; border-radius: 10px; }
-.ck-hero-media {
-  position: relative;
-  display: flex;
-  justify-content: center;
+.ck-hero .hero-cta-secondary {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
-.ck-hero-media img {
-  width: 100%;
-  max-width: 620px;
-  border-radius: 18px;
-  display: block;
-  filter: drop-shadow(0 20px 45px rgba(0,0,0,0.55));
+.ck-hero .hero-cta-secondary:hover { background: rgba(255,255,255,0.16); border-color: var(--ck-accent); }
+.ck-hero .hero-eyebrow {
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
-.ck-hero-badge {
-  position: absolute;
-  right: -0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--ck-accent);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-align: center;
-  line-height: 1.9;
-}
-.ck-hero-badge i { font-size: 1.5rem; }
+.ck-hero #homepage-hero-title { color: #ffffff !important; }
+.ck-hero #homepage-hero-subtitle { color: rgba(255,255,255,0.88) !important; }
 
 /* ---------- PHONE FINDER BAR ---------- */
 .ck-finder-section { padding: 0 0 2.5rem; margin-top: -0.5rem; }
@@ -4149,12 +4159,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 900px) {
-  .ck-hero-inner { grid-template-columns: 1fr; gap: 1.5rem; }
-  .ck-hero-text { text-align: center; }
+  .ck-hero { min-height: 440px; padding: 3.5rem 0; }
+  .ck-hero-bg img { object-position: 58% center; }
+  .ck-hero-bg::after {
+    background: linear-gradient(180deg, rgba(8,9,12,0.62) 0%, rgba(8,9,12,0.40) 45%, rgba(8,9,12,0.80) 100%);
+  }
+  .ck-hero-text { text-align: center; max-width: 100%; }
   .ck-hero .hero-cta-row { justify-content: center; }
+  .ck-hero-sub { margin-left: auto; margin-right: auto; }
   .ck-hero-title { font-size: 2.4rem; }
-  .ck-hero-media { order: -1; }
-  .ck-hero-badge { display: none; }
   .ck-about-grid { grid-template-columns: 1fr; gap: 2rem; }
   .ck-about-words { position: static; transform: none; flex-direction: row; justify-content: center; margin-top: 1rem; gap: 1.25rem; }
   .ck-trust-row { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
@@ -4165,7 +4178,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .ck-cat-card.ck-cat-feature { grid-row: auto; grid-column: 1 / -1; min-height: 240px; }
 }
 @media (max-width: 640px) {
+  .ck-hero { min-height: 400px; padding: 3rem 0; }
   .ck-hero-title { font-size: 2rem; }
+  .ck-hero-sub { font-size: 1rem; }
+  .ck-hero .hero-cta-row { gap: 0.6rem; }
+  .ck-hero .hero-cta-primary, .ck-hero .hero-cta-secondary { flex: 1 1 100%; justify-content: center; }
   .ck-finder-bar { flex-direction: column; align-items: stretch; }
   .ck-finder-cta { justify-content: center; }
   .ck-trust-row { grid-template-columns: 1fr; }
