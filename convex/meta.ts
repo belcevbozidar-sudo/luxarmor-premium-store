@@ -62,6 +62,95 @@ export const removeBrand = mutation({
   },
 });
 
+// Редакция на марка от админ панела: сменя името и/или логото.
+// При смяна на името веднага пренасочва и МОДЕЛИТЕ (малка таблица), за да
+// не увиснат без марка. Продуктите се преименуват отделно, на партиди,
+// чрез renameBrandOnProducts - те могат да са десетки хиляди и не се
+// побират в лимитите на една мутация.
+export const updateBrand = mutation({
+  args: {
+    id: v.string(),
+    name: v.string(),
+    logo: v.optional(v.string()),
+    type: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const dbId = ctx.db.normalizeId("brands", args.id);
+    if (!dbId) throw new Error("Invalid brand ID");
+    const brand = await ctx.db.get(dbId);
+    if (!brand) throw new Error("Марката не е намерена");
+
+    const newName = args.name.trim();
+    if (!newName) throw new Error("Името на марката не може да е празно");
+
+    const renamed = newName !== brand.name;
+    if (renamed) {
+      const clash = await ctx.db
+        .query("brands")
+        .filter((q) => q.eq(q.field("name"), newName))
+        .first();
+      if (clash) throw new Error(`Вече съществува марка с име "${newName}"`);
+    }
+
+    const patchData: any = { name: newName };
+    if (args.logo) patchData.logo = args.logo;
+    if (args.type !== undefined) patchData.type = args.type;
+    await ctx.db.patch(dbId, patchData);
+
+    let renamedModels = 0;
+    if (renamed) {
+      const models = await ctx.db
+        .query("models")
+        .filter((q) => q.eq(q.field("brand"), brand.name))
+        .collect();
+      for (const m of models) {
+        await ctx.db.patch(m._id, { brand: newName });
+        renamedModels++;
+      }
+    }
+
+    return {
+      oldName: brand.name,
+      newName,
+      renamed,
+      renamedModels,
+    };
+  },
+});
+
+// Преименува марката върху продуктите, на партиди. Винаги чете ПЪРВАТА
+// страница от индекса by_brand за старото име - вече обработените записи
+// излизат от индекса, така че не е нужен курсор и няма риск от прескачане.
+// Извиква се в цикъл от админа, докато isDone стане true.
+export const renameBrandOnProducts = mutation({
+  args: {
+    oldName: v.string(),
+    newName: v.string(),
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    if (args.oldName === args.newName) return { updated: 0, isDone: true };
+    const size = Math.min(Math.max(args.batchSize ?? 200, 1), 500);
+
+    const batch = await ctx.db
+      .query("products")
+      .withIndex("by_brand", (q) => q.eq("brand", args.oldName))
+      .take(size);
+
+    const newBrand = args.newName.trim().toLowerCase();
+    for (const p of batch) {
+      await ctx.db.patch(p._id, {
+        brand: args.newName,
+        // matchKey съдържа марката - трябва да се преизчисли, иначе
+        // следващият импорт ще създаде дубликати.
+        matchKey: `${p.name.trim().toLowerCase()}|${newBrand}|${p.model.trim().toLowerCase()}|${p.category.trim().toLowerCase()}`,
+      });
+    }
+
+    return { updated: batch.length, isDone: batch.length < size };
+  },
+});
+
 // --- MODELS ---
 export const getModels = query({
   args: {},
