@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/browser/+esm";
 
-const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
+const convex = new ConvexHttpClient("https://aware-toucan-771.eu-west-1.convex.cloud");
 
 // APP STATE
 let ALL_POSTS = [];

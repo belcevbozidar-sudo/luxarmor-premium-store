@@ -1,7 +1,7 @@
 import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/browser/+esm";
 import { resolveBrandLogo } from "./brand-logos.js?v=1.0.0";
 
-const convex = new ConvexHttpClient("https://trustworthy-possum-230.eu-west-1.convex.cloud");
+const convex = new ConvexHttpClient("https://aware-toucan-771.eu-west-1.convex.cloud");
 
 // Global image error fallback for proxy URL failure
 window.addEventListener('error', function(e) {
