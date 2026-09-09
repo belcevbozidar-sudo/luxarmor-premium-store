@@ -1,5 +1,5 @@
 import { query } from "./_generated/server";
-import { adminMutation as mutation } from "./security";
+import { adminMutation as mutation, adminOrSyncMutation } from "./security";
 import { v } from "convex/values";
 
 // --- BRANDS ---
@@ -10,8 +10,9 @@ export const getBrands = query({
   },
 });
 
-export const addBrand = mutation({
+export const addBrand = adminOrSyncMutation({
   args: { name: v.string(), logo: v.string(), source: v.optional(v.string()), type: v.optional(v.string()) },
+  returns: v.id("brands"),
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("brands")
@@ -160,7 +161,8 @@ export const getModels = query({
   },
 });
 
-export const addModel = mutation({
+export const addModel = adminOrSyncMutation({
+  returns: v.id("models"),
   args: { name: v.string(), brand: v.string(), source: v.optional(v.string()), type: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -284,7 +286,8 @@ export const updateCategory = mutation({
 // Странирано (като backfillMatchKeys) - вика се на цикъл от скрипт с
 // countsSoFar от предишния отговор, докато isDone стане true; на
 // последната страница записва финалните числа в categories.
-export const countProductsByCategory = mutation({
+export const countProductsByCategory = adminOrSyncMutation({
+  returns: v.object({ counts: v.record(v.string(), v.number()), isDone: v.boolean(), continueCursor: v.string() }),
   args: {
     cursor: v.union(v.string(), v.null()),
     countsSoFar: v.record(v.string(), v.number()),

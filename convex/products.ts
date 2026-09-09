@@ -1,5 +1,5 @@
 import { query } from "./_generated/server";
-import { adminMutation as mutation } from "./security";
+import { adminMutation as mutation, adminOrSyncMutation } from "./security";
 import { v } from "convex/values";
 
 // Ключ за бързо (индексирано) търсене на дубликати - вместо да се
@@ -57,8 +57,9 @@ function buildSlug(name: string, model: string | null | undefined): string {
 // Еднократна миграция - попълва matchKey на всички съществуващи продукти
 // (създадени преди тази промяна), странирано на малки партиди. Вика се
 // повторно (с cursor-а от предния отговор), докато isDone стане true.
-export const backfillMatchKeys = mutation({
+export const backfillMatchKeys = adminOrSyncMutation({
   args: { cursor: v.union(v.string(), v.null()) },
+  returns: v.object({ updated: v.number(), isDone: v.boolean(), continueCursor: v.string() }),
   handler: async (ctx, args) => {
     const result = await ctx.db.query("products").paginate({
       cursor: args.cursor ?? null,
@@ -654,7 +655,8 @@ export const deleteProductsBySource = mutation({
   },
 });
 
-export const upsertBatch = mutation({
+export const upsertBatch = adminOrSyncMutation({
+  returns: v.object({ updatedCount: v.number(), createdCount: v.number() }),
   args: {
     products: v.array(
       v.object({

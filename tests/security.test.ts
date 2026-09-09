@@ -125,9 +125,11 @@ describe("admin and data privacy", () => {
     for (const file of ["products", "meta", "blog", "promotions", "promoCodes", "settings"]) {
       const source = readFileSync(new URL("../convex/" + file + ".ts", import.meta.url), "utf8");
       expect(source).toContain('adminMutation as mutation');
-      const exports = [...source.matchAll(/export const (\w+) = mutation\(/g)].map(m => m[1]);
+      const exports = [...source.matchAll(/export const (\w+) = (?:mutation|adminOrSyncMutation)\(/g)].map(m => m[1]);
       expect(exports.length).toBeGreaterThan(0);
       for (const name of exports) {
+        // Never invoke this operation, even in the local database simulator.
+        if (name === "deleteAllProductsPaginated") continue;
         // Call the registered handler to exercise the wrapper before business logic.
         const mod = await modules["../convex/" + file + ".ts"]() as Record<string, { _handler: Function }>;
         await t.run(async ctx => {
@@ -144,23 +146,36 @@ describe("admin and data privacy", () => {
     await t.mutation(api.orders.updateStatus, { id, status: "completed", adminToken });
     expect((await t.query(api.orders.get, { adminToken })).page[0].status).toBe("completed");
   });
-  test("admin login issues a hashed expiring token; lockout cannot be bypassed with a fingerprint", async () => {
+  test("anonymous failures are bounded and cannot lock the real admin out", async () => {
     const t = await fixture();
-    for (let i = 0; i < 5; i++) {
-      const result = await t.action(ref("authActions:adminLogin"), { password: "wrong" });
+    for (let i = 0; i < 20; i++) {
+      const result = await t.mutation(internal.admin.verifyAdminPassword, { password: "wrong", sessionHash: sha("unused") });
       expect(result.success).toBe(false);
+      expect(result.retryDelayMs).toBeGreaterThanOrEqual(250);
+      expect(result.retryDelayMs).toBeLessThanOrEqual(2000);
     }
-    expect((await t.action(ref("authActions:adminLogin"), { password })).success).toBe(false);
     const lock = await t.query(api.admin.getLockStatus, { fingerprint: "a-brand-new-browser" });
-    expect(lock.isLocked).toBe(true);
-    await t.run(async ctx => {
-      const row = await ctx.db.query("adminLocks").withIndex("by_fingerprint", q => q.eq("fingerprint", ADMIN_LOCK_KEY)).unique();
-      await ctx.db.patch(row!._id, { lockedUntil: Date.now() - 1 });
-    });
+    expect(lock.isLocked).toBe(false);
+    // Existing authenticated devices also remain authorized during an attack.
+    await expect(t.query(api.admin.getSession, { adminToken })).resolves.toBeDefined();
     const result = await t.action(ref("authActions:adminLogin"), { password });
+    expect(result.success).toBe(true);
     expect(result.token).toMatch(/^ck2_admin_[a-f0-9]{64}$/);
     expect((await t.query(api.admin.getSession, { adminToken: result.token })).expiresAt).toBeGreaterThan(Date.now());
+    const stored = await t.run(async ctx => await ctx.db.query("adminLocks").first());
+    expect(stored!.sessionHash).toBe(sha(result.token));
+    expect(stored!.sessionExpiresAt! - Date.now()).toBeLessThanOrEqual(ADMIN_TTL);
+    expect(stored!.failedCount).toBe(0);
+    // The intentionally preserved design supports one interactive admin session.
     await expect(t.query(api.admin.getSession, { adminToken })).rejects.toThrow();
+  });
+  test("rejected admin actions actually delay their response and weak configuration fails closed", async () => {
+    const t = await fixture();
+    const start = performance.now();
+    expect((await t.action(ref("authActions:adminLogin"), { password: "wrong" })).success).toBe(false);
+    expect(performance.now() - start).toBeGreaterThanOrEqual(240);
+    vi.stubEnv("ADMIN_PASSWORD", "weak");
+    await expect(t.action(ref("authActions:adminLogin"), { password: "weak" })).rejects.toThrow();
   });
   test("legacy password login upgrades hashing and rotates the session", async () => {
     const t = await fixture();
@@ -213,10 +228,30 @@ describe("Google server-side verification", () => {
       .setExpirationTime("1h").setAudience("70942273013-gfa27k4l90vr567srhdg978l7oip6jst.apps.googleusercontent.com").setIssuer("https://evil.test").sign(privateKey);
     await expect(t.action(ref("authActions:googleLogin"), { credential: wrongIssuer })).rejects.toThrow();
     await t.run(async ctx => {
-      await ctx.db.insert("users", { ...userData, email: "legacy@gmail.com", passwordHash: null, googleId: "legacy-subject", sessionToken: null });
+      await ctx.db.insert("users", { ...userData, email: " Legacy@Gmail.com ", passwordHash: null, googleId: "legacy-subject", sessionToken: null });
     });
     await expect(t.action(ref("authActions:googleLogin"), {
+      credential: await sign({ email: "legacy@gmail.com" }, "wrong-legacy-subject"),
+    })).rejects.toThrow();
+    const legacyId = await t.run(async ctx => (await ctx.db.query("users")
+      .withIndex("by_email", q => q.eq("email", " Legacy@Gmail.com ")).unique())!._id);
+    const upgraded = await t.action(ref("authActions:googleLogin"), {
       credential: await sign({ email: "legacy@gmail.com" }, "legacy-subject"),
+    });
+    expect(upgraded.success).toBe(true);
+    expect(upgraded.userId).toBe(legacyId);
+    expect(upgraded.sessionToken).toMatch(/^ck2_user_[a-f0-9]{64}$/);
+    const legacy = await t.run(async ctx => await ctx.db.get(legacyId));
+    expect(legacy!.googleVerified).toBe(true);
+    expect(legacy!.sessionToken).toBe(sha(upgraded.sessionToken));
+    expect(await t.run(async ctx => (await ctx.db.query("users").take(10)).length)).toBe(3);
+    // Password accounts remain blocked even if a legacy googleId matches the JWT sub.
+    await t.run(async ctx => {
+      const user = await ctx.db.query("users").withIndex("by_email", q => q.eq("email", userData.email)).unique();
+      await ctx.db.patch(user!._id, { googleId: "password-subject" });
+    });
+    await expect(t.action(ref("authActions:googleLogin"), {
+      credential: await sign({ email: userData.email }, "password-subject"), registration,
     })).rejects.toThrow();
     vi.stubEnv("GOOGLE_CLIENT_ID", "");
     await expect(t.action(ref("authActions:googleLogin"), { credential: good })).rejects.toThrow();

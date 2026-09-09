@@ -3,25 +3,26 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { ADMIN_LOCK_KEY, ADMIN_TTL, adminMutation, digest, requireAdmin } from "./security";
 
-// The fixed server-owned key prevents lockout bypass via a new fingerprint.
+// One global interactive session is intentional: a new login replaces the old one.
+// Failure state only delays rejected responses; it never rejects the correct password.
 // Only authActions can supply a cryptographically generated session hash.
 export const verifyAdminPassword = internalMutation({
   args: { password: v.string(), sessionHash: v.string() },
-  returns: v.object({ success: v.boolean(), error: v.optional(v.string()), lockedUntil: v.optional(v.number()), expiresAt: v.optional(v.number()) }),
+  returns: v.object({ success: v.boolean(), error: v.optional(v.string()), retryDelayMs: v.optional(v.number()), expiresAt: v.optional(v.number()) }),
   handler: async (ctx, args) => {
     const password = process.env.ADMIN_PASSWORD;
     if (!password || password.length < 16) throw new Error("Admin login is not configured securely");
     const now = Date.now();
     const lock = await ctx.db.query("adminLocks")
       .withIndex("by_fingerprint", q => q.eq("fingerprint", ADMIN_LOCK_KEY)).unique();
-    if (lock && lock.lockedUntil > now) return { success: false, error: "Твърде много опити. Опитайте по-късно.", lockedUntil: lock.lockedUntil };
     if (await digest(args.password) !== await digest(password)) {
-      const failedCount = lock?.lockedUntil ? 1 : (lock?.failedCount ?? 0) + 1;
-      const lockedUntil = failedCount >= 5 ? now + 15 * 60 * 1000 : 0;
+      const fresh = !lock || lock.lockedUntil <= now;
+      const failedCount = fresh ? 1 : Math.min(8, lock.failedCount + 1);
+      const lockedUntil = fresh ? now + 60 * 1000 : lock.lockedUntil;
       const data = { failedCount, lockedUntil };
       if (lock) await ctx.db.patch(lock._id, data);
       else await ctx.db.insert("adminLocks", { fingerprint: ADMIN_LOCK_KEY, ...data });
-      return { success: false, error: "Невалидна парола.", ...(lockedUntil ? { lockedUntil } : {}) };
+      return { success: false, error: "Невалидна парола.", retryDelayMs: Math.min(2000, 250 * 2 ** (failedCount - 1)) };
     }
     const expiresAt = now + ADMIN_TTL;
     const data = { failedCount: 0, lockedUntil: 0, sessionHash: args.sessionHash, sessionExpiresAt: expiresAt, passwordVersion: await digest(password) };
@@ -47,12 +48,8 @@ export const expireSession = internalMutation({
 export const getLockStatus = query({
   args: { fingerprint: v.optional(v.string()) },
   returns: v.object({ isLocked: v.boolean(), lockedUntil: v.optional(v.number()) }),
-  handler: async ctx => {
-    const lock = await ctx.db.query("adminLocks")
-      .withIndex("by_fingerprint", q => q.eq("fingerprint", ADMIN_LOCK_KEY)).unique();
-    return lock && lock.lockedUntil > Date.now()
-      ? { isLocked: true, lockedUntil: lock.lockedUntil } : { isLocked: false };
-  },
+  // Compatibility for the existing UI. Anonymous failures cannot lock that UI.
+  handler: async () => ({ isLocked: false }),
 });
 
 export const getSession = query({

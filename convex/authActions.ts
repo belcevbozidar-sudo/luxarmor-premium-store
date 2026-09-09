@@ -4,6 +4,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { authResultValidator, registrationFields } from "./security";
 
 const googleKeys = createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
@@ -31,7 +32,9 @@ export const adminLogin = action({
     if (args.password.length > 1024) throw new Error("Невалиден вход.");
     const sessionToken = token("admin");
     const result = await ctx.runMutation(internal.admin.verifyAdminPassword, { password: args.password, sessionHash: sha(sessionToken) });
-    return result.success ? { ...result, token: sessionToken } : result;
+    const { retryDelayMs, ...response } = result;
+    if (!result.success) await new Promise(resolve => setTimeout(resolve, retryDelayMs ?? 250));
+    return result.success ? { ...response, token: sessionToken } : response;
   },
 });
 
@@ -43,7 +46,6 @@ export const register = action({
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254
       || args.password.length < 12 || args.password.length > 256) throw new Error("Въведете валиден имейл и парола от 12 до 256 символа.");
     if (!args.name.trim() || !args.phone.trim() || !args.address.trim()) throw new Error("Попълнете данните за профила.");
-    if (!await ctx.runMutation(internal.users.reserveLoginAttempt, { email })) throw new Error("Твърде много опити.");
     const sessionToken = token("user");
     const { password, ...data } = args;
     const result = await ctx.runMutation(internal.users.register, {
@@ -58,9 +60,13 @@ export const login = action({
   returns: authResultValidator,
   handler: async (ctx, args) => {
     if (args.email.length > 254 || args.password.length > 256) throw new Error("Невалиден имейл или парола.");
-    if (!await ctx.runMutation(internal.users.reserveLoginAttempt, { email: args.email })) throw new Error("Твърде много опити. Опитайте след 15 минути.");
     const user = await ctx.runQuery(internal.users.credentials, { email: args.email });
-    if (!user?.passwordHash || !checkPassword(args.password, user.passwordHash)) throw new Error("Невалиден имейл или парола.");
+    const attempt = { userId: user?.userId ?? null };
+    if (!await ctx.runMutation(internal.users.checkLoginAttempt, attempt)) throw new Error("Невалиден имейл или парола.");
+    if (!user?.passwordHash || !checkPassword(args.password, user.passwordHash)) {
+      await ctx.runMutation(internal.users.recordLoginFailure, attempt);
+      throw new Error("Невалиден имейл или парола.");
+    }
     const sessionToken = token("user");
     const result = await ctx.runMutation(internal.users.login, {
       userId: user.userId, expectedHash: user.passwordHash,
@@ -91,15 +97,25 @@ export const googleLogin = action({
         || !payload.sub || payload.sub.length > 255) throw new Error("Invalid identity");
       // Google must be authoritative for the email, not merely a third-party address.
       if (!payload.email.toLowerCase().endsWith("@gmail.com") && typeof payload.hd !== "string") throw new Error("Non-authoritative email");
-      identity = { email: payload.email.toLowerCase(), googleId: payload.sub,
+      identity = { email: payload.email.trim().toLowerCase(), googleId: payload.sub,
         name: typeof payload.name === "string" ? payload.name : payload.email };
     } catch {
       throw new Error("Невалиден или изтекъл Google вход.");
     }
     if (args.registration && (!args.registration.phone.trim() || !args.registration.address.trim())) throw new Error("Попълнете телефон и адрес.");
+    let emailCursor: string | null = null;
+    let emailUserId: Id<"users"> | undefined;
+    while (true) {
+      const page: { userId: Id<"users"> | null; isDone: boolean; continueCursor: string } =
+        await ctx.runQuery(internal.users.lookupGoogleEmail, { email: identity.email, cursor: emailCursor });
+      if (page.userId) emailUserId = page.userId;
+      if (page.isDone) break;
+      emailCursor = page.continueCursor;
+    }
     const sessionToken = token("user");
     const result = await ctx.runMutation(internal.users.googleLogin, {
-      ...identity, sessionHash: sha(sessionToken), ...(args.registration ? { registration: args.registration } : {}),
+      ...identity, ...(emailUserId ? { emailUserId } : {}),
+      sessionHash: sha(sessionToken), ...(args.registration ? { registration: args.registration } : {}),
     });
     return result.success ? { ...result, sessionToken } : result;
   },

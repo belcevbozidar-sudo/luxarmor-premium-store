@@ -31,6 +31,24 @@ const adminAccess = {
 };
 export const adminQuery = customQuery(query, adminAccess);
 export const adminMutation = customMutation(mutation, adminAccess);
+// Only the five explicitly selected Koff operations use this wrapper.
+// Sync credentials are consumed here, never passed into product/metadata records.
+export const adminOrSyncMutation = customMutation(mutation, {
+  args: { adminToken: v.optional(v.string()), syncSecret: v.optional(v.string()) },
+  input: async (ctx, { adminToken, syncSecret }) => {
+    if (syncSecret !== undefined) {
+      const expected = process.env.CASEKING_SYNC_SECRET;
+      if (!expected || expected.length < 32 || expected.length > 512
+        || expected === process.env.ADMIN_PASSWORD || /^ck2_(admin|user)_/.test(expected)
+        || syncSecret.length > 512 || await digest(syncSecret) !== await digest(expected)) {
+        throw new Error("Unauthorized");
+      }
+    } else {
+      await requireAdmin(ctx, adminToken ?? "");
+    }
+    return { ctx: {}, args: {} };
+  },
+});
 export const companyValidator = v.object({
   name: v.string(), bulstat: v.string(), address: v.string(), mol: v.string(), vatRegistered: v.boolean(),
 });

@@ -2,6 +2,11 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  loginFailures: defineTable({
+    key: v.string(),
+    failedCount: v.number(),
+    expiresAt: v.number(),
+  }).index("by_key", ["key"]).index("by_expiresAt", ["expiresAt"]),
   products: defineTable({
     name: v.string(),
     brand: v.string(),
