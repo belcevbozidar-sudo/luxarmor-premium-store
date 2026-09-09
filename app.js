@@ -230,6 +230,10 @@ let selectedModel = null;
 let selectedCategory = null;
 let categoryDetailSelectedBrand = null;
 let categoryDetailSelectedModel = null;
+// Категорията, за която важат горните избори - позволява да различим
+// "минаваме през продуктова страница, отворена от тук" (запази избора)
+// от "отиваме в друга категория" (изчисти избора). Виж handleRouting.
+let categoryDetailLastCatId = null;
 let searchQuery = "";
 
 // Странирано ("Зареди още") състояние за renderCatalog() и
@@ -2985,9 +2989,23 @@ async function handleRouting() {
     path = "/";
   }
   
-  if (!activeCategoryDetailId) {
+  if (activeCategoryDetailId) {
+    // Ако е различна категория от онази, за която е избрана марка/модел -
+    // изборът не важи тук, изчистваме го.
+    if (categoryDetailLastCatId && categoryDetailLastCatId !== activeCategoryDetailId) {
+      categoryDetailSelectedBrand = null;
+      categoryDetailSelectedModel = null;
+    }
+    categoryDetailLastCatId = activeCategoryDetailId;
+  } else if (!path.startsWith("/produkt/")) {
+    // Продуктова страница, отворена от категорията, е само временно
+    // спирало - изборът на марка/модел трябва да оцелее през нея, за да
+    // работи правилно "назад" (както бутона, така и стрелката на
+    // браузъра). Изчистваме само когато наистина излизаме от
+    // прегледа на категории (начало, списък с категории и т.н.).
     categoryDetailSelectedBrand = null;
     categoryDetailSelectedModel = null;
+    categoryDetailLastCatId = null;
   }
   
   if (product) {
@@ -3096,8 +3114,19 @@ async function handleRouting() {
 }
 
 window.backToCatalog = function() {
-  history.pushState("", document.title, "/" + window.location.search);
-  handleRouting();
+  // "Назад" трябва да върне ЕДНА стъпка назад (към категорията/каталога,
+  // от който е отворен продукта, със запазен избор на марка/модел), не
+  // винаги към началната страница. history.back() е точно същото
+  // действие като стрелката "назад" на браузъра, включително извиква
+  // handleRouting през вече закачения popstate listener.
+  // Ако страницата е отворена директно (напр. споделен линк, без история
+  // в този таб), няма къде да се върнем - тогава пращаме към началото.
+  if (window.history.length > 1) {
+    history.back();
+  } else {
+    history.pushState("", document.title, "/" + window.location.search);
+    handleRouting();
+  }
 };
 
 function renderCategoriesListPage() {
@@ -3163,15 +3192,31 @@ function renderCategoryDetailBrands(catId) {
     const btn = document.createElement("button");
     btn.className = "brand-pill-btn";
     if (categoryDetailSelectedBrand === brand.name) btn.classList.add("active");
-    btn.onclick = () => {
+    btn.onclick = async () => {
+      let justSelected = false;
       if (categoryDetailSelectedBrand === brand.name) {
         categoryDetailSelectedBrand = null;
         categoryDetailSelectedModel = null;
       } else {
         categoryDetailSelectedBrand = brand.name;
         categoryDetailSelectedModel = null;
+        justSelected = true;
       }
-      renderCategoryDetailPage(catId);
+      // При избор на марка "избери модел" се появява веднага (синхронно),
+      // но при аксесоарни категории целим директно продуктите - тях ги
+      // изчакваме да заредят (await), иначе scrollIntoView щраква към все
+      // още късата "Зареждане..." страница и спира по-рано от нужното.
+      if (justSelected && accessoryMode) {
+        await renderCategoryDetailPage(catId);
+      } else {
+        renderCategoryDetailPage(catId);
+      }
+      if (justSelected) {
+        const scrollTarget = document.getElementById(
+          accessoryMode ? "category-detail-product-grid" : "cat-detail-step2-title"
+        );
+        if (scrollTarget) scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     };
     const logoSrc = resolveBrandLogo(brand, '/assets/');
     btn.innerHTML = `
@@ -3217,13 +3262,22 @@ function renderCategoryDetailBrands(catId) {
         const btn = document.createElement("button");
         btn.className = "model-pill-btn";
         if (categoryDetailSelectedModel === model.displayName) btn.classList.add("active");
-        btn.onclick = () => {
+        btn.onclick = async () => {
+          let justSelected = false;
           if (categoryDetailSelectedModel === model.displayName) {
             categoryDetailSelectedModel = null;
           } else {
             categoryDetailSelectedModel = model.displayName;
+            justSelected = true;
           }
-          renderCategoryDetailPage(catId);
+          // Изчакваме продуктите да заредят, преди да скролнем - иначе
+          // страницата е още къса ("Зареждане...") и scrollIntoView спира
+          // по-рано, отколкото трябва, щом истинските продукти се появят.
+          await renderCategoryDetailPage(catId);
+          if (justSelected) {
+            const grid = document.getElementById("category-detail-product-grid");
+            if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
         };
         btn.innerHTML = `
           <div class="model-icon-box"><i class="fas fa-mobile-alt"></i></div>
