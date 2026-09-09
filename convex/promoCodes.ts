@@ -1,8 +1,9 @@
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation as mutation, adminQuery } from "./security";
 import { v } from "convex/values";
 
 // --- GET ALL PROMO CODES ---
-export const get = query({
+export const get = adminQuery({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("promoCodes").collect();

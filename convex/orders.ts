@@ -1,5 +1,7 @@
-import { mutation, query } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { adminMutation, adminQuery } from "./security";
+import schema from "./schema";
 
 export const create = mutation({
   args: {
@@ -53,18 +55,24 @@ export const create = mutation({
   },
 });
 
-export const get = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("orders").order("desc").collect();
+export const get = adminQuery({
+  args: { cursor: v.optional(v.union(v.string(), v.null())) },
+  returns: v.object({
+    page: v.array(v.object({ ...schema.tables.orders.validator.fields, _id: v.id("orders"), _creationTime: v.number() })),
+    isDone: v.boolean(), continueCursor: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("orders").order("desc").paginate({ cursor: args.cursor ?? null, numItems: 100 });
+    return { page: result.page, isDone: result.isDone, continueCursor: result.continueCursor };
   },
 });
 
-export const updateStatus = mutation({
+export const updateStatus = adminMutation({
   args: {
-    id: v.string(),
-    status: v.string(), // "pending" | "completed" | "cancelled"
+    id: v.id("orders"),
+    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("cancelled")),
   },
+  returns: v.string(),
   handler: async (ctx, args) => {
     const dbId = ctx.db.normalizeId("orders", args.id);
     if (!dbId) throw new Error("Invalid order ID");

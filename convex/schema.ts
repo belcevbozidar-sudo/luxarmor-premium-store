@@ -94,6 +94,9 @@ export default defineSchema({
     fingerprint: v.string(),
     failedCount: v.number(),
     lockedUntil: v.number(), // timestamp in ms
+    sessionHash: v.optional(v.string()),
+    sessionExpiresAt: v.optional(v.number()),
+    passwordVersion: v.optional(v.string()),
   }).index("by_fingerprint", ["fingerprint"]),
 
   promotions: defineTable({
@@ -122,9 +125,12 @@ export default defineSchema({
       })
     ),
     sessionToken: v.union(v.string(), v.null()),
+    sessionExpiresAt: v.optional(v.number()),
+    googleVerified: v.optional(v.boolean()),
     createdAt: v.string(),
   })
     .index("by_email", ["email"])
+    .index("by_verified_google", ["googleId", "googleVerified"])
     .index("by_session", ["sessionToken"]),
 
   brands: defineTable({

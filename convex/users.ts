@@ -1,212 +1,138 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
+import { adminQuery, authResultValidator, digest, profileValidator, registrationFields, safeProfile, USER_TTL } from "./security";
 
-// Native SHA-256 hashing using Web Crypto API
-async function hashPassword(password: string) {
-  const msgBuffer = new TextEncoder().encode(password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-export const register = mutation({
-  args: {
-    email: v.string(),
-    password: v.union(v.string(), v.null()),
-    clientType: v.string(), // "B2C" | "B2B"
-    name: v.string(),
-    phone: v.string(),
-    address: v.string(),
-    googleId: v.union(v.string(), v.null()),
-    companyDetails: v.optional(
-      v.object({
-        name: v.string(),
-        bulstat: v.string(),
-        address: v.string(),
-        mol: v.string(),
-        vatRegistered: v.boolean(),
-      })
-    ),
-  },
+export const register = internalMutation({
+  args: { email: v.string(), passwordHash: v.string(), sessionHash: v.string(), ...registrationFields },
+  returns: authResultValidator,
   handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
-
-    if (existing) {
-      throw new Error("Потребител с този имейл вече съществува!");
-    }
-
-    const passwordHash = args.password ? await hashPassword(args.password) : null;
-    const sessionToken = "CK_USER_SESSION_" + Math.random().toString(36).substring(2, 15);
-
+    const existing = await ctx.db.query("users").withIndex("by_email", q => q.eq("email", args.email)).first();
+    if (existing) throw new Error("Регистрацията не може да бъде завършена.");
+    const { sessionHash, ...data } = args;
     const userId = await ctx.db.insert("users", {
-      email: args.email,
-      passwordHash,
-      clientType: args.clientType,
-      name: args.name,
-      phone: args.phone,
-      address: args.address,
-      googleId: args.googleId,
-      companyDetails: args.companyDetails,
-      sessionToken,
-      createdAt: new Date().toISOString(),
+      ...data, googleId: null, sessionToken: sessionHash,
+      sessionExpiresAt: Date.now() + USER_TTL, createdAt: new Date().toISOString(),
     });
-
-    return {
-      success: true,
-      userId,
-      sessionToken,
-      clientType: args.clientType,
-      name: args.name,
-    };
+    await ctx.scheduler.runAfter(USER_TTL, internal.users.expireSession, { userId, sessionHash });
+    return { success: true, userId, clientType: args.clientType, name: args.name };
   },
 });
 
-export const login = mutation({
-  args: {
-    email: v.string(),
-    password: v.string(),
-  },
+// Increment before password verification, in a separate committed transaction.
+export const reserveLoginAttempt = internalMutation({
+  args: { email: v.string() },
+  returns: v.boolean(),
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
-
-    if (!user) {
-      throw new Error("Невалиден имейл или парола!");
-    }
-
-    if (!user.passwordHash) {
-      throw new Error("Този имейл е регистриран през Google. Влезте с Google!");
-    }
-
-    const inputHash = await hashPassword(args.password);
-    if (user.passwordHash !== inputHash) {
-      throw new Error("Невалиден имейл или парола!");
-    }
-
-    const sessionToken = "CK_USER_SESSION_" + Math.random().toString(36).substring(2, 15);
-    await ctx.db.patch(user._id, { sessionToken });
-
-    return {
-      success: true,
-      userId: user._id,
-      sessionToken,
-      clientType: user.clientType,
-      name: user.name,
-    };
+    const fingerprint = "security:user:" + await digest(args.email.trim().toLowerCase());
+    const lock = await ctx.db.query("adminLocks")
+      .withIndex("by_fingerprint", q => q.eq("fingerprint", fingerprint)).unique();
+    const now = Date.now();
+    if (lock && lock.lockedUntil > now && lock.failedCount >= 10) return false;
+    const failedCount = !lock || lock.lockedUntil <= now ? 1 : lock.failedCount + 1;
+    const lockedUntil = !lock || lock.lockedUntil <= now ? now + 15 * 60 * 1000 : lock.lockedUntil;
+    if (lock) await ctx.db.patch(lock._id, { failedCount, lockedUntil });
+    else await ctx.db.insert("adminLocks", { fingerprint, failedCount, lockedUntil });
+    return true;
   },
 });
 
-export const googleLogin = mutation({
-  args: {
-    email: v.string(),
-    name: v.string(),
-    googleId: v.string(),
-    clientType: v.optional(v.string()), // For completing registration
-    phone: v.optional(v.string()),
-    address: v.optional(v.string()),
-    companyDetails: v.optional(
-      v.object({
-        name: v.string(),
-        bulstat: v.string(),
-        address: v.string(),
-        mol: v.string(),
-        vatRegistered: v.boolean(),
-      })
-    ),
-  },
+export const credentials = internalQuery({
+  args: { email: v.string() },
+  returns: v.union(v.null(), v.object({ userId: v.id("users"), passwordHash: v.union(v.string(), v.null()) })),
   handler: async (ctx, args) => {
-    // Check if user exists by email
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
+    // Preserve exact-case legacy email login without a data migration.
+    const exact = await ctx.db.query("users").withIndex("by_email", q => q.eq("email", args.email.trim())).first();
+    const user = exact ?? await ctx.db.query("users")
+      .withIndex("by_email", q => q.eq("email", args.email.trim().toLowerCase())).first();
+    return user ? { userId: user._id, passwordHash: user.passwordHash } : null;
+  },
+});
 
-    const sessionToken = "CK_USER_SESSION_" + Math.random().toString(36).substring(2, 15);
+export const login = internalMutation({
+  args: { userId: v.id("users"), expectedHash: v.string(), passwordHash: v.string(), sessionHash: v.string() },
+  returns: authResultValidator,
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user || user.passwordHash !== args.expectedHash) throw new Error("Невалиден вход.");
+    await ctx.db.patch(user._id, {
+      passwordHash: args.passwordHash, sessionToken: args.sessionHash, sessionExpiresAt: Date.now() + USER_TTL,
+    });
+    await ctx.scheduler.runAfter(USER_TTL, internal.users.expireSession, { userId: user._id, sessionHash: args.sessionHash });
+    return { success: true, userId: user._id, clientType: user.clientType, name: user.name };
+  },
+});
 
+// Identity fields arrive only from the server's verified Google JWT.
+export const googleLogin = internalMutation({
+  args: {
+    email: v.string(), name: v.string(), googleId: v.string(), sessionHash: v.string(),
+    registration: v.optional(v.object(registrationFields)),
+  },
+  returns: authResultValidator,
+  handler: async (ctx, args) => {
+    const verifiedUser = await ctx.db.query("users")
+      .withIndex("by_verified_google", q => q.eq("googleId", args.googleId).eq("googleVerified", true)).unique();
+    const user = verifiedUser ?? await ctx.db.query("users").withIndex("by_email", q => q.eq("email", args.email)).first();
     if (user) {
-      // Exist: log them in and update googleId/sessionToken
-      await ctx.db.patch(user._id, {
-        googleId: args.googleId,
-        sessionToken,
-      });
-
-      return {
-        success: true,
-        userId: user._id,
-        sessionToken,
-        clientType: user.clientType,
-        name: user.name,
-      };
+      // Never auto-link a password account or trust a legacy client-supplied googleId.
+      if (!user.googleVerified || user.googleId !== args.googleId) {
+        throw new Error("Този профил изисква вход с парола или потвърдено възстановяване. Автоматично свързване с Google не е разрешено.");
+      }
+      await ctx.db.patch(user._id, { sessionToken: args.sessionHash, sessionExpiresAt: Date.now() + USER_TTL });
+      await ctx.scheduler.runAfter(USER_TTL, internal.users.expireSession, { userId: user._id, sessionHash: args.sessionHash });
+      return { success: true, userId: user._id, clientType: user.clientType, name: user.name };
     }
+    if (!args.registration) return { needsRegistration: true, email: args.email, name: args.name };
+    const userId = await ctx.db.insert("users", {
+      ...args.registration, name: args.name, email: args.email, passwordHash: null,
+      googleId: args.googleId, googleVerified: true, sessionToken: args.sessionHash,
+      sessionExpiresAt: Date.now() + USER_TTL, createdAt: new Date().toISOString(),
+    });
+    await ctx.scheduler.runAfter(USER_TTL, internal.users.expireSession, { userId, sessionHash: args.sessionHash });
+    return { success: true, userId, clientType: args.registration.clientType, name: args.name };
+  },
+});
 
-    // If they do not exist and registration details are provided, register them
-    if (args.clientType && args.phone && args.address) {
-      const userId = await ctx.db.insert("users", {
-        email: args.email,
-        passwordHash: null,
-        clientType: args.clientType,
-        name: args.name,
-        phone: args.phone,
-        address: args.address,
-        googleId: args.googleId,
-        companyDetails: args.companyDetails,
-        sessionToken,
-        createdAt: new Date().toISOString(),
-      });
-
-      return {
-        success: true,
-        userId,
-        sessionToken,
-        clientType: args.clientType,
-        name: args.name,
-      };
+export const expireSession = internalMutation({
+  args: { userId: v.id("users"), sessionHash: v.string() }, returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (user?.sessionToken === args.sessionHash && (user.sessionExpiresAt ?? 0) <= Date.now()) {
+      await ctx.db.patch(user._id, { sessionToken: null, sessionExpiresAt: undefined });
     }
-
-    // Needs to choose B2C/B2B account type first
-    return {
-      needsRegistration: true,
-      email: args.email,
-      name: args.name,
-      googleId: args.googleId,
-    };
+    return null;
   },
 });
 
 export const getProfile = query({
   args: { sessionToken: v.string() },
+  returns: v.union(v.null(), profileValidator),
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_session", (q) => q.eq("sessionToken", args.sessionToken))
-      .first();
-    return user || null;
+    if (!/^ck2_user_[a-f0-9]{64}$/.test(args.sessionToken)) return null;
+    const hash = await digest(args.sessionToken);
+    const user = await ctx.db.query("users").withIndex("by_session", q => q.eq("sessionToken", hash)).unique();
+    if (!user || !user.sessionExpiresAt || user.sessionExpiresAt <= Date.now()) return null;
+    return safeProfile(user);
   },
 });
 
 export const logout = mutation({
-  args: { sessionToken: v.string() },
+  args: { sessionToken: v.string() }, returns: v.null(),
   handler: async (ctx, args) => {
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_session", (q) => q.eq("sessionToken", args.sessionToken))
-      .first();
-
-    if (user) {
-      await ctx.db.patch(user._id, { sessionToken: null });
-    }
-    return "Logged out";
+    if (!/^ck2_user_[a-f0-9]{64}$/.test(args.sessionToken)) return null;
+    const hash = await digest(args.sessionToken);
+    const user = await ctx.db.query("users").withIndex("by_session", q => q.eq("sessionToken", hash)).unique();
+    if (user) await ctx.db.patch(user._id, { sessionToken: null, sessionExpiresAt: undefined });
+    return null;
   },
 });
 
-export const get = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("users").collect();
+export const get = adminQuery({
+  args: { cursor: v.optional(v.union(v.string(), v.null())) },
+  returns: v.object({ page: v.array(profileValidator), isDone: v.boolean(), continueCursor: v.string() }),
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("users").order("desc").paginate({ cursor: args.cursor ?? null, numItems: 100 });
+    return { page: result.page.map(safeProfile), isDone: result.isDone, continueCursor: result.continueCursor };
   },
 });

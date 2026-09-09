@@ -1,4 +1,5 @@
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation as mutation, adminQuery } from "./security";
 import { v } from "convex/values";
 
 // Public queries
@@ -40,7 +41,7 @@ export const getLatest = query({
 });
 
 // Admin queries
-export const getAll = query({
+export const getAll = adminQuery({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("blogPosts").collect();

@@ -1,4 +1,5 @@
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation as mutation } from "./security";
 import { v } from "convex/values";
 
 // --- BRANDS ---
@@ -569,5 +570,3 @@ export const updateExistingSettings = mutation({
     return `Updated existing settings and ${updatedCount} metadata pages.`;
   }
 });
-
-

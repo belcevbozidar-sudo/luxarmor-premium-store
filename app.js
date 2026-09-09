@@ -457,6 +457,7 @@ async function verifySession() {
         currentUser = profile;
         updateUserUIState();
       } else {
+        currentUser = null;
         localStorage.removeItem("caseking_session_token");
       }
     } catch (err) {
@@ -2603,7 +2604,6 @@ window.handleUserRegister = async function(event) {
     name,
     phone,
     address,
-    googleId: googleRegisterTemp ? googleRegisterTemp.googleId : null
   };
   
   if (activeRegType === "B2B") {
@@ -2617,18 +2617,13 @@ window.handleUserRegister = async function(event) {
   }
   
   try {
-    const res = await convex.mutation("users:register", regPayload);
+    const { password: submittedPassword, email: submittedEmail, ...registration } = regPayload;
+    const res = googleRegisterTemp
+      ? await convex.action("authActions:googleLogin", { credential: googleRegisterTemp.credential, registration })
+      : await convex.action("authActions:register", { ...registration, email: submittedEmail, password: submittedPassword });
     if (res.success) {
       localStorage.setItem("caseking_session_token", res.sessionToken);
-      currentUser = {
-        _id: res.userId,
-        email,
-        clientType: res.clientType,
-        name: res.name,
-        phone,
-        address,
-        companyDetails: regPayload.companyDetails
-      };
+      await verifySession();
       
       googleRegisterTemp = null;
       updateUserUIState();
@@ -2647,7 +2642,7 @@ window.handleUserLogin = async function(event) {
   const password = document.getElementById("auth-login-pass").value;
   
   try {
-    const res = await convex.mutation("users:login", { email, password });
+    const res = await convex.action("authActions:login", { email, password });
     if (res.success) {
       localStorage.setItem("caseking_session_token", res.sessionToken);
       await verifySession();
@@ -2738,57 +2733,27 @@ function initGoogleLoginButton() {
   );
 }
 
-// JWT decoder helper
-function parseJwt(token) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-}
-
+// Google claims are accepted only after server-side signature/claim verification.
 async function handleGoogleCredentialResponse(response) {
   const credential = response.credential;
-  const payload = parseJwt(credential);
-  if (!payload) {
-    alert("Грешка при валидация на Google профил.");
-    return;
-  }
-  
-  const email = payload.email;
-  const name = payload.name;
-  const googleId = payload.sub;
-  
   try {
-    const res = await convex.mutation("users:googleLogin", { email, name, googleId });
+    const res = await convex.action("authActions:googleLogin", { credential });
     if (res.success) {
-      // Logged in
       localStorage.setItem("caseking_session_token", res.sessionToken);
       await verifySession();
       closeAuthModal();
     } else if (res.needsRegistration) {
-      // Google account needs details registration
-      googleRegisterTemp = { email, name, googleId };
-      
+      googleRegisterTemp = { credential };
       toggleAuthPanel("register");
-      
-      // Fill email and name
-      document.getElementById("reg-email").value = email;
+      document.getElementById("reg-email").value = res.email;
       document.getElementById("reg-email").disabled = true;
-      document.getElementById("reg-name").value = name;
-      
-      // Hide password input since they register with Google
+      document.getElementById("reg-name").value = res.name;
       document.getElementById("reg-pass-group").style.display = "none";
       document.getElementById("reg-pass").required = false;
-      
       alert("Моля, попълнете вашия телефон и адрес за доставка, за да довършите профила си!");
     }
   } catch (err) {
+    googleRegisterTemp = null;
     alert("Грешка при вход с Google: " + err.message);
   }
 }

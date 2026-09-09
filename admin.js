@@ -1,7 +1,45 @@
 import { ConvexHttpClient } from "https://cdn.jsdelivr.net/npm/convex@1.38.0/browser/+esm";
 import { resolveBrandLogo } from "./brand-logos.js?v=1.0.0";
 
-const convex = new ConvexHttpClient("https://aware-toucan-771.eu-west-1.convex.cloud");
+const transport = new ConvexHttpClient("https://aware-toucan-771.eu-west-1.convex.cloud");
+const privateQueries = new Set(["orders:get", "users:get", "blog:getAll", "promotions:getAll", "promoCodes:get"]);
+const convex = {
+  query: (name, args = {}) => requestAdmin("query", name, args, privateQueries.has(name)),
+  mutation: (name, args = {}) => requestAdmin("mutation", name, args, true),
+};
+async function requestAdmin(method, name, args, protectedRequest) {
+  try {
+    return await transport[method](name, protectedRequest ? { ...args, adminToken: adminToken || "" } : args);
+  } catch (error) {
+    if (protectedRequest && String(error.message).includes("Unauthorized")) {
+      localStorage.removeItem("caseking_admin_token");
+      sessionStorage.removeItem("caseking_admin_token");
+      adminToken = null;
+      window.location.reload(); // Discard private records and rendered details.
+    }
+    throw error;
+  }
+}
+let sessionExpiryTimer;
+function scheduleSessionExpiry(expiresAt) {
+  clearTimeout(sessionExpiryTimer);
+  sessionExpiryTimer = setTimeout(() => {
+    localStorage.removeItem("caseking_admin_token");
+    sessionStorage.removeItem("caseking_admin_token");
+    window.location.reload();
+  }, Math.max(0, expiresAt - Date.now()));
+}
+async function fetchPrivateRecords(name) {
+  const records = [];
+  let cursor = null;
+  do {
+    const result = await convex.query(name, { cursor });
+    records.push(...result.page);
+    if (result.isDone) return records;
+    cursor = result.continueCursor;
+  } while (cursor);
+  return records;
+}
 
 // Зарежда целия продуктов каталог на порции (products:getPage), вместо на
 // един удар (products:get), за да не удари лимита на Convex за брой
@@ -19,7 +57,7 @@ async function fetchAllProducts() {
   return allProducts;
 }
 
-let adminToken = localStorage.getItem("caseking_admin_token") || null;
+let adminToken = sessionStorage.getItem("caseking_admin_token") || localStorage.getItem("caseking_admin_token") || null;
 let allProducts = [];
 let allBrands = [];
 let allModels = [];
@@ -118,11 +156,22 @@ function getOrderFinanceBreakdown(order) {
 
 function getOrderItemPreview(item) {
   const product = allProducts.find(p => p._id === item.id);
-  const image = item.image || (product && product.image) || "";
+  const image = safeOrderUrl(item.image || (product && product.image) || "");
   const productSlug = item.productSlug || (product ? getProductSlug(product.name + " " + (product.model || "")) : "");
-  const productUrl = item.productUrl || (productSlug ? `/produkt/${productSlug}` : "");
+  const productUrl = safeOrderUrl(item.productUrl || (productSlug ? `/produkt/${productSlug}` : ""));
 
   return { image, productSlug, productUrl };
+}
+
+// Order fields are supplied by customers. Reject executable URL schemes.
+function safeOrderUrl(value) {
+  if (!value) return "";
+  try {
+    const url = new URL(value, window.location.origin);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
 }
 
 // --- PAGINATION & FILTER STATE ---
@@ -194,8 +243,17 @@ async function checkAuth() {
   }
 
   if (adminToken) {
-    document.getElementById("login-overlay").classList.add("hidden");
-    loadDashboardData();
+    try {
+      const session = await transport.query("admin:getSession", { adminToken });
+      scheduleSessionExpiry(session.expiresAt);
+      document.getElementById("login-overlay").classList.add("hidden");
+      await loadDashboardData();
+    } catch {
+      adminToken = null;
+      localStorage.removeItem("caseking_admin_token");
+      sessionStorage.removeItem("caseking_admin_token");
+      document.getElementById("login-overlay").classList.remove("hidden");
+    }
   } else {
     document.getElementById("login-overlay").classList.remove("hidden");
   }
@@ -222,7 +280,7 @@ function showLockoutScreen(lockedUntil) {
       const mins = Math.floor(diff / 60000);
       const secs = Math.floor((diff % 60000) / 1000);
       document.getElementById("login-subtitle").textContent = `Заключен достъп! Моля изчакайте ${mins}м ${secs}с.`;
-      errorBox.textContent = `Твърде много грешни опити. Защитно заключване за 60 минути.`;
+      errorBox.textContent = "Твърде много грешни опити. Изчакайте посоченото време.";
       setTimeout(updateCountdown, 1000);
     }
   }
@@ -237,12 +295,18 @@ window.attemptAdminLogin = async function() {
   errorBox.style.display = "none";
   
   try {
-    const res = await convex.mutation("admin:verifyAdminPassword", { password, fingerprint });
+    const res = await transport.action("authActions:adminLogin", { password });
     if (res.success) {
       adminToken = res.token;
+      localStorage.removeItem("caseking_admin_token");
+      sessionStorage.removeItem("caseking_admin_token");
       if (remember) {
         localStorage.setItem("caseking_admin_token", res.token);
+      } else {
+        sessionStorage.setItem("caseking_admin_token", res.token);
       }
+      document.getElementById("admin-pass").value = "";
+      scheduleSessionExpiry(res.expiresAt);
       document.getElementById("login-overlay").classList.add("hidden");
       loadDashboardData();
     } else {
@@ -258,9 +322,16 @@ window.attemptAdminLogin = async function() {
   }
 };
 
-window.adminLogout = function() {
+window.adminLogout = async function() {
+  try {
+    if (adminToken) await convex.mutation("admin:logout");
+  } catch {
+    alert("Сървърният изход не е потвърден. Локалната сесия ще бъде изчистена.");
+  }
   adminToken = null;
   localStorage.removeItem("caseking_admin_token");
+  sessionStorage.removeItem("caseking_admin_token");
+  clearTimeout(sessionExpiryTimer);
   window.location.href = "/";
 };
 
@@ -292,10 +363,10 @@ async function loadDashboardData() {
     }
     
     allPromotions = await convex.query("promotions:getAll");
-    allOrders = await convex.query("orders:get");
+    allOrders = await fetchPrivateRecords("orders:get");
     
     try {
-      allUsers = await convex.query("users:get");
+      allUsers = await fetchPrivateRecords("users:get");
     } catch (userErr) {
       console.warn("Could not load users from db:", userErr);
     }
@@ -2539,14 +2610,14 @@ function renderB2BUsers() {
     const comp = u.companyDetails || {};
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><strong>${u.name}</strong></td>
-      <td>${u.email}</td>
-      <td>${u.phone}</td>
-      <td>${comp.name || "Няма"}</td>
-      <td>${comp.bulstat || "Няма"}</td>
-      <td>${comp.mol || "Няма"}</td>
+      <td><strong>${escapeHtml(u.name)}</strong></td>
+      <td>${escapeHtml(u.email)}</td>
+      <td>${escapeHtml(u.phone)}</td>
+      <td>${escapeHtml(comp.name || "Няма")}</td>
+      <td>${escapeHtml(comp.bulstat || "Няма")}</td>
+      <td>${escapeHtml(comp.mol || "Няма")}</td>
       <td>${comp.vatRegistered ? "Да" : "Не"}</td>
-      <td>${comp.address || u.address}</td>
+      <td>${escapeHtml(comp.address || u.address)}</td>
     `;
     tbody.appendChild(tr);
   });

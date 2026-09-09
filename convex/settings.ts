@@ -1,4 +1,5 @@
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation as mutation } from "./security";
 import { v } from "convex/values";
 
 export const getHero = query({

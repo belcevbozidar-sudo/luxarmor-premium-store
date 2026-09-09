@@ -8,9 +8,17 @@
   },
   "dependencies": {
     "convex": "^1.11.0",
+    "convex-helpers": "0.1.115",
+    "jose": "^6.2.12",
     "sharp": "^0.35.0"
   },
   "allowScripts": {
     "esbuild@0.27.0": true
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.0",
+    "convex-test": "0.0.41",
+    "typescript": "5.9.3",
+    "vitest": "^5.0.0"
   }
 }

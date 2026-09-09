@@ -1,4 +1,5 @@
-import { query, mutation } from "./_generated/server";
+import { query } from "./_generated/server";
+import { adminMutation as mutation } from "./security";
 import { v } from "convex/values";
 
 // Ключ за бързо (индексирано) търсене на дубликати - вместо да се
@@ -954,4 +955,3 @@ export const updateAllProductSpecs = mutation({
     return `Updated specs for ${updatedCount} products.`;
   }
 });
-
