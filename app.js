@@ -2723,7 +2723,7 @@ function initGoogleLoginButton() {
   }
   
   google.accounts.id.initialize({
-    client_id: "25806833456-m8f2h90vm7r0dfbujef1s3pdr3hesqhr.apps.googleusercontent.com",
+    client_id: "70942273013-gfa27k4l90vr567srhdg978l7oip6jst.apps.googleusercontent.com",
     callback: handleGoogleCredentialResponse
   });
   

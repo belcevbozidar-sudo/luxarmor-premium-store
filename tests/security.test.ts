@@ -37,7 +37,7 @@ async function fixture() {
 }
 beforeEach(() => {
   vi.stubEnv("ADMIN_PASSWORD", password);
-  vi.stubEnv("GOOGLE_CLIENT_ID", "test.apps.googleusercontent.com");
+  vi.stubEnv("GOOGLE_CLIENT_ID", "70942273013-gfa27k4l90vr567srhdg978l7oip6jst.apps.googleusercontent.com");
 });
 afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
 
@@ -185,7 +185,7 @@ describe("Google server-side verification", () => {
     const sign = (claims: Record<string, unknown> = {}, subject = "google-subject") => new SignJWT({
       email: "new@gmail.com", email_verified: true, name: "Verified", ...claims,
     }).setProtectedHeader({ alg: "RS256", kid: "test-key" }).setSubject(subject)
-      .setIssuedAt().setExpirationTime("1h").setAudience("test.apps.googleusercontent.com")
+      .setIssuedAt().setExpirationTime("1h").setAudience("70942273013-gfa27k4l90vr567srhdg978l7oip6jst.apps.googleusercontent.com")
       .setIssuer("https://accounts.google.com").sign(privateKey);
     const good = await sign();
     const preliminary = await t.action(ref("authActions:googleLogin"), { credential: good });
@@ -203,14 +203,14 @@ describe("Google server-side verification", () => {
       .setExpirationTime("1h").setAudience("evil-app").setIssuer("https://accounts.google.com").sign(privateKey);
     const expired = await new SignJWT({ email: "new@gmail.com", email_verified: true })
       .setProtectedHeader({ alg: "RS256", kid: "test-key" }).setSubject("google-subject").setIssuedAt()
-      .setExpirationTime(Math.floor(Date.now() / 1000) - 60).setAudience("test.apps.googleusercontent.com")
+      .setExpirationTime(Math.floor(Date.now() / 1000) - 60).setAudience("70942273013-gfa27k4l90vr567srhdg978l7oip6jst.apps.googleusercontent.com")
       .setIssuer("https://accounts.google.com").sign(privateKey);
     for (const credential of [wrongAudience, expired, await sign({ email: "test@gmail.com" }, "other-subject")]) {
       await expect(t.action(ref("authActions:googleLogin"), { credential })).rejects.toThrow();
     }
     const wrongIssuer = await new SignJWT({ email: "new@gmail.com", email_verified: true })
       .setProtectedHeader({ alg: "RS256", kid: "test-key" }).setSubject("google-subject").setIssuedAt()
-      .setExpirationTime("1h").setAudience("test.apps.googleusercontent.com").setIssuer("https://evil.test").sign(privateKey);
+      .setExpirationTime("1h").setAudience("70942273013-gfa27k4l90vr567srhdg978l7oip6jst.apps.googleusercontent.com").setIssuer("https://evil.test").sign(privateKey);
     await expect(t.action(ref("authActions:googleLogin"), { credential: wrongIssuer })).rejects.toThrow();
     await t.run(async ctx => {
       await ctx.db.insert("users", { ...userData, email: "legacy@gmail.com", passwordHash: null, googleId: "legacy-subject", sessionToken: null });

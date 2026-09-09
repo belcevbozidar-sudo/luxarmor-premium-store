@@ -76,7 +76,9 @@ export const googleLogin = action({
   returns: authResultValidator,
   handler: async (ctx, args) => {
     const audience = process.env.GOOGLE_CLIENT_ID;
-    if (!audience || !audience.endsWith(".apps.googleusercontent.com")) throw new Error("Google login is not configured");
+    if (audience !== "70942273013-gfa27k4l90vr567srhdg978l7oip6jst.apps.googleusercontent.com") {
+      throw new Error("GOOGLE_CLIENT_ID must match the current CaseKing Google Web Client ID");
+    }
     if (args.credential.length > 16384) throw new Error("Невалиден Google вход.");
     let identity;
     try {
